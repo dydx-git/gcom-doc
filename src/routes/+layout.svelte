@@ -79,3 +79,9 @@
       <slot />
     </Grid>
   </Content>
+
+  <style>
+    :global(.default-gap) {
+      padding-top: var(--cds-spacing-05);
+    }
+  </style>
