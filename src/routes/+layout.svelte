@@ -30,7 +30,7 @@
 
     <Theme bind:theme persist persistKey="__carbon-theme" />
   
-  <Header company="IBM" platformName="Carbon Svelte">
+  <Header company="Thread Tapes" platformName="DOC">
     <svelte:fragment slot="skip-to-content">
       <SkipToContent />
     </svelte:fragment>
