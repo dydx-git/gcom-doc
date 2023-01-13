@@ -1,9 +1,7 @@
 import type { Company } from './company';
+import type { IEntity } from './core';
 
-export interface SalesRep {
-	id: number;
-	firstName: string;
-	lastName: string;
+export interface SalesRep extends IEntity {
 	company: Company;
 	username: string;
 	mentor: SalesRep;

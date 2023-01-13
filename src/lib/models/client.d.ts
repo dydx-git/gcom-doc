@@ -1,10 +1,8 @@
 import type { Company } from './company';
+import type { IEntity } from './core';
 import type { SalesRep } from './employee';
 
-export interface Client {
-	id: number;
-	name: string;
-	orderEmail: string;
+export interface Client extends IEntity {
 	invoiceEmail: string;
 	phone: string;
 	phone2: string;

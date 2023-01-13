@@ -1,8 +1,7 @@
-export interface Company {
-	id: number;
-	name: string;
+import type { IEntity, IHasEmail } from './core';
+
+export interface Company extends IEntity, IHasEmail {
 	address: string;
-	email: string;
 	phone: string;
 	website: string;
 }
