@@ -33,6 +33,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@prisma/client": "^4.8.1"
+		"@prisma/client": "^4.8.1",
+		"dayjs": "^1.11.7"
 	}
 }

@@ -1,23 +1,11 @@
-import client from '$db/client';
-import { Prisma, type job, type purchase_order } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-const jobInclude = Prisma.validator<Prisma.purchase_orderInclude>()({
-	job: true
+const jobInclude = Prisma.validator<Prisma.PurchaseOrderInclude>()({
+	jobs: true
 });
 
-export type Orders = Prisma.purchase_orderGetPayload<typeof jobInclude>;
+const clientInclude = Prisma.validator<Prisma.JobInclude>()({});
 
-export class PurchaseOrder implements purchase_order {
-	id: number;
-	job_id: string;
-
-	constructor(pos: PurchaseOrder) {
-		this.id = pos[0].id;
-	}
-}
-
-export class Jobs extends Array<job> {
-	constructor() {
-		super();
-	}
-}
+export type Order = Prisma.PurchaseOrderGetPayload<{
+	include: typeof jobInclude;
+}>;

@@ -16,11 +16,11 @@ model Client {
   updatedAt             DateTime        @updatedAt @db.DateTime(0)
   payMethod             PayMethod       @map("pay_method")
   currency              Currency
-  client_addresses      ClientAddress[]
-  client_email          ClientEmail[]
-  client_phone          ClientPhone[]
+  addresses             ClientAddress[]
+  emails                ClientEmail[]
+  phones                ClientPhone[]
   status                ClientStatus
-  purchase_order        PurchaseOrder[]
+  orders                PurchaseOrder[]
 
   @@map("clients")
 }
@@ -50,24 +50,24 @@ model GmailMsg {
 }
 
 model Job {
-  id             String        @id @db.VarChar(32)
-  name           String        @db.VarChar(100)
-  price          Decimal       @db.Decimal(10, 2)
-  createdAt      DateTime      @default(now()) @db.DateTime(0)
-  updatedAt      DateTime      @updatedAt @db.DateTime(0)
-  type           JobType
-  status         JobStatus
-  vendorId       String        @map("vendor_id") @db.VarChar(32)
-  jobId          Int           @map("job_id") @db.Int
-  purchase_order PurchaseOrder @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "job_purchase_order")
-  GmailMsgs      GmailMsg[]
+  id            String        @id @db.VarChar(32)
+  name          String        @db.VarChar(100)
+  price         Decimal       @db.Decimal(10, 2)
+  createdAt     DateTime      @default(now()) @db.DateTime(0)
+  updatedAt     DateTime      @updatedAt @db.DateTime(0)
+  type          JobType
+  status        JobStatus
+  vendorId      String        @map("vendor_id") @db.VarChar(32)
+  jobId         Int           @map("job_id") @db.Int
+  purchaseOrder PurchaseOrder @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "job_purchase_order")
+  GmailMsgs     GmailMsg[]
 
   @@map("jobs")
 }
 
 model PurchaseOrder {
   id       Int    @id @default(autoincrement())
-  job      Job[]
+  jobs     Job[]
   clientId String @map("client_id") @db.VarChar(32)
   client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "purchase_order_client")
 
@@ -88,7 +88,7 @@ model ClientAddress {
   vendorId  String?  @db.VarChar(32)
 
   @@index([clientId], map: "client_addresses_FK")
-  @@map("ClientAddresses")
+  @@map("client_addresses")
 }
 
 model ClientEmail {
@@ -102,7 +102,7 @@ model ClientEmail {
 
   @@id([email, clientId])
   @@index([clientId], map: "client_email_FK")
-  @@map("ClientEmail")
+  @@map("Client_emails")
 }
 
 model ClientPhone {
