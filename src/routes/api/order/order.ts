@@ -1,4 +1,4 @@
-import type { IClient } from '$lib/models/client';
+import type { IClient } from '$lib/models/job';
 import type { GmailRawId } from '$lib/models/gmail';
 import {
 	DesignStatus,

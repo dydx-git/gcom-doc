@@ -7,40 +7,181 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model client {
-  id         String   @id @db.VarChar(32)
-  add_tc     Int      @db.TinyInt
-  updatedAt  DateTime @updatedAt @db.DateTime(0)
-  pay_method Int
+model Client {
+  id                    String          @id @db.VarChar(32)
+  name                  String          @db.VarChar(100)
+  companyName           String          @map("company_name") @db.VarChar(100)
+  createdAt             DateTime        @default(now()) @db.DateTime(0)
+  addTransactionCharges Boolean         @map("add_tc") @db.TinyInt
+  updatedAt             DateTime        @updatedAt @db.DateTime(0)
+  payMethod             PayMethod       @map("pay_method")
+  currency              Currency
+  client_addresses      ClientAddress[]
+  client_email          ClientEmail[]
+  client_phone          ClientPhone[]
+  status                ClientStatus
+  purchase_order        PurchaseOrder[]
+
+  @@map("clients")
 }
 
-model gmail_msgs {
-  thread_id    String @db.VarChar(16)
-  inbox_msg_id String @db.VarChar(16)
-  job_id       String @db.VarChar(32)
-  direction    String @db.VarChar(32)
-  job          job    @relation(fields: [job_id], references: [id], onDelete: Cascade, map: "gmail_msgs_job_primary")
-
-  @@id([thread_id, inbox_msg_id, job_id])
-  @@index([job_id], map: "gmail_msgs_job_primary")
-}
-
-model job {
-  id         String       @id @db.VarChar(32)
-  name       String       @db.VarChar(100)
-  price      Decimal      @db.Decimal(10, 2)
-  createdAt  DateTime     @db.DateTime(0)
+model Vendor {
+  id         Int          @id @default(autoincrement())
   updatedAt  DateTime     @updatedAt @db.DateTime(0)
-  client_id  String       @db.VarChar(32)
-  type       String       @db.VarChar(100)
-  status     String       @db.VarChar(100)
-  vendor_id  String       @db.VarChar(32)
-  gmail_msgs gmail_msgs[]
+  createdAt  DateTime     @default(now()) @db.DateTime(0)
+  email      String
+  name       String
+  department Department
+  status     VendorStatus
+
+  @@map("vendors")
 }
 
-model purchase_order {
-  id     Int    @id @default(autoincrement())
-  job_id String @db.VarChar(32)
+model GmailMsg {
+  threadId   String @map("thread_id") @db.VarChar(16)
+  inboxMsgId String @map("inbox_msg_id") @db.VarChar(16)
+  jobId      String @map("job_id") @db.VarChar(32)
+  direction  String @db.VarChar(32)
+  job        Job    @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "gmail_msgs_job_primary")
 
-  @@index([job_id], map: "job_id")
+  @@id([threadId, inboxMsgId, jobId])
+  @@index([jobId], map: "gmail_msgs_job_primary")
+  @@map("gmail_msgs")
+}
+
+model Job {
+  id             String        @id @db.VarChar(32)
+  name           String        @db.VarChar(100)
+  price          Decimal       @db.Decimal(10, 2)
+  createdAt      DateTime      @default(now()) @db.DateTime(0)
+  updatedAt      DateTime      @updatedAt @db.DateTime(0)
+  type           JobType
+  status         JobStatus
+  vendorId       String        @map("vendor_id") @db.VarChar(32)
+  jobId          Int           @map("job_id") @db.Int
+  purchase_order PurchaseOrder @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "job_purchase_order")
+  GmailMsgs      GmailMsg[]
+
+  @@map("jobs")
+}
+
+model PurchaseOrder {
+  id       Int    @id @default(autoincrement())
+  job      Job[]
+  clientId String @map("client_id") @db.VarChar(32)
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "purchase_order_client")
+
+  @@index([clientId], map: "purchase_order_client")
+  @@map("purchase_orders")
+}
+
+model ClientAddress {
+  id        Int      @id @default(autoincrement())
+  address   String   @db.VarChar(100)
+  city      String   @db.VarChar(100)
+  state     String   @db.VarChar(2)
+  country   String   @db.VarChar(100)
+  zip       String   @db.VarChar(16)
+  clientId  String   @map("client_id") @db.VarChar(32)
+  updatedAt DateTime @updatedAt @db.DateTime(0)
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_addresses_FK")
+  vendorId  String?  @db.VarChar(32)
+
+  @@index([clientId], map: "client_addresses_FK")
+  @@map("ClientAddresses")
+}
+
+model ClientEmail {
+  email       String    @db.VarChar(100)
+  clientId    String    @map("client_id") @db.VarChar(32)
+  description String?   @db.VarChar(100)
+  type        EmailType
+  updatedAt   DateTime  @updatedAt @db.DateTime(0)
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_email_FK")
+  vendorId    String?   @db.VarChar(32)
+
+  @@id([email, clientId])
+  @@index([clientId], map: "client_email_FK")
+  @@map("ClientEmail")
+}
+
+model ClientPhone {
+  phone       String    @db.VarChar(100)
+  clientId    String    @map("client_id") @db.VarChar(32)
+  description String?   @db.VarChar(100)
+  updatedAt   DateTime  @updatedAt @db.DateTime(0)
+  type        PhoneType
+  client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_phone_FK")
+  vendorId    String?   @db.VarChar(32)
+
+  @@id([phone, clientId])
+  @@index([clientId], map: "client_phone_FK")
+  @@map("client_phones")
+}
+
+model Company {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(100)
+  address String @db.VarChar(100)
+  city    String @db.VarChar(100)
+  state   String @db.VarChar(2)
+  country String @db.VarChar(100)
+  zip     String @db.VarChar(16)
+  phone   String @db.VarChar(100)
+  email   String @db.VarChar(100)
+  website String @db.VarChar(100)
+}
+
+enum JobType {
+  JOB
+  REVISION
+  QUOTE
+  CREDIT
+}
+
+enum JobStatus {
+  PENDING
+  RUSH
+  COMPLETED
+  CANCELLED
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  RETIRED
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EmailType {
+  JOB
+  INVOICE
+}
+
+enum PhoneType {
+  PRIMARY
+  SECONDARY
+}
+
+enum Currency {
+  USD
+  CAD
+}
+
+enum Department {
+  DIGITIZING
+  VECTOR
+  PATCH
+}
+
+enum PayMethod {
+  CHECK
+  PAYPAL
+  CREDIT_CARD
+  ONLINE
+  UNKNOWN
 }
