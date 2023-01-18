@@ -1,4 +1,4 @@
-import type { IHasId } from './core';
+import type { IHasId } from '../interfaces/core';
 
 export class GmailRawId implements IHasId {
 	id: string;

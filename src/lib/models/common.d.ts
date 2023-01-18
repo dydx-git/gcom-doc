@@ -1,5 +1,5 @@
-import type { DesignStatus, OrderStatus } from './order';
+import type { JobStatus } from './order';
 
 export interface IHasStatus {
-	status: OrderStatus | DesignStatus;
+	status: JobStatus;
 }

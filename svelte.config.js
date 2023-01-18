@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/kit/vite';
-import { optimizeImports, optimizeCss, elements, icons } from "carbon-preprocess-svelte";
+import { optimizeImports, optimizeCss, elements } from 'carbon-preprocess-svelte';
+import path from 'node:path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -11,10 +12,12 @@ const config = {
 		adapter: adapter()
 	},
 	vite: {
-		plugins: [process.env.NODE_ENV === "production" && optimizeCss()],
+		plugins: [process.env.NODE_ENV === 'production' && optimizeCss()]
 	},
 	alias: {
-		models: "./src/lib/models",
+		$models: path.resolve('./src/lib/models'),
+		$db: path.resolve('./src/lib/services/db'),
+		$interfaces: path.resolve('./src/lib/interfaces')
 	}
 };
 

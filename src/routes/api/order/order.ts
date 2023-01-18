@@ -1,9 +1,22 @@
+import type { IClient } from '$lib/models/client';
 import type { GmailRawId } from '$lib/models/gmail';
-import type { DesignStatus, IOrder, OrderStatus, IRevision, IDesign } from '$lib/models/order';
-import type { Prisma } from '@prisma/client';
+import {
+	DesignStatus,
+	type IOrder,
+	OrderStatus,
+	type IRevision,
+	type IDesign,
+	type JobStatus
+} from '$lib/models/order';
+import type { IVendor } from '$lib/models/vendor';
+import TimeCalculator from '$lib/utils/TimeCalculator';
+import DBClient from '$db/client';
+import type { PrismaClient } from '@prisma/client';
 
 class Order implements IOrder {
-	status: OrderStatus | DesignStatus;
+	static readonly overdueHourThreshold = 24;
+	static readonly newHourThreshold = 1;
+	status: JobStatus;
 	bwdReceivedThreadId: GmailRawId;
 	bwdReceivedMsgId: GmailRawId;
 	bwdSentMsgId: GmailRawId;
@@ -12,16 +25,61 @@ class Order implements IOrder {
 	design: IDesign;
 	id: string | number;
 	createdAt: Date;
+	client: IClient;
+	vendor: IVendor;
 
 	constructor(pDesign: Prisma.designSelect) {
-		this.status = pDesign.status;
-		this.bwdReceivedThreadId = pDesign.bwdReceivedThreadId;
-		this.bwdReceivedMsgId = pDesign.bwdReceivedMsgId;
-		this.bwdSentMsgId = pDesign.bwdSentMsgId;
-		this.fwdSentThreadId = pDesign.fwdSentThreadId;
-		this.revision = pDesign.revision;
-		this.design = pDesign.design;
-		this.id = pDesign.id;
-		this.createdAt = pDesign.createdAt;
+		this.status = inferStatus(
+			<DesignStatus>pDesign.status,
+			<DesignStatus[]>pDesign.revision?.map((r) => r.status),
+			pDesign.date
+		);
+	}
+
+	inferStatus(
+		designStatus: DesignStatus,
+		revisionsStatus: DesignStatus[],
+		createdAt: Date
+	): JobStatus {
+		const orderStatus = inferDesignCompletionStatus(designStatus, revisionsStatus);
+		if (orderStatus == DesignStatus.Complete) return orderStatus;
+
+		const test = await DBClient.design.findFirst();
+		test.
+
+		return inferOrderPendingStatusRelativeToTime(createdAt);
+
+		function inferDesignCompletionStatus(
+			designStatus: DesignStatus,
+			revisionsStatus: DesignStatus[]
+		): JobStatus {
+			if (revisionsStatus.includes(DesignStatus.Pending)) return OrderStatus.PendingRevision;
+
+			return designStatus;
+		}
+
+		function inferOrderPendingStatusRelativeToTime(createdAt: Date): JobStatus {
+			if (Order.isOverdue(createdAt)) return OrderStatus.Overdue;
+			if (Order.isNew(createdAt)) return OrderStatus.New;
+
+			return DesignStatus.Pending;
+		}
+	}
+
+	static isOverdue(createdAt: Date): boolean {
+		return TimeCalculator.getHoursBetweenDates(createdAt, new Date()) > this.overdueHourThreshold;
+	}
+
+	static isNew(createdAt: Date): boolean {
+		return TimeCalculator.getHoursBetweenDates(createdAt, new Date()) < this.newHourThreshold;
+	}
+
+	private getRevisionStatusMap(revisions:): DesignStatus[] {
+		const statusList = new Array<DesignStatus>();
+		const revision = pDesign.revision;
+
+		if (!revision || typeof revision === 'boolean') return statusList;
+
+		statusList.push(<DesignStatus>revision.select.status);
 	}
 }
