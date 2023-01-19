@@ -18,6 +18,7 @@ specifiers:
   prisma: ^4.8.1
   svelte: ^3.54.0
   svelte-check: ^2.9.2
+  svelte-local-storage-store: ^0.4.0
   tslib: ^2.4.1
   typescript: ^4.9.3
   vite: ^4.0.0
@@ -25,6 +26,7 @@ specifiers:
 dependencies:
   '@prisma/client': 4.8.1_prisma@4.8.1
   dayjs: 1.11.7
+  svelte-local-storage-store: 0.4.0_svelte@3.55.0
 
 devDependencies:
   '@sveltejs/adapter-auto': 1.0.0_@sveltejs+kit@1.0.11
@@ -1680,6 +1682,15 @@ packages:
       svelte: 3.55.0
     dev: true
 
+  /svelte-local-storage-store/0.4.0_svelte@3.55.0:
+    resolution: {integrity: sha512-ctPykTt4S3BE5bF0mfV0jKiUR1qlmqLvnAkQvYHLeb9wRyO1MdIFDVI23X+TZEFleATHkTaOpYZswIvf3b2tWA==}
+    engines: {node: '>=0.14'}
+    peerDependencies:
+      svelte: ^3.48.0
+    dependencies:
+      svelte: 3.55.0
+    dev: false
+
   /svelte-preprocess/4.10.7_niwyv7xychq2ag6arq5eqxbomm:
     resolution: {integrity: sha512-sNPBnqYD6FnmdBrUmBCaqS00RyCsCpj2BG58A1JBswNF7b0OKviwxqVrOL/CKyJrLSClrSeqQv5BXNg2RUbPOw==}
     engines: {node: '>= 9.11.2'}
@@ -1734,7 +1745,6 @@ packages:
   /svelte/3.55.0:
     resolution: {integrity: sha512-uGu2FVMlOuey4JoKHKrpZFkoYyj0VLjJdz47zX5+gVK5odxHM40RVhar9/iK2YFRVxvfg9FkhfVlR0sjeIrOiA==}
     engines: {node: '>= 8'}
-    dev: true
 
   /text-table/0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}

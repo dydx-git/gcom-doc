@@ -1,20 +1,13 @@
 <script lang="ts">
+	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import orderColumns from '$lib/data/datatable/order';
+	import type { Order } from '$lib/models/job';
 	import { Grid, Column, Row, ClickableTile, Tile, DataTable } from 'carbon-components-svelte';
-	import type { DataTableRow } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
 
-	export let tableData: DataTableRow[] = [
-		{
-			id: 'a',
-			name: 'Load Balancer 3',
-			protocol: 'HTTP',
-			port: 3000,
-			rule: 'Round robin'
-		}
-	];
+	export let tableData: Order[] = [];
 
 	const filterTable = (text: string) => {};
 </script>
@@ -22,20 +15,24 @@
 <Grid>
 	<Row>
 		<Column sm={4} md={4} lg={4}>
-			<Tile>27 orders received today</Tile>
+			<HighlightTile text="New orders today" highlight="24" />
 		</Column>
 		<Column sm={0} md={4} lg={4}>
-			<ClickableTile on:click={() => filterTable('pending digitizing')}
-				>Pending digitizing: 13</ClickableTile
-			>
+			<HighlightTile
+				clickHandler={() => filterTable('pending digitizing')}
+				text="Pending digitizing:"
+				highlight="14"
+			/>
 		</Column>
 		<Column sm={0} md={4} lg={4}>
-			<ClickableTile on:click={() => filterTable('pending vector')}
-				>Pending vector: 14</ClickableTile
-			>
+			<HighlightTile
+				clickHandler={() => filterTable('pending vector')}
+				text="Pending vector:"
+				highlight="10"
+			/>
 		</Column>
 		<Column sm={0} md={4} lg={4}>
-			<ClickableTile on:click={() => filterTable('overdue')}>Overdue: 4</ClickableTile>
+			<HighlightTile clickHandler={() => filterTable('overdue')} text="Overdue:" highlight="10" />
 		</Column>
 	</Row>
 	<Row class="default-gap">

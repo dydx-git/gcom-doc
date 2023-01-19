@@ -2,7 +2,9 @@
 	import Orders from '$lib/content/order/Orders.svelte';
 	import type { PageData } from './$types';
 
-	export let orders: PageData;
+	export let data: PageData;
+
+	const orders = data.orders;
 </script>
 
-<Orders />
+<Orders tableData={orders} />

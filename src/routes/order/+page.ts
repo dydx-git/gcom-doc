@@ -1,11 +1,13 @@
 import type { Order } from '$lib/models/job';
+import { get } from 'svelte/store';
 import type { PageLoad } from './$types';
 import { showRecordsForLastDays } from './store';
 
 export const load = (async ({ fetch }) => {
-	const response = await fetch(`/api/order?showRecordsForLastDays${showRecordsForLastDays}`);
+	const daysUpUntil = get(showRecordsForLastDays);
+	const response = await fetch(`/api/order?showRecordsForLastDays=${daysUpUntil}`);
 
-	const data: Order[] = await response.json();
+	const orders: Order[] = await response.json();
 
-	return data;
+	return { orders };
 }) satisfies PageLoad;

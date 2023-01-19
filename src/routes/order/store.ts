@@ -1,3 +1,3 @@
-import { writable } from 'svelte/store';
+import { persisted } from 'svelte-local-storage-store';
 
-export const showRecordsForLastDays = writable(40);
+export const showRecordsForLastDays = persisted('showRecordsForLastDays', 40);

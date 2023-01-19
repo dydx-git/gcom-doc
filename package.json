@@ -34,6 +34,7 @@
 	"type": "module",
 	"dependencies": {
 		"@prisma/client": "^4.8.1",
-		"dayjs": "^1.11.7"
+		"dayjs": "^1.11.7",
+		"svelte-local-storage-store": "^0.4.0"
 	}
 }
