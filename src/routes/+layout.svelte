@@ -1,13 +1,12 @@
 <script lang="ts">
 	import 'carbon-components-svelte/css/all.css';
+	import '../app.scss';
 	import {
 		Header,
 		HeaderUtilities,
 		HeaderAction,
 		HeaderGlobalAction,
 		HeaderPanelLinks,
-		HeaderPanelDivider,
-		HeaderPanelLink,
 		SkipToContent,
 		Content,
 		Grid,

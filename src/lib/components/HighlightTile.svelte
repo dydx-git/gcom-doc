@@ -11,14 +11,14 @@
 {#if clickHandler}
 	<ClickableTile>
 		{text}
-		<span class="highlight success" style="margin-top: -0.45rem">
+		<span class="cds--type-heading-06 highlight success">
 			{highlight}
 		</span>
 	</ClickableTile>
 {:else}
 	<Tile>
 		{text}
-		<span class="highlight success">
+		<span class="cds--type-heading-06 highlight success">
 			{highlight}
 		</span>
 	</Tile>
@@ -26,7 +26,6 @@
 
 <style>
 	.highlight {
-		font-size: 3rem;
 		float: right;
 	}
 	.success {
