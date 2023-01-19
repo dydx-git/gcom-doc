@@ -7,6 +7,7 @@ specifiers:
   '@sveltejs/kit': ^1.0.0
   '@typescript-eslint/eslint-plugin': ^5.45.0
   '@typescript-eslint/parser': ^5.45.0
+  access-key-label-polyfill: ^0.1.1
   carbon-components-svelte: ^0.71.0
   carbon-icons-svelte: ^11.4.0
   carbon-preprocess-svelte: ^0.9.1
@@ -26,12 +27,13 @@ specifiers:
   vite: ^4.0.0
 
 dependencies:
-  '@carbon/type': 11.14.0
   '@prisma/client': 4.8.1_prisma@4.8.1
+  access-key-label-polyfill: 0.1.1
   dayjs: 1.11.7
   svelte-local-storage-store: 0.4.0_svelte@3.55.0
 
 devDependencies:
+  '@carbon/type': 11.14.0
   '@sveltejs/adapter-auto': 1.0.0_@sveltejs+kit@1.0.11
   '@sveltejs/kit': 1.0.11_svelte@3.55.0+vite@4.0.4
   '@typescript-eslint/eslint-plugin': 5.48.1_3jon24igvnqaqexgwtxk6nkpse
@@ -58,18 +60,18 @@ packages:
     resolution: {integrity: sha512-DL0us6Ms0YNDjW7a+8ZMByLkg1rQ2A0M/9e+LdnseyD/aWfUWGsPH/S2h7FNkNClywPOYwbU+NgYY8N72F7C5g==}
     dependencies:
       '@carbon/layout': 11.10.0
-    dev: false
+    dev: true
 
   /@carbon/layout/11.10.0:
     resolution: {integrity: sha512-rQm5V0w+J8LsNnwq/Z1rXVHxlFbcccu06eJGqi9uGkrZZLT7UXJz9E27gIstxyiYeE+Sd7wq6iQayxWvahYjCQ==}
-    dev: false
+    dev: true
 
   /@carbon/type/11.14.0:
     resolution: {integrity: sha512-t8agJ2FfX9V7sYbmoIXYbM+yu62whozBlbSaJVnrMFpvRPOsEdWt0US4CAdyCvxytRsJqr+SfyScXx2phUrFgg==}
     dependencies:
       '@carbon/grid': 11.10.0
       '@carbon/layout': 11.10.0
-    dev: false
+    dev: true
 
   /@esbuild/android-arm/0.16.16:
     resolution: {integrity: sha512-BUuWMlt4WSXod1HSl7aGK8fJOsi+Tab/M0IDK1V1/GstzoOpqc/v3DqmN8MkuapPKQ9Br1WtLAN4uEgWR8x64A==}
@@ -579,6 +581,10 @@ packages:
       '@typescript-eslint/types': 5.48.1
       eslint-visitor-keys: 3.3.0
     dev: true
+
+  /access-key-label-polyfill/0.1.1:
+    resolution: {integrity: sha512-Ggr1mkhA9/L19EhWU1KUXs28PAIEEAzL8tLat+FblCkA/+N2EruGBtq1UIc7gHPGMVPwjisE6tYIFkzPdROFfg==}
+    dev: false
 
   /acorn-jsx/5.3.2_acorn@8.8.1:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}

@@ -2,7 +2,19 @@
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import orderColumns from '$lib/data/datatable/order';
 	import type { Order } from '$lib/models/job';
-	import { Grid, Column, Row, ClickableTile, Tile, DataTable } from 'carbon-components-svelte';
+	import {
+		Grid,
+		Column,
+		Row,
+		DataTable,
+		Toolbar,
+		ToolbarContent,
+		ToolbarSearch,
+		ToolbarMenu,
+		ToolbarMenuItem,
+		Button
+	} from 'carbon-components-svelte';
+	import { Add, Renew } from 'carbon-icons-svelte';
 
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
@@ -37,12 +49,20 @@
 	</Row>
 	<Row class="default-gap">
 		<Column>
-			<DataTable sortable headers={orderColumns} rows={tableData}>
+			<DataTable sortable headers={orderColumns} rows={tableData} stickyHeader>
 				<strong slot="title">{title}</strong>
 				<span slot="description" style="font-size: 1rem">
 					{description}
 				</span>
 				<svelte:fragment slot="cell" let:row let:cell />
+
+				<Toolbar>
+					<ToolbarContent>
+						<ToolbarSearch />
+						<Button icon={Renew} kind="secondary" iconDescription="Refresh" />
+						<Button icon={Add} accesskey="n">Create New</Button>
+					</ToolbarContent>
+				</Toolbar>
 			</DataTable>
 		</Column>
 	</Row>
