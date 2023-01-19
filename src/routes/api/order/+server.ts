@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import client from '$lib/services/db/client';
+import client from '$db/client';
 import dayjs from 'dayjs';
 import type { Order } from '$lib/models/job';
 
@@ -24,7 +24,8 @@ export const GET: RequestHandler = async (req) => {
 			}
 		},
 		include: {
-			jobs: true
+			jobs: true,
+			client: true
 		}
 	});
 
