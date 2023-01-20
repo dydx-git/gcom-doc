@@ -80,7 +80,6 @@
 
 <ComposedModal
 	preventCloseOnClickOutside
-	size="sm"
 	bind:open={isAddNewModalOpen}
 	selectorPrimaryFocus="#name"
 	on:open
@@ -90,10 +89,10 @@
 	<ModalHeader label="Create New" title="Client" />
 	<ModalBody hasForm>
 		<Row>
-			<Column sm={12} md={6} lg={6}>
+			<Column sm={12} md={8} lg={8}>
 				<TextInput id="name" labelText="Name" placeholder="Client Name" />
 			</Column>
-			<Column sm={12} md={6} lg={6}>
+			<Column sm={12} md={8} lg={8}>
 				<TextInput id="name" labelText="Company" placeholder="Company Name" />
 			</Column>
 		</Row>
