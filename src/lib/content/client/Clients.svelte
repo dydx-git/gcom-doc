@@ -6,23 +6,14 @@
 		Grid,
 		Column,
 		Row,
-		ClickableTile,
-		Tile,
 		DataTable,
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
-		Button,
-		Modal,
-		ComposedModal,
-		ModalHeader,
-		ModalBody,
-		Checkbox,
-		ModalFooter,
-		FormGroup,
-		TextInput
+		Button
 	} from 'carbon-components-svelte';
-	import { Add, Renew, UserFollow } from 'carbon-icons-svelte';
+	import { UserFollow } from 'carbon-icons-svelte';
+	import ClientForm from './ClientForm.svelte';
 
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
@@ -32,8 +23,7 @@
 	let isSearchExpanded = true;
 	let searchText = '';
 	let isAddNewModalOpen = false;
-
-	$: isNewOrderModalDataValid = false;
+	let isFormValid = false;
 
 	const filterTable = (text: string) => {
 		console.log('filtering table');
@@ -78,29 +68,4 @@
 	</Row>
 </Grid>
 
-<ComposedModal
-	preventCloseOnClickOutside
-	bind:open={isAddNewModalOpen}
-	selectorPrimaryFocus="#name"
-	on:open
-	on:close
-	on:submit
->
-	<ModalHeader label="Create New" title="Client" />
-	<ModalBody hasForm>
-		<Row>
-			<Column sm={12} md={8} lg={8}>
-				<TextInput id="name" labelText="Name" placeholder="Client Name" />
-			</Column>
-			<Column sm={12} md={8} lg={8}>
-				<TextInput id="name" labelText="Company" placeholder="Company Name" />
-			</Column>
-		</Row>
-	</ModalBody>
-	<ModalFooter
-		primaryButtonText="Proceed"
-		primaryButtonDisabled={isNewOrderModalDataValid}
-		secondaryButtonText="Cancel"
-		on:click:button--secondary={closeNewOrderModal}
-	/>
-</ComposedModal>
+<ClientForm bind:open={isAddNewModalOpen} bind:isValid={isFormValid} />
