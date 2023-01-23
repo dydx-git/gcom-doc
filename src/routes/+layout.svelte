@@ -49,7 +49,7 @@
 	</HeaderUtilities>
 </Header>
 
-<Content>
+<Content id="main-content">
 	<Grid>
 		<slot />
 	</Grid>

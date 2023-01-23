@@ -1,5 +1,14 @@
+import client from '$db/client';
+import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-export const POST: RequestHandler = async (req) => {
-	return new Response('all clients');
+export const GET: RequestHandler = async (req) => {
+	const clients = await client.client.findMany();
+	return json(clients);
+};
+
+export const POST: RequestHandler = async ({ request }) => {
+	const { body } = request;
+
+	return json({ message: 'OK' });
 };

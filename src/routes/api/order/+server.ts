@@ -8,8 +8,7 @@ export const GET: RequestHandler = async (req) => {
 	const { url } = req;
 	const showRecordsForLastDays = Number(url.searchParams.get('showRecordsForLastDays'));
 
-	if (!showRecordsForLastDays)
-		throw error(400, 'Missing required parameter: showRecordsForLastDays');
+	if (!showRecordsForLastDays) throw error(400, 'Missing parameter: showRecordsForLastDays');
 
 	const dateUntil = dayjs().subtract(showRecordsForLastDays, 'day').toDate();
 

@@ -85,7 +85,6 @@ model ClientAddress {
   clientId  String   @map("client_id") @db.VarChar(32)
   updatedAt DateTime @updatedAt @db.DateTime(0)
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_addresses_FK")
-  vendorId  String?  @db.VarChar(32)
 
   @@index([clientId], map: "client_addresses_FK")
   @@map("client_addresses")
@@ -98,7 +97,6 @@ model ClientEmail {
   type        EmailType
   updatedAt   DateTime  @updatedAt @db.DateTime(0)
   client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_email_FK")
-  vendorId    String?   @db.VarChar(32)
 
   @@id([email, clientId])
   @@index([clientId], map: "client_email_FK")
@@ -112,7 +110,6 @@ model ClientPhone {
   updatedAt   DateTime  @updatedAt @db.DateTime(0)
   type        PhoneType
   client      Client    @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_phone_FK")
-  vendorId    String?   @db.VarChar(32)
 
   @@id([phone, clientId])
   @@index([clientId], map: "client_phone_FK")

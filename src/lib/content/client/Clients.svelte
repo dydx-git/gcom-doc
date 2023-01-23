@@ -1,6 +1,7 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import clientColumns from '$lib/data/datatable/client';
+	import type { ActionData } from '.svelte-kit/types/src/routes/client/$types';
 	import type { Client } from '@prisma/client';
 	import {
 		Grid,
@@ -13,17 +14,19 @@
 		Button
 	} from 'carbon-components-svelte';
 	import { UserFollow } from 'carbon-icons-svelte';
+	import { FormSubmitType } from '../core';
 	import ClientForm from './ClientForm.svelte';
 
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
-
 	export let tableData: Client[] = [];
+	export let form: ActionData;
 
 	let isSearchExpanded = true;
 	let searchText = '';
 	let isAddNewModalOpen = false;
 	let isFormValid = false;
+	let submitType: FormSubmitType = FormSubmitType.AddNew;
 
 	const filterTable = (text: string) => {
 		console.log('filtering table');
@@ -31,6 +34,7 @@
 
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
+		submitType = FormSubmitType.AddNew;
 	};
 
 	const closeNewOrderModal = () => {
@@ -44,7 +48,7 @@
 
 <Grid>
 	<Row>
-		<Column sm={4} md={{ span: 4, offset: 6 }} lg={{ span: 4, offset: 6 }}>
+		<Column sm={4} md={{ span: 4, offset: 2 }} lg={{ span: 6, offset: 5 }}>
 			<HighlightTile text="New clients this month" highlight="4" />
 		</Column>
 	</Row>
@@ -68,4 +72,4 @@
 	</Row>
 </Grid>
 
-<ClientForm bind:open={isAddNewModalOpen} bind:isValid={isFormValid} />
+<ClientForm bind:open={isAddNewModalOpen} bind:isValid={isFormValid} {form} bind:submitType />

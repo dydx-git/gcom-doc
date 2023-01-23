@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Clients from '$lib/content/client/Clients.svelte';
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
 
 	export let data: PageData;
+	export let form: ActionData;
 </script>
 
-<Clients description="" />
+<Clients description="" bind:form />
