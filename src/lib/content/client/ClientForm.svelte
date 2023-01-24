@@ -14,7 +14,9 @@
 		ModalHeader,
 		Row,
 		Select,
-		TextInput
+		SelectItem,
+		TextInput,
+		Toggle
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
@@ -95,7 +97,6 @@
 	selectorPrimaryFocus="#name"
 	on:open={onOpen}
 	on:close={onClose}
-	size="lg"
 >
 	<Form method="POST" on:submit={onSubmit}>
 		<ModalHeader label={formTitle}>
@@ -104,7 +105,7 @@
 					<h3>Client</h3>
 				</Column>
 				{#if submitType === FormSubmitType.AddNew}
-					<Column sm={12} md={{ span: 3, offset: 1 }} lg={{ span: 4, offset: 4 }}>
+					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 3, offset: 5 }}>
 						<Checkbox labelText="Keep input on close" bind:checked={$keepClientDataOnCloseStore} />
 					</Column>
 				{/if}
@@ -123,7 +124,7 @@
 						placeholder="John Doe"
 					/>
 				</Column>
-				<Column sm={4} md={4} lg={8}>
+				<Column sm={4} md={3} lg={6}>
 					<TextInput
 						labelText="Company"
 						name="companyName"
@@ -149,10 +150,11 @@
 								labelText="Type"
 								name={`phones[${i}].type`}
 								placeholder="(xxx) xxx-xxxx"
-								bind:value={phone.type}
+								bind:selected={phone.type}
 							>
-								<option value={PhoneType.PRIMARY}>Primary</option>
-								<option value={PhoneType.SECONDARY}>Secondary</option>
+								{#each Object.values(PhoneType) as type}
+									<SelectItem value={type} text={type} />
+								{/each}
 							</Select>
 						</Column>
 						<Column sm={0} md={2} lg={6}>
@@ -192,7 +194,7 @@
 					</Row>
 				{/each}
 			</FormGroup>
-			<FormGroup class="default-gap">
+			<FormGroup>
 				{#each client.emails as email, i}
 					<Row>
 						<Column sm={2} md={3} lg={4}>
@@ -209,10 +211,11 @@
 								labelText="Type"
 								name={`emails[${i}].type`}
 								placeholder="Select email type"
-								bind:value={email.type}
+								bind:selected={email.type}
 							>
-								<option value={EmailType.JOB}>For orders</option>
-								<option value={EmailType.INVOICE}>For invoices</option>
+								{#each Object.values(EmailType) as type}
+									<SelectItem value={type} text={type} />
+								{/each}
 							</Select>
 						</Column>
 						<Column sm={0} md={2} lg={6}>
@@ -252,24 +255,72 @@
 					</Row>
 				{/each}
 			</FormGroup>
-			<Row class="default-gap">
-				<Column sm={2} md={3} lg={6}>
+			<Row>
+				<Column sm={2} md={2} lg={4}>
 					<Select
 						required
 						labelText="Company*"
-						bind:value={client.company}
+						bind:selected={client.company}
 						placeholder="Thread Tapes, Buffalo etc."
 					>
 						{#each Object.entries(CompanyLabel) as [key, value]}
-							<option value={key}>{value}</option>
+							<SelectItem value={key} text={value} />
 						{/each}
 					</Select>
 				</Column>
-				<Column sm={2} md={2} lg={6}>
-					<Select labelText="Invoice Currency*" required />
+				<Column sm={2} md={2} lg={4}>
+					<Select labelText="Invoice Currency*" bind:selected={client.currency} required>
+						{#each Object.keys(Currency) as currency}
+							<SelectItem value={currency} text={currency} />
+						{/each}
+					</Select>
 				</Column>
-				<Column sm={2} md={2} lg={4} class="default-gap">
-					<Checkbox labelText="Add transaction charges*" bind:value={client.companyName} required />
+				<Column sm={2} md={2} lg={4}>
+					<Select labelText="Payment Method*" bind:selected={client.paymentMethod} required>
+						{#each Object.values(PayMethod) as pay}
+							<SelectItem value={pay} text={pay} />
+						{/each}
+					</Select>
+				</Column>
+				<Column sm={2} md={2} lg={4}>
+					<Toggle labelText="Add transaction charges" bind:toggled={client.addTransactionCharge} />
+				</Column>
+			</Row>
+			<Row class="default-gap">
+				<Column sm={2} md={4} lg={4}>
+					<TextInput
+						labelText="Address"
+						name="address"
+						placeholder="123 Main St."
+						bind:value={client.address}
+					/>
+				</Column>
+				<Column sm={1} md={2} lg={3}>
+					<TextInput
+						labelText="City"
+						name="city"
+						placeholder="Los Angeles"
+						bind:value={client.city}
+					/>
+				</Column>
+				<Column sm={1} md={1} lg={2}>
+					<TextInput
+						labelText="State"
+						name="state"
+						placeholder="Code: CA, NY etc"
+						bind:value={client.state}
+					/>
+				</Column>
+				<Column sm={1} md={2} lg={2}>
+					<TextInput labelText="Zip" name="zip" placeholder="12345" bind:value={client.zip} />
+				</Column>
+				<Column sm={1} md={2} lg={3}>
+					<TextInput
+						labelText="Country"
+						name="country"
+						placeholder="USA, UK etc"
+						bind:value={client.country}
+					/>
 				</Column>
 			</Row>
 		</ModalBody>
