@@ -18,7 +18,7 @@
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { Company, FormSubmitType, type ClientFormData } from '../core';
+	import { Company, FormSubmitType, CompanyLabel, type ClientFormData } from '../core';
 	import { clientFormDataStore, keepClientDataOnCloseStore } from './store';
 
 	export let open = false;
@@ -34,14 +34,14 @@
 				{
 					phone: '',
 					type: PhoneType.PRIMARY,
-					description: ''
+					description: null
 				}
 			],
 			emails: [
 				{
 					email: '',
 					type: EmailType.JOB,
-					description: ''
+					description: null
 				}
 			],
 			company: Company.ThreadTapes,
@@ -118,7 +118,7 @@
 						required={true}
 						id="name"
 						name="name"
-						labelText="Name"
+						labelText="Name*"
 						bind:value={client.name}
 						placeholder="John Doe"
 					/>
@@ -137,7 +137,8 @@
 					<Row>
 						<Column sm={2} md={3} lg={4}>
 							<TextInput
-								labelText="Phone"
+								required={true}
+								labelText="Phone*"
 								name={`phones[${i}].phone`}
 								placeholder="(xxx) xxx-xxxx"
 								bind:value={phone.phone}
@@ -145,7 +146,7 @@
 						</Column>
 						<Column sm={2} md={2} lg={4}>
 							<Select
-								labelText="Phone"
+								labelText="Type"
 								name={`phones[${i}].type`}
 								placeholder="(xxx) xxx-xxxx"
 								bind:value={phone.type}
@@ -157,7 +158,7 @@
 						<Column sm={0} md={2} lg={6}>
 							<TextInput
 								name={`phones[${i}].description`}
-								placeholder="(xxx) xxx-xxxx"
+								placeholder="Personal phone etc."
 								labelText="Description"
 								bind:value={phone.description}
 							/>
@@ -196,7 +197,8 @@
 					<Row>
 						<Column sm={2} md={3} lg={4}>
 							<TextInput
-								labelText="Email"
+								labelText="Email*"
+								required={true}
 								name={`emails[${i}].email`}
 								placeholder="john.doe@example.com"
 								bind:value={email.email}
@@ -204,9 +206,9 @@
 						</Column>
 						<Column sm={2} md={2} lg={4}>
 							<Select
-								labelText="Email"
+								labelText="Type"
 								name={`emails[${i}].type`}
-								placeholder="Job"
+								placeholder="Select email type"
 								bind:value={email.type}
 							>
 								<option value={EmailType.JOB}>For orders</option>
@@ -250,6 +252,26 @@
 					</Row>
 				{/each}
 			</FormGroup>
+			<Row class="default-gap">
+				<Column sm={2} md={3} lg={6}>
+					<Select
+						required
+						labelText="Company*"
+						bind:value={client.company}
+						placeholder="Thread Tapes, Buffalo etc."
+					>
+						{#each Object.entries(CompanyLabel) as [key, value]}
+							<option value={key}>{value}</option>
+						{/each}
+					</Select>
+				</Column>
+				<Column sm={2} md={2} lg={6}>
+					<Select labelText="Invoice Currency*" required />
+				</Column>
+				<Column sm={2} md={2} lg={4} class="default-gap">
+					<Checkbox labelText="Add transaction charges*" bind:value={client.companyName} required />
+				</Column>
+			</Row>
 		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click={onClose} icon={Close}>Cancel</Button>

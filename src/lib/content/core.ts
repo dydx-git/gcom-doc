@@ -14,13 +14,13 @@ export type FormSubmitResult = {
 export type PhoneFormData = {
 	phone: string;
 	type: PhoneType;
-	description: string;
+	description: string | null;
 };
 
 export type EmailFormData = {
 	email: string;
 	type: EmailType;
-	description: string;
+	description: string | null;
 };
 
 export interface ClientFormData {
