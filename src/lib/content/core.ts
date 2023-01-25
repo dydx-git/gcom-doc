@@ -52,3 +52,15 @@ export const CompanyLabel: { [key in Company]: string } = {
 	[Company.ItecDesigns]: 'Itec Designs',
 	[Company.ThreadTapes]: 'Thread Tapes'
 };
+
+export type OrderDataTable = {
+	id: string;
+	name: string;
+	price: string;
+	client: string;
+	clientId: string;
+	vendor: string;
+	vendorId: number;
+	date: string;
+	status: string;
+};
