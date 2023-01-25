@@ -101,7 +101,7 @@ model ClientEmail {
 
   @@id([email, clientId])
   @@index([clientId], map: "client_email_FK")
-  @@map("Client_emails")
+  @@map("client_emails")
 }
 
 model ClientPhone {
