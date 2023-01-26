@@ -58,6 +58,8 @@
 		dtColumns = orderColumns.filter((column) =>
 			[orderDatatableColumnKeys.name, orderDatatableColumnKeys.status].includes(column.key)
 		);
+	} else {
+		dtColumns = orderColumns;
 	}
 </script>
 
