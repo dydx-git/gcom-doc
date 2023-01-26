@@ -59,4 +59,7 @@
 	:global(.default-gap) {
 		padding-top: var(--cds-spacing-05);
 	}
+	:global(.bx--data-table--sticky-header) {
+		max-height: 76vh !important;
+	}
 </style>

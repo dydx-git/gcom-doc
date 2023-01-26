@@ -1,14 +1,19 @@
 <script lang="ts">
 	import clone from 'just-clone';
+	import { debounce } from 'debounce';
 	import type { ActionData } from '.svelte-kit/types/src/routes/client/$types';
-	import { Currency, EmailType, PayMethod, PhoneType, type Client } from '@prisma/client';
+	import { Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
 	import {
 		Button,
 		Checkbox,
 		Column,
+		ComboBox,
 		ComposedModal,
+		Dropdown,
 		Form,
 		FormGroup,
+		FormLabel,
+		InlineLoading,
 		ModalBody,
 		ModalFooter,
 		ModalHeader,
@@ -22,11 +27,20 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { Company, FormSubmitType, CompanyLabel, type ClientFormData } from '../core';
 	import { clientFormDataStore, keepClientDataOnCloseStore } from './store';
+	import type { Address } from 'src/routes/api/address/+server';
 
 	export let open = false;
 	export let isValid = false;
 	export let submitType: FormSubmitType;
+	export let form: ActionData;
 
+	const addressSuggestionProps = {
+		selectedItemId: null,
+		items: [] as (Address & { id: number })[],
+		placeholderText: 'No suggestions available.',
+		response: null as Promise<Response> | null
+	};
+	const inputToParseDelay = 1000;
 	const getEmptyClient = (): ClientFormData => {
 		const defaultValues = {
 			id: null,
@@ -63,11 +77,6 @@
 	export let client: ClientFormData = $keepClientDataOnCloseStore
 		? $clientFormDataStore ?? getEmptyClient()
 		: getEmptyClient();
-	export let form: ActionData;
-
-	$: if (form?.success) {
-		open = false;
-	}
 
 	let formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
 	let formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
@@ -75,6 +84,7 @@
 	const onOpen = (e: Event) => {
 		isValid = true;
 	};
+
 	const onClose = (e: Event) => {
 		if ($keepClientDataOnCloseStore) {
 			$clientFormDataStore = client;
@@ -83,12 +93,54 @@
 			client = getEmptyClient();
 		}
 	};
+
 	const onSubmit = (e: Event) => {
+		if (!form?.success) return;
+
 		$keepClientDataOnCloseStore = false;
+	};
+
+	const parseAddress = async () => {
+		const address = client.address;
+		if (!address) return;
+
+		addressSuggestionProps.selectedItemId = null;
+		addressSuggestionProps.items = [];
+		addressSuggestionProps.placeholderText = 'No suggestions available.';
+
+		addressSuggestionProps.response = fetch(`/api/address?address=${address}`, {
+			method: 'GET'
+		});
+		const response = await addressSuggestionProps.response;
+		if (!response.ok) return;
+
+		const addresses: Address[] = await response.json();
+		addressSuggestionProps.items = addresses
+			.filter((suggestion) => suggestion.city && suggestion.state)
+			.map((suggestion, index) => {
+				return {
+					id: index,
+					...suggestion
+				};
+			});
+		addressSuggestionProps.placeholderText = 'Suggested addresses available. Click to select.';
+	};
+
+	const setAddress = () => {
+		const address = addressSuggestionProps.items.find(
+			(item) => item.id === addressSuggestionProps.selectedItemId
+		);
+		client.address = address?.addressLine || client.address;
+		client.city = address?.city || client.city;
+		client.state = address?.state || client.state;
+		client.zip = address?.zip || client.zip;
+		client.country = address?.country || client.country;
 	};
 
 	onMount(() => {});
 	onDestroy(() => {});
+
+	$: if (addressSuggestionProps.selectedItemId !== null) setAddress();
 </script>
 
 <ComposedModal
@@ -97,15 +149,16 @@
 	selectorPrimaryFocus="#name"
 	on:open={onOpen}
 	on:close={onClose}
+	on:submit={onSubmit}
 >
-	<Form method="POST" on:submit={onSubmit}>
+	<Form method="POST">
 		<ModalHeader label={formTitle}>
 			<Row>
 				<Column sm={12} md={4} lg={8}>
 					<h3>Client</h3>
 				</Column>
 				{#if submitType === FormSubmitType.AddNew}
-					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 3, offset: 5 }}>
+					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 4, offset: 4 }}>
 						<Checkbox labelText="Keep input on close" bind:checked={$keepClientDataOnCloseStore} />
 					</Column>
 				{/if}
@@ -124,7 +177,7 @@
 						placeholder="John Doe"
 					/>
 				</Column>
-				<Column sm={4} md={3} lg={6}>
+				<Column sm={4} md={4} lg={7}>
 					<TextInput
 						labelText="Company"
 						name="companyName"
@@ -147,7 +200,7 @@
 						</Column>
 						<Column sm={2} md={2} lg={4}>
 							<Select
-								labelText="Type"
+								labelText="Type*"
 								name={`phones[${i}].type`}
 								placeholder="(xxx) xxx-xxxx"
 								bind:selected={phone.type}
@@ -208,7 +261,7 @@
 						</Column>
 						<Column sm={2} md={2} lg={4}>
 							<Select
-								labelText="Type"
+								labelText="Type*"
 								name={`emails[${i}].type`}
 								placeholder="Select email type"
 								bind:selected={email.type}
@@ -287,42 +340,101 @@
 				</Column>
 			</Row>
 			<Row class="default-gap">
-				<Column sm={2} md={4} lg={4}>
+				<Column sm={4} md={8} lg={15}>
 					<TextInput
-						labelText="Address"
-						name="address"
-						placeholder="123 Main St."
-						bind:value={client.address}
-					/>
-				</Column>
-				<Column sm={1} md={2} lg={3}>
-					<TextInput
-						labelText="City"
-						name="city"
-						placeholder="Los Angeles"
-						bind:value={client.city}
-					/>
-				</Column>
-				<Column sm={1} md={1} lg={2}>
-					<TextInput
-						labelText="State"
-						name="state"
-						placeholder="Code: CA, NY etc"
-						bind:value={client.state}
-					/>
-				</Column>
-				<Column sm={1} md={2} lg={2}>
-					<TextInput labelText="Zip" name="zip" placeholder="12345" bind:value={client.zip} />
-				</Column>
-				<Column sm={1} md={2} lg={3}>
-					<TextInput
-						labelText="Country"
-						name="country"
-						placeholder="USA, UK etc"
-						bind:value={client.country}
+						labelText="Notes"
+						bind:value={client.notes}
+						placeholder="Add notes"
+						type="multi"
 					/>
 				</Column>
 			</Row>
+			<FormGroup class="default-gap">
+				<Row>
+					<Column sm={2} md={4} lg={4}>
+						<TextInput
+							labelText="Address*"
+							required
+							name="address"
+							placeholder="123 Main St."
+							bind:value={client.address}
+							on:keyup={debounce(parseAddress, inputToParseDelay)}
+						/>
+					</Column>
+					<Column sm={1} md={2} lg={3}>
+						<TextInput
+							labelText="City*"
+							required
+							name="city"
+							placeholder="Los Angeles"
+							bind:value={client.city}
+						/>
+					</Column>
+					<Column sm={1} md={2} lg={2}>
+						<TextInput
+							labelText="State*"
+							required
+							name="state"
+							placeholder="Code: CA, NY etc"
+							bind:value={client.state}
+						/>
+					</Column>
+					<Column sm={2} md={3} lg={3}>
+						<TextInput labelText="Zip*" name="zip" placeholder="12345" bind:value={client.zip} />
+					</Column>
+					<Column sm={2} md={3} lg={3}>
+						<TextInput
+							labelText="Country*"
+							required
+							name="country"
+							placeholder="USA, UK etc"
+							bind:value={client.country}
+						/>
+					</Column>
+				</Row>
+				<Row class="default-gap">
+					<Column sm={3} md={5} lg={10}>
+						<FormLabel>Address Suggestions</FormLabel>
+						<ComboBox
+							direction="top"
+							bind:selectedId={addressSuggestionProps.selectedItemId}
+							placeholder={addressSuggestionProps.placeholderText}
+							items={addressSuggestionProps.items.map((suggestion) => {
+								return {
+									id: suggestion.id,
+									text: suggestion.formattedAddress,
+									value: suggestion
+								};
+							})}
+						/>
+					</Column>
+					{#if addressSuggestionProps.response}
+						<Column sm={1} md={3} lg={4} class="default-gap">
+							{#await addressSuggestionProps.response}
+								<InlineLoading
+									description="Loading suggestions..."
+									status="active"
+									class="default-gap"
+								/>
+							{:then r}
+								{#if r.ok}
+									<InlineLoading
+										description="Suggestions loaded!"
+										status="finished"
+										class="default-gap"
+									/>
+								{:else}
+									<InlineLoading
+										description="Error loading suggestions!"
+										status="error"
+										class="default-gap"
+									/>
+								{/if}
+							{/await}
+						</Column>
+					{/if}
+				</Row>
+			</FormGroup>
 		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click={onClose} icon={Close}>Cancel</Button>

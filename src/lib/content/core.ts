@@ -60,6 +60,7 @@ export type OrderDataTable = {
 	client: string;
 	clientId: string;
 	vendor: string;
+	companyName: string;
 	vendorId: number;
 	date: string;
 	status: string;

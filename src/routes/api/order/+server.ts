@@ -2,7 +2,24 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import client from '$db/client';
 import dayjs from 'dayjs';
-import type { OrderDataTable } from '$lib/content/core';
+import type { Job, PurchaseOrder } from '@prisma/client';
+
+export type OrderResponse = (PurchaseOrder & {
+	jobs: (Job & {
+		vendor: {
+			id: number;
+			name: string;
+		};
+	})[];
+	client: {
+		id: string;
+		name: string;
+		companyName: string;
+		salesRep: {
+			name: string;
+		};
+	};
+})[];
 
 export const GET: RequestHandler = async (req) => {
 	const { url } = req;
@@ -12,7 +29,7 @@ export const GET: RequestHandler = async (req) => {
 
 	const dateUntil = dayjs().subtract(showRecordsForLastDays, 'day').toDate();
 
-	const data = await client.purchaseOrder.findMany({
+	const data: OrderResponse = await client.purchaseOrder.findMany({
 		where: {
 			jobs: {
 				every: {
@@ -48,24 +65,5 @@ export const GET: RequestHandler = async (req) => {
 		}
 	});
 
-	const result: OrderDataTable[] = [];
-
-	data.forEach((job) => {
-		const { client, jobs } = job;
-		jobs.forEach((job) => {
-			result.push({
-				id: job.id,
-				name: job.name,
-				price: job.price.toString(),
-				client: client.name + ' ' + client.companyName,
-				clientId: client.id,
-				vendor: job.vendor.name,
-				vendorId: job.vendor.id,
-				date: job.createdAt.toString(),
-				status: job.status
-			});
-		});
-	});
-
-	return json(result);
+	return json(data);
 };
