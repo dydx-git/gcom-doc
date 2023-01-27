@@ -12,10 +12,10 @@
 		"format": "prettier --plugin-search-dir . --write ."
 	},
 	"devDependencies": {
-		"@carbon/type": "^11.14.0",
 		"@sveltejs/adapter-auto": "^1.0.0",
 		"@sveltejs/adapter-node": "^1.1.4",
 		"@sveltejs/kit": "^1.0.0",
+		"@types/debounce": "^1.2.1",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"carbon-components-svelte": "^0.71.0",
@@ -39,10 +39,10 @@
 		"@prisma/client": "^4.8.1",
 		"access-key-label-polyfill": "^0.1.1",
 		"dayjs": "^1.11.7",
+		"debounce": "^1.2.1",
 		"just-clone": "^6.2.0",
-		"socket.io": "^4.5.4",
-		"socket.io-client": "^4.5.4",
 		"svelte-local-storage-store": "^0.4.0",
-		"zod": "^3.20.2"
+		"socket.io": "^4.5.4",
+		"socket.io-client": "^4.5.4"
 	}
 }

@@ -10,5 +10,10 @@ export const GET: RequestHandler = async (req) => {
 export const POST: RequestHandler = async ({ request }) => {
 	const { body } = request;
 
-	return json({ message: 'OK' });
+	const result = {
+		success: true,
+		message: ''
+	};
+
+	return json(result);
 };

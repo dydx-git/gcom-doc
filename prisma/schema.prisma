@@ -89,6 +89,8 @@ model SalesRep {
 
   company Company  @relation(fields: [companyId], references: [id])
   Client  Client[]
+
+  @@map("sales_reps")
 }
 
 model ClientAddress {

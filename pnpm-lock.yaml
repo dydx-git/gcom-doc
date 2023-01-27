@@ -1,11 +1,11 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@carbon/type': ^11.14.0
   '@prisma/client': ^4.8.1
   '@sveltejs/adapter-auto': ^1.0.0
   '@sveltejs/adapter-node': ^1.1.4
   '@sveltejs/kit': ^1.0.0
+  '@types/debounce': ^1.2.1
   '@typescript-eslint/eslint-plugin': ^5.45.0
   '@typescript-eslint/parser': ^5.45.0
   access-key-label-polyfill: ^0.1.1
@@ -13,6 +13,7 @@ specifiers:
   carbon-icons-svelte: ^11.4.0
   carbon-preprocess-svelte: ^0.9.1
   dayjs: ^1.11.7
+  debounce: ^1.2.1
   eslint: ^8.28.0
   eslint-config-prettier: ^8.5.0
   eslint-plugin-svelte3: ^4.0.0
@@ -29,23 +30,22 @@ specifiers:
   tslib: ^2.4.1
   typescript: ^4.9.3
   vite: ^4.0.0
-  zod: ^3.20.2
 
 dependencies:
   '@prisma/client': 4.8.1_prisma@4.8.1
   access-key-label-polyfill: 0.1.1
   dayjs: 1.11.7
+  debounce: 1.2.1
   just-clone: 6.2.0
   socket.io: 4.5.4
   socket.io-client: 4.5.4
   svelte-local-storage-store: 0.4.0_svelte@3.55.0
-  zod: 3.20.2
 
 devDependencies:
-  '@carbon/type': 11.14.0
   '@sveltejs/adapter-auto': 1.0.0_@sveltejs+kit@1.0.11
   '@sveltejs/adapter-node': 1.1.4_@sveltejs+kit@1.0.11
   '@sveltejs/kit': 1.0.11_svelte@3.55.0+vite@4.0.4
+  '@types/debounce': 1.2.1
   '@typescript-eslint/eslint-plugin': 5.48.1_3jon24igvnqaqexgwtxk6nkpse
   '@typescript-eslint/parser': 5.48.1_iukboom6ndih5an6iafl45j2fe
   carbon-components-svelte: 0.71.0
@@ -65,23 +65,6 @@ devDependencies:
   vite: 4.0.4_sass@1.57.1
 
 packages:
-
-  /@carbon/grid/11.10.0:
-    resolution: {integrity: sha512-DL0us6Ms0YNDjW7a+8ZMByLkg1rQ2A0M/9e+LdnseyD/aWfUWGsPH/S2h7FNkNClywPOYwbU+NgYY8N72F7C5g==}
-    dependencies:
-      '@carbon/layout': 11.10.0
-    dev: true
-
-  /@carbon/layout/11.10.0:
-    resolution: {integrity: sha512-rQm5V0w+J8LsNnwq/Z1rXVHxlFbcccu06eJGqi9uGkrZZLT7UXJz9E27gIstxyiYeE+Sd7wq6iQayxWvahYjCQ==}
-    dev: true
-
-  /@carbon/type/11.14.0:
-    resolution: {integrity: sha512-t8agJ2FfX9V7sYbmoIXYbM+yu62whozBlbSaJVnrMFpvRPOsEdWt0US4CAdyCvxytRsJqr+SfyScXx2phUrFgg==}
-    dependencies:
-      '@carbon/grid': 11.10.0
-      '@carbon/layout': 11.10.0
-    dev: true
 
   /@esbuild/android-arm/0.16.16:
     resolution: {integrity: sha512-BUuWMlt4WSXod1HSl7aGK8fJOsi+Tab/M0IDK1V1/GstzoOpqc/v3DqmN8MkuapPKQ9Br1WtLAN4uEgWR8x64A==}
@@ -531,6 +514,10 @@ packages:
       '@types/node': 18.11.18
     dev: false
 
+  /@types/debounce/1.2.1:
+    resolution: {integrity: sha512-epMsEE85fi4lfmJUH/89/iV/LI+F5CvNIvmgs5g5jYFPfhO2S/ae8WSsLOKWdwtoaZw9Q2IhJ4tQ5tFCcS/4HA==}
+    dev: true
+
   /@types/estree/1.0.0:
     resolution: {integrity: sha512-WulqXMDUTYAXCjZnk6JtIHPigp55cVtDgDrO2gHRwhyJto21+1zbVCtOYB2L1F9w4qCQ0rOGWBnBe0FNTiEJIQ==}
     dev: true
@@ -920,6 +907,10 @@ packages:
 
   /dayjs/1.11.7:
     resolution: {integrity: sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==}
+    dev: false
+
+  /debounce/1.2.1:
+    resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
     dev: false
 
   /debug/4.3.4:
@@ -2251,7 +2242,3 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
-
-  /zod/3.20.2:
-    resolution: {integrity: sha512-1MzNQdAvO+54H+EaK5YpyEy0T+Ejo/7YLHS93G3RnYWh5gaotGHwGeN/ZO687qEDU2y4CdStQYXVHIgrUl5UVQ==}
-    dev: false
