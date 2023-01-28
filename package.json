@@ -35,6 +35,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@ghostebony/sse": "^0.1.0",
 		"@prisma/client": "^4.8.1",
 		"access-key-label-polyfill": "^0.1.1",
 		"dayjs": "^1.11.7",

@@ -18,6 +18,9 @@
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
 	import navbarData from '$lib/data/nav/nav-menu';
+	import { Client } from '@ghostebony/sse/client';
+
+	import { onMount } from 'svelte';
 
 	let theme: CarbonTheme = 'g10';
 
@@ -25,6 +28,28 @@
 	let isOpen2 = false;
 
 	let navBarBtns = navbarData.navButtons;
+
+	let eventSource: Client;
+	onMount(async () => {
+		eventSource = new Client({
+			source: {
+				url: '/api/sse/job'
+			},
+			listeners: [
+				{
+					channel: 'jobs',
+					listener: ({ data }) => {
+						console.log(data);
+					},
+					parseJson: true
+				}
+			]
+		});
+
+		return () => {
+			eventSource.close();
+		};
+	});
 </script>
 
 <Theme bind:theme persist persistKey="__carbon-theme" />
