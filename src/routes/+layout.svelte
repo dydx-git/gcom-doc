@@ -87,4 +87,8 @@
 	:global(.bx--data-table--sticky-header) {
 		max-height: 76vh !important;
 	}
+	:global(html, body) {
+		max-width: 100%;
+		overflow-x: hidden;
+	}
 </style>

@@ -158,13 +158,13 @@
 					<h3>Client</h3>
 				</Column>
 				{#if submitType === FormSubmitType.AddNew}
-					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 4, offset: 4 }}>
+					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 5, offset: 3 }}>
 						<Checkbox labelText="Keep input on close" bind:checked={$keepClientDataOnCloseStore} />
 					</Column>
 				{/if}
 			</Row>
 		</ModalHeader>
-		<ModalBody hasForm>
+		<ModalBody hasForm hasScrollingContent>
 			<input type="hidden" name="id" bind:value={client.id} />
 			<Row>
 				<Column sm={4} md={4} lg={8}>
