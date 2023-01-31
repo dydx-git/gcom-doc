@@ -1,5 +1,5 @@
 import type { Client, Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
-import type { Error } from 'src/app';
+import { JobStatus } from '@prisma/client';
 
 export enum FormSubmitType {
 	AddNew,
@@ -53,6 +53,11 @@ export const CompanyLabel: { [key in Company]: string } = {
 	[Company.ThreadTapes]: 'Thread Tapes'
 };
 
+export const OrderStatus = {
+	...JobStatus,
+	OVERDUE: 'OVERDUE'
+};
+
 export type OrderDataTable = {
 	id: string;
 	name: string;
@@ -63,5 +68,7 @@ export type OrderDataTable = {
 	companyName: string;
 	vendorId: number;
 	date: string;
-	status: string;
+	status: OrderStatus;
 };
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];

@@ -2,6 +2,7 @@
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import { orderColumns, orderDatatableColumnKeys } from '$lib/data/datatable/order';
 	import { getRelativeTime } from '$lib/utils/relativeTime';
+
 	import {
 		Grid,
 		Column,
@@ -15,12 +16,26 @@
 		Tag,
 		OverflowMenu,
 		OverflowMenuItem,
-		Breakpoint
+		Breakpoint,
+		Tooltip,
+		TooltipDefinition
 	} from 'carbon-components-svelte';
 	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
-	import { Add, type CarbonIcon, Renew, Time, Train, Unknown } from 'carbon-icons-svelte';
-	import type { OrderDataTable } from '../core';
+	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
+	import {
+		Add,
+		type CarbonIcon,
+		Renew,
+		Unknown,
+		InProgressWarning,
+		Checkmark,
+		InProgress,
+		IncompleteCancel,
+		TrainSpeed
+	} from 'carbon-icons-svelte';
+	import dayjs from 'dayjs';
+	import { OrderStatus, type OrderDataTable } from '../core';
 
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
@@ -38,29 +53,56 @@
 				return `$${cell.value}`;
 			case orderDatatableColumnKeys.date:
 				return getRelativeTime(new Date(cell.value));
+			case orderDatatableColumnKeys.status:
+				return screenSize == 'sm' ? '' : cell.value;
 			default:
 				return cell.value;
 		}
 	};
 
-	const getIconByStatus: (status: string) => typeof CarbonIcon = (status: string) => {
-		switch (status.toLowerCase()) {
-			case 'pending':
-				return Time;
-			case 'overdue':
-				return Train;
+	const getIconByStatus: (status: OrderStatus) => typeof CarbonIcon = (status: OrderStatus) => {
+		switch (status) {
+			case OrderStatus.PENDING:
+				return InProgress;
+			case OrderStatus.OVERDUE:
+				return InProgressWarning;
+			case OrderStatus.COMPLETED:
+				return Checkmark;
+			case OrderStatus.CANCELLED:
+				return IncompleteCancel;
+			case OrderStatus.RUSH:
+				return TrainSpeed;
 			default:
 				return Unknown;
 		}
 	};
 
-	$: if (screenSize == 'sm') {
+	const getColorByStatus = (status: string): TagProps['type'] => {
+		switch (status) {
+			case OrderStatus.PENDING:
+				return 'outline';
+			case OrderStatus.OVERDUE:
+				return 'red';
+			case OrderStatus.COMPLETED:
+				return 'green';
+			case OrderStatus.CANCELLED:
+				return 'gray';
+			case OrderStatus.RUSH:
+				return 'purple';
+			default:
+				return 'cool-gray';
+		}
+	};
+
+	$: if (screenSize == 'sm')
 		dtColumns = orderColumns.filter((column) =>
-			[orderDatatableColumnKeys.name, orderDatatableColumnKeys.status].includes(column.key)
+			[
+				orderDatatableColumnKeys.name,
+				orderDatatableColumnKeys.status,
+				orderDatatableColumnKeys.actions
+			].includes(column.key)
 		);
-	} else {
-		dtColumns = orderColumns;
-	}
+	else dtColumns = orderColumns;
 </script>
 
 <Breakpoint bind:size={screenSize} />
@@ -90,18 +132,25 @@
 	</Row>
 	<Row class="default-gap">
 		<Column>
-			<DataTable sortable headers={dtColumns} rows={tableData} stickyHeader={screenSize == 'sm'}>
+			<DataTable sortable headers={dtColumns} rows={tableData}>
 				<strong slot="title">{title}</strong>
 				<span slot="description" style="font-size: 1rem">
 					{description}
 				</span>
 				<svelte:fragment slot="cell" let:row let:cell>
 					{#if cell.key === orderDatatableColumnKeys.status}
-						<Tag interactive icon={getIconByStatus(row.status)} type="blue">
-							{row.status}
-						</Tag>
+						<Truncate>
+							<Tag
+								interactive
+								icon={getIconByStatus(row.status)}
+								type={getColorByStatus(row.status)}
+								size={screenSize == 'sm' ? screenSize : 'default'}
+							>
+								{render(cell)}
+							</Tag>
+						</Truncate>
 					{:else if cell.key === orderDatatableColumnKeys.actions}
-						<OverflowMenu flipped>
+						<OverflowMenu flipped width="1px">
 							<OverflowMenuItem text="Restart" />
 							<OverflowMenuItem
 								href="https://cloud.ibm.com/docs/loadbalancer-service"
@@ -109,6 +158,12 @@
 							/>
 							<OverflowMenuItem danger text="Stop" />
 						</OverflowMenu>
+					{:else if cell.key == orderDatatableColumnKeys.date}
+						<TooltipDefinition tooltipText={dayjs(cell.value).format('ddd, MMM D h:mm A')}>
+							<Truncate>
+								{render(cell)}
+							</Truncate>
+						</TooltipDefinition>
 					{:else}
 						<Truncate>
 							{render(cell)}

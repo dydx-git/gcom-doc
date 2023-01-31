@@ -17,5 +17,5 @@ export const orderColumns: ReadonlyArray<DataTableHeader> = [
 	{ key: orderDatatableColumnKeys.vendor, value: 'Vendor' },
 	{ key: orderDatatableColumnKeys.date, value: 'Created On' },
 	{ key: orderDatatableColumnKeys.status, value: 'Status' },
-	{ key: orderDatatableColumnKeys.actions, value: 'Actions', sort: false }
+	{ key: orderDatatableColumnKeys.actions, value: 'Actions', sort: false, width: '5rem' }
 ];

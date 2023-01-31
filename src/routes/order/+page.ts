@@ -3,8 +3,9 @@ import { error } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import type { PageLoad } from './$types';
 import { userPreferencesStore } from '../store';
-import type { OrderDataTable } from '$lib/content/core';
+import { OrderStatus, type OrderDataTable } from '$lib/content/core';
 import type { OrderResponse } from '../api/order/+server';
+import dayjs from 'dayjs';
 
 export const load: PageLoad = async ({ fetch }) => {
 	const userPreferences = get(userPreferencesStore);
@@ -19,6 +20,10 @@ export const load: PageLoad = async ({ fetch }) => {
 	orders.forEach((job) => {
 		const { client, jobs } = job;
 		jobs.forEach((job) => {
+			const status: OrderStatus = dayjs().isAfter(dayjs(job.createdAt), 'day')
+				? OrderStatus.OVERDUE
+				: (job.status as OrderStatus);
+
 			result.push({
 				id: job.id,
 				name: job.name,
@@ -29,7 +34,7 @@ export const load: PageLoad = async ({ fetch }) => {
 				vendor: job.vendor.name,
 				vendorId: job.vendor.id,
 				date: job.createdAt.toString(),
-				status: job.status
+				status: status
 			});
 		});
 	});
