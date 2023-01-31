@@ -87,6 +87,10 @@
 	:global(.bx--data-table--sticky-header) {
 		max-height: 76vh !important;
 	}
+	:global(.bx--modal-content--with-form) {
+		margin-bottom: 0px;
+		height: 60vmin;
+	}
 	:global(html, body) {
 		max-width: 100%;
 		overflow-x: hidden;

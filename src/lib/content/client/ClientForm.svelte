@@ -24,7 +24,7 @@
 		Toggle
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount, SvelteComponentTyped } from 'svelte';
 	import { Company, FormSubmitType, CompanyLabel, type ClientFormData } from '../core';
 	import { clientFormDataStore, keepClientDataOnCloseStore } from './store';
 	import type { Address } from 'src/routes/api/address/+server';
@@ -32,7 +32,7 @@
 	export let open = false;
 	export let isValid = false;
 	export let submitType: FormSubmitType;
-	export let form: ActionData;
+	export let formResult: ActionData;
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
@@ -78,6 +78,7 @@
 		? $clientFormDataStore ?? getEmptyClient()
 		: getEmptyClient();
 
+	let formElements = { name: {} as SvelteComponentTyped, companyName: {} as SvelteComponentTyped };
 	let formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
 	let formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 
@@ -95,7 +96,7 @@
 	};
 
 	const onSubmit = (e: Event) => {
-		if (!form?.success) return;
+		const nameInput = document.getElementById('name') as HTMLInputElement;
 
 		$keepClientDataOnCloseStore = false;
 	};
@@ -151,7 +152,7 @@
 	on:close={onClose}
 	on:submit={onSubmit}
 >
-	<Form method="POST">
+	<form method="POST">
 		<ModalHeader label={formTitle}>
 			<Row>
 				<Column sm={12} md={4} lg={8}>
@@ -164,7 +165,7 @@
 				{/if}
 			</Row>
 		</ModalHeader>
-		<ModalBody hasForm hasScrollingContent>
+		<ModalBody hasForm>
 			<input type="hidden" name="id" bind:value={client.id} />
 			<Row>
 				<Column sm={4} md={4} lg={8}>
@@ -173,15 +174,20 @@
 						id="name"
 						name="name"
 						labelText="Name*"
+						bind:this={formElements.name}
 						bind:value={client.name}
+						minlength={3}
 						placeholder="John Doe"
+						invalid
 					/>
 				</Column>
 				<Column sm={4} md={4} lg={7}>
 					<TextInput
 						labelText="Company"
+						id="company"
 						name="companyName"
 						placeholder="Company Name"
+						minlength={3}
 						bind:value={client.companyName}
 					/>
 				</Column>
@@ -191,7 +197,10 @@
 					<Row>
 						<Column sm={2} md={3} lg={4}>
 							<TextInput
-								required={true}
+								required
+								type="tel"
+								id="phone"
+								pattern="(?:\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}"
 								labelText="Phone*"
 								name={`phones[${i}].phone`}
 								placeholder="(xxx) xxx-xxxx"
@@ -199,12 +208,7 @@
 							/>
 						</Column>
 						<Column sm={2} md={2} lg={4}>
-							<Select
-								labelText="Type*"
-								name={`phones[${i}].type`}
-								placeholder="(xxx) xxx-xxxx"
-								bind:selected={phone.type}
-							>
+							<Select labelText="Type*" name={`phones[${i}].type`} bind:selected={phone.type}>
 								{#each Object.values(PhoneType) as type}
 									<SelectItem value={type} text={type} />
 								{/each}
@@ -253,19 +257,16 @@
 						<Column sm={2} md={3} lg={4}>
 							<TextInput
 								labelText="Email*"
-								required={true}
+								required
+								type="email"
+								id="email"
 								name={`emails[${i}].email`}
 								placeholder="john.doe@example.com"
 								bind:value={email.email}
 							/>
 						</Column>
 						<Column sm={2} md={2} lg={4}>
-							<Select
-								labelText="Type*"
-								name={`emails[${i}].type`}
-								placeholder="Select email type"
-								bind:selected={email.type}
-							>
+							<Select labelText="Type*" name={`emails[${i}].type`} bind:selected={email.type}>
 								{#each Object.values(EmailType) as type}
 									<SelectItem value={type} text={type} />
 								{/each}
@@ -310,12 +311,7 @@
 			</FormGroup>
 			<Row>
 				<Column sm={2} md={2} lg={4}>
-					<Select
-						required
-						labelText="Company*"
-						bind:selected={client.company}
-						placeholder="Thread Tapes, Buffalo etc."
-					>
+					<Select required labelText="Company*" bind:selected={client.company}>
 						{#each Object.entries(CompanyLabel) as [key, value]}
 							<SelectItem value={key} text={value} />
 						{/each}
@@ -442,5 +438,5 @@
 				>{formTitle}</Button
 			>
 		</ModalFooter>
-	</Form>
+	</form>
 </ComposedModal>
