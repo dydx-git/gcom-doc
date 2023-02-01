@@ -1,7 +1,6 @@
 <script lang="ts">
 	import clone from 'just-clone';
 	import { debounce } from 'debounce';
-	import type { ActionData } from '.svelte-kit/types/src/routes/client/$types';
 	import { Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
 	import {
 		Button,
@@ -23,15 +22,14 @@
 		Toggle
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
-	import { onDestroy, onMount, SvelteComponentTyped } from 'svelte';
-	import { Company, FormSubmitType, CompanyLabel, type ClientFormData } from '../core';
-	import { clientFormDataStore, keepClientDataOnCloseStore } from './store';
+	import { onDestroy, onMount } from 'svelte';
+	import { Company, FormSubmitType, CompanyLabel, type OrderFormData } from '../core';
+	import { orderFormDataStore, keepOrderDataOnCloseStore } from './store';
 	import type { Address } from 'src/routes/api/address/+server';
 
 	export let open = false;
 	export let isValid = false;
 	export let submitType: FormSubmitType;
-	export let formResult: ActionData;
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
@@ -40,7 +38,7 @@
 		response: null as Promise<Response> | null
 	};
 	const inputToParseDelay = 1000;
-	const getEmptyClient = (): ClientFormData => {
+	const getEmptyOrder = (): OrderFormData => {
 		const defaultValues = {
 			id: null,
 			name: '',
@@ -73,9 +71,9 @@
 		return clone(defaultValues);
 	};
 
-	export let client: ClientFormData = $keepClientDataOnCloseStore
-		? $clientFormDataStore ?? getEmptyClient()
-		: getEmptyClient();
+	export let client: OrderFormData = $keepOrderDataOnCloseStore
+		? $clientFormDataStore ?? getEmptyOrder()
+		: getEmptyOrder();
 
 	let formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
 	let formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
@@ -85,18 +83,18 @@
 	};
 
 	const onClose = (e: Event) => {
-		if ($keepClientDataOnCloseStore) {
+		if ($keepOrderDataOnCloseStore) {
 			$clientFormDataStore = client;
 		} else {
 			$clientFormDataStore = null;
-			client = getEmptyClient();
+			client = getEmptyOrder();
 		}
 	};
 
 	const onSubmit = (e: Event) => {
 		const nameInput = document.getElementById('name') as HTMLInputElement;
 
-		$keepClientDataOnCloseStore = false;
+		$keepOrderDataOnCloseStore = false;
 	};
 
 	const parseAddress = async () => {
@@ -154,11 +152,11 @@
 		<ModalHeader label={formTitle}>
 			<Row>
 				<Column sm={12} md={4} lg={8}>
-					<h3>Client</h3>
+					<h3>Order</h3>
 				</Column>
 				{#if submitType === FormSubmitType.AddNew}
 					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 5, offset: 3 }}>
-						<Checkbox labelText="Keep input on close" bind:checked={$keepClientDataOnCloseStore} />
+						<Checkbox labelText="Keep input on close" bind:checked={$keepOrderDataOnCloseStore} />
 					</Column>
 				{/if}
 			</Row>
