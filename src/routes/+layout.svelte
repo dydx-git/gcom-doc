@@ -89,7 +89,7 @@
 	}
 	:global(.bx--modal-content--with-form) {
 		margin-bottom: 0px;
-		height: 60vmin;
+		height: 72vh;
 	}
 	:global(html, body) {
 		max-width: 100%;

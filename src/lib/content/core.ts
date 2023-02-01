@@ -41,6 +41,17 @@ export interface ClientFormData {
 	notes: string;
 }
 
+export interface OrderFormData {
+	id: string | null;
+	name: string;
+	price: string;
+	client: string;
+	clientId: string;
+	vendor: string;
+	vendorId: number;
+	date: string;
+}
+
 export enum Company {
 	BuffaloWebWork = 2,
 	ItecDesigns = 1,
