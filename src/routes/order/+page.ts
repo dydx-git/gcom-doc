@@ -1,11 +1,10 @@
-import type { Order } from '$lib/models/job';
 import { error } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import type { PageLoad } from './$types';
-import { userPreferencesStore } from '../store';
-import { OrderStatus, type OrderDataTable } from '$lib/content/core';
+import { userPreferencesStore } from '../../lib/store';
 import type { OrderResponse } from '../api/order/+server';
 import dayjs from 'dayjs';
+import { type OrderDataTable, OrderStatus } from '$lib/models/client-form';
 
 export const load: PageLoad = async ({ fetch }) => {
 	const userPreferences = get(userPreferencesStore);

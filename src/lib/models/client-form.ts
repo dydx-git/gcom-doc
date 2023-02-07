@@ -1,4 +1,4 @@
-import type { Client, Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
+import type { EmailType, PhoneType } from '@prisma/client';
 import { JobStatus } from '@prisma/client';
 
 export enum FormSubmitType {
@@ -22,35 +22,6 @@ export type EmailFormData = {
 	type: EmailType;
 	description: string | null;
 };
-
-export interface ClientFormData {
-	id: string | null;
-	name: string;
-	companyName: string;
-	phones: PhoneFormData[];
-	emails: EmailFormData[];
-	company: Company;
-	paymentMethod: PayMethod;
-	currency: Currency;
-	addTransactionCharge: boolean;
-	address: string;
-	city: string;
-	state: string;
-	country: string;
-	zip: string;
-	notes: string;
-}
-
-export interface OrderFormData {
-	id: string | null;
-	name: string;
-	price: string;
-	client: string;
-	clientId: string;
-	vendor: string;
-	vendorId: number;
-	date: string;
-}
 
 export enum Company {
 	BuffaloWebWork = 2,

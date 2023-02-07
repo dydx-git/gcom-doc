@@ -1,6 +1,7 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import { orderColumns, orderDatatableColumnKeys } from '$lib/data/datatable/order';
+	import { OrderStatus, type OrderDataTable } from '$lib/models/client-form';
 	import { getRelativeTime } from '$lib/utils/relativeTime';
 
 	import {
@@ -20,9 +21,9 @@
 		Tooltip,
 		TooltipDefinition
 	} from 'carbon-components-svelte';
-	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
+	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import {
 		Add,
 		type CarbonIcon,
@@ -35,7 +36,7 @@
 		TrainSpeed
 	} from 'carbon-icons-svelte';
 	import dayjs from 'dayjs';
-	import { OrderStatus, type OrderDataTable } from '../core';
+	import { screenSizeStore } from '$lib/store';
 
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
@@ -43,7 +44,6 @@
 	export let tableData: OrderDataTable[] = [];
 
 	let dtColumns = orderColumns;
-	let screenSize: BreakpointSize;
 
 	const filterTable = (text: string) => {};
 
@@ -94,6 +94,8 @@
 		}
 	};
 
+	$: screenSize = $screenSizeStore;
+
 	$: if (screenSize == 'sm')
 		dtColumns = orderColumns.filter((column) =>
 			[
@@ -104,8 +106,6 @@
 		);
 	else dtColumns = orderColumns;
 </script>
-
-<Breakpoint bind:size={screenSize} />
 
 <Grid>
 	<Row>

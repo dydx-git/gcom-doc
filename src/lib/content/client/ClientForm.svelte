@@ -24,10 +24,12 @@
 		Toggle
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
-	import { onDestroy, onMount, SvelteComponentTyped } from 'svelte';
-	import { Company, FormSubmitType, CompanyLabel, type ClientFormData } from '../core';
+	import { onDestroy, onMount } from 'svelte';
 	import { clientFormDataStore, keepClientDataOnCloseStore } from './store';
 	import type { Address } from 'src/routes/api/address/+server';
+	import { Company, CompanyLabel, FormSubmitType } from '$lib/models/client-form';
+	import type { ClientFormData } from '$lib/interfaces/form';
+	import { screenSizeStore } from '$lib/store';
 
 	export let open = false;
 	export let isValid = false;
@@ -164,7 +166,7 @@
 				{/if}
 			</Row>
 		</ModalHeader>
-		<ModalBody hasForm>
+		<ModalBody hasForm class={$screenSizeStore == 'sm' ? 'mobile-form' : ''}>
 			<input type="hidden" name="id" bind:value={client.id} />
 			<Row>
 				<Column sm={4} md={4} lg={8}>

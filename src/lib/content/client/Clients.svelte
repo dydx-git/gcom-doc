@@ -1,6 +1,7 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import clientColumns from '$lib/data/datatable/client';
+	import { FormSubmitType } from '$lib/models/client-form';
 	import type { ActionData } from '.svelte-kit/types/src/routes/client/$types';
 	import type { Client } from '@prisma/client';
 	import {
@@ -14,7 +15,6 @@
 		Button
 	} from 'carbon-components-svelte';
 	import { UserFollow } from 'carbon-icons-svelte';
-	import { FormSubmitType } from '../core';
 	import ClientForm from './ClientForm.svelte';
 
 	export let title = 'Clients';

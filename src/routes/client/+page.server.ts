@@ -1,5 +1,5 @@
+import { createObjectFromFormData } from '$lib/core';
 import type { Client } from '@prisma/client';
-import { createObjectFromFormData } from '../core';
 import { fail, type Actions } from '@sveltejs/kit';
 import type { RequestHandler } from '../api/client/$types';
 

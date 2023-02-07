@@ -12,15 +12,18 @@
 		Grid,
 		Theme,
 		HeaderNavItem,
-		HeaderNav
+		HeaderNav,
+		Breakpoint
 	} from 'carbon-components-svelte';
 	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
+	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
 	import navbarData from '$lib/data/nav/nav-menu';
 	import { Client } from '@ghostebony/sse/client';
 
 	import { onMount } from 'svelte';
+	import { screenSizeStore } from '$lib/store';
 
 	let theme: CarbonTheme = 'g10';
 
@@ -29,7 +32,10 @@
 
 	let navBarBtns = navbarData.navButtons;
 
+	let screenSize: BreakpointSize = 'lg';
+
 	let eventSource: Client;
+
 	onMount(async () => {
 		eventSource = new Client({
 			source: {
@@ -53,6 +59,8 @@
 </script>
 
 <Theme bind:theme persist persistKey="__carbon-theme" />
+
+<Breakpoint bind:size={screenSize} on:change={(e) => screenSizeStore.set(screenSize)} />
 
 <Header company="Thread Tapes" platformName="DOC">
 	<svelte:fragment slot="skip-to-content">
@@ -87,9 +95,15 @@
 	:global(.bx--data-table--sticky-header) {
 		max-height: 76vh !important;
 	}
+	:global(.bx--form) {
+		height: 100%;
+	}
 	:global(.bx--modal-content--with-form) {
 		margin-bottom: 0px;
-		height: 72vh;
+		height: 64vh;
+	}
+	:global(.mobile-form) {
+		height: 76vh;
 	}
 	:global(html, body) {
 		max-width: 100%;
