@@ -8,21 +8,20 @@ datasource db {
 }
 
 model Client {
-  id                    String          @id @db.VarChar(32)
-  name                  String          @db.VarChar(100)
-  companyName           String          @map("company_name") @db.VarChar(100)
-  createdAt             DateTime        @default(now()) @db.DateTime(0)
-  addTransactionCharges Boolean         @map("add_tc")
-  updatedAt             DateTime        @updatedAt @db.DateTime(0)
-  payMethod             PayMethod       @map("pay_method")
+  id                    String                  @id @db.VarChar(32)
+  name                  String                  @db.VarChar(100)
+  companyName           String                  @map("company_name") @db.VarChar(100)
+  createdAt             DateTime                @default(now()) @db.DateTime(0)
+  addTransactionCharges Boolean                 @map("add_tc")
+  updatedAt             DateTime                @updatedAt @db.DateTime(0)
+  payMethod             PayMethod               @map("pay_method")
   currency              Currency
-  salesRepId            Int             @map("sales_rep_id")
-  salesRep              SalesRep        @relation(fields: [salesRepId], references: [id])
   status                ClientStatus
   emails                ClientEmail[]
   addresses             ClientAddress[]
   phones                ClientPhone[]
   orders                PurchaseOrder[]
+  ClientSalesRepCompany ClientSalesRepCompany[]
 
   @@map("clients")
 }
@@ -87,10 +86,25 @@ model SalesRep {
   phone     String @db.VarChar(100)
   companyId Int    @map("company_id")
 
-  company Company  @relation(fields: [companyId], references: [id])
-  Client  Client[]
+  company               Company                 @relation(fields: [companyId], references: [id])
+  ClientSalesRepCompany ClientSalesRepCompany[]
 
   @@map("sales_reps")
+}
+
+model ClientSalesRepCompany {
+  clientId   String   @map("client_id") @db.VarChar(32)
+  salesRepId Int      @map("sales_rep_id")
+  companyId  Int      @map("company_id")
+  fromDate   DateTime @default(now()) @db.DateTime(0)
+  toDate     DateTime @db.DateTime(0)
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_sales_rep_client")
+  salesRep   SalesRep @relation(fields: [salesRepId], references: [id], onDelete: Cascade, map: "client_sales_rep_sales_rep")
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade, map: "client_sales_rep_company")
+
+  @@id([clientId, salesRepId])
+  @@index([salesRepId, fromDate(sort: Desc), toDate(sort: Desc)], map: "client_sales_rep_sales_rep_index")
+  @@map("client_sales_reps")
 }
 
 model ClientAddress {
@@ -135,17 +149,18 @@ model ClientPhone {
 }
 
 model Company {
-  id       Int        @id @default(autoincrement())
-  name     String     @db.VarChar(100)
-  address  String     @db.VarChar(100)
-  city     String     @db.VarChar(100)
-  state    String     @db.VarChar(2)
-  country  String     @db.VarChar(100)
-  zip      String     @db.VarChar(16)
-  phone    String     @db.VarChar(100)
-  email    String     @db.VarChar(100)
-  website  String     @db.VarChar(100)
-  SalesRep SalesRep[]
+  id                    Int                     @id @default(autoincrement())
+  name                  String                  @db.VarChar(100)
+  address               String                  @db.VarChar(100)
+  city                  String                  @db.VarChar(100)
+  state                 String                  @db.VarChar(2)
+  country               String                  @db.VarChar(100)
+  zip                   String                  @db.VarChar(16)
+  phone                 String                  @db.VarChar(100)
+  email                 String                  @db.VarChar(100)
+  website               String                  @db.VarChar(100)
+  SalesRep              SalesRep[]
+  ClientSalesRepCompany ClientSalesRepCompany[]
 
   @@map("companies")
 }
