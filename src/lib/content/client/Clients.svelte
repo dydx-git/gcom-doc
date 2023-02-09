@@ -72,9 +72,4 @@
 	</Row>
 </Grid>
 
-<ClientForm
-	bind:open={isAddNewModalOpen}
-	bind:isValid={isFormValid}
-	formResult={form}
-	bind:submitType
-/>
+<ClientForm bind:open={isAddNewModalOpen} bind:isValid={isFormValid} bind:submitType />

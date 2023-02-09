@@ -15,6 +15,8 @@
 		"@sveltejs/adapter-auto": "^1.0.0",
 		"@sveltejs/kit": "^1.0.0",
 		"@types/debounce": "^1.2.1",
+		"@types/lodash.get": "^4.4.7",
+		"@types/lodash.set": "^4.3.7",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
 		"@typescript-eslint/parser": "^5.45.0",
 		"carbon-components-svelte": "^0.71.0",
@@ -41,6 +43,8 @@
 		"dayjs": "^1.11.7",
 		"debounce": "^1.2.1",
 		"just-clone": "^6.2.0",
+		"lodash.get": "^4.4.2",
+		"lodash.set": "^4.3.2",
 		"svelte-local-storage-store": "^0.4.0"
 	}
 }

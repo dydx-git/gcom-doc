@@ -1,8 +1,9 @@
 <script lang="ts">
 	import clone from 'just-clone';
 	import { debounce } from 'debounce';
-	import type { ActionData } from '.svelte-kit/types/src/routes/client/$types';
 	import { Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
+	import get from 'lodash.get';
+	import set from 'lodash.set';
 	import {
 		Button,
 		Checkbox,
@@ -30,11 +31,11 @@
 	import { Company, CompanyLabel, FormSubmitType } from '$lib/models/client-form';
 	import type { ClientFormData } from '$lib/interfaces/form';
 	import { screenSizeStore } from '$lib/store';
+	import type { ValidatedInput } from '$lib/models/form';
 
 	export let open = false;
 	export let isValid = false;
 	export let submitType: FormSubmitType;
-	export let formResult: ActionData;
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
@@ -42,7 +43,7 @@
 		placeholderText: 'No suggestions available.',
 		response: null as Promise<Response> | null
 	};
-	const inputToParseDelay = 1000;
+	const inputToProcessDelay = 400;
 	const getEmptyClient = (): ClientFormData => {
 		const defaultValues = {
 			id: null,
@@ -74,6 +75,27 @@
 			country: ''
 		};
 		return clone(defaultValues);
+	};
+
+	const formElements = {
+		name: {} as ValidatedInput,
+		companyName: {} as ValidatedInput,
+		phones: [
+			{
+				phone: {} as ValidatedInput | null
+			}
+		],
+		emails: [
+			{
+				email: {} as ValidatedInput | null
+			}
+		],
+		notes: {} as ValidatedInput,
+		city: {} as ValidatedInput,
+		state: {} as ValidatedInput,
+		zip: {} as ValidatedInput,
+		address: {} as ValidatedInput,
+		country: {} as ValidatedInput
 	};
 
 	export let client: ClientFormData = $keepClientDataOnCloseStore
@@ -139,6 +161,22 @@
 		client.country = address?.country || client.country;
 	};
 
+	const validate = (event: Event) => {
+		const target = event.target as HTMLInputElement;
+		const name = target.name;
+		const value = target.value;
+
+		const element = get(formElements, name) as ValidatedInput | null;
+		if (!element) return;
+
+		element.invalid = true;
+		element.invalidText = 'This field is required.';
+		set(formElements, element);
+
+		isValid = false;
+		return;
+	};
+
 	onMount(() => {});
 	onDestroy(() => {});
 
@@ -153,7 +191,7 @@
 	on:close={onClose}
 	on:submit={onSubmit}
 >
-	<Form method="POST">
+	<form method="POST" on:input={debounce(validate, inputToProcessDelay)}>
 		<ModalHeader label={formTitle}>
 			<Row>
 				<Column sm={12} md={4} lg={8}>
@@ -171,10 +209,12 @@
 			<Row>
 				<Column sm={4} md={4} lg={8}>
 					<TextInput
-						required={true}
+						required
 						id="name"
 						name="name"
 						labelText="Name*"
+						invalid={formElements.name.invalid}
+						invalidText={formElements.name.invalidText}
 						bind:value={client.name}
 						minlength={3}
 						placeholder="John Doe"
@@ -187,6 +227,8 @@
 						name="companyName"
 						placeholder="Company Name"
 						minlength={3}
+						invalid={formElements.companyName.invalid}
+						invalidText={formElements.companyName.invalidText}
 						bind:value={client.companyName}
 					/>
 				</Column>
@@ -203,6 +245,8 @@
 								labelText="Phone*"
 								name={`phones[${i}].phone`}
 								placeholder="(xxx) xxx-xxxx"
+								invalid={formElements.phones[i].phone?.invalid ?? false}
+								invalidText={formElements.phones[i].phone?.invalidText ?? ''}
 								bind:value={phone.phone}
 							/>
 						</Column>
@@ -233,6 +277,7 @@
 										...client.phones,
 										{ phone: '', type: PhoneType.PRIMARY, description: '' }
 									];
+									formElements.phones = [...formElements.phones, { phone: null }];
 								}}
 							/>
 							<Button
@@ -262,6 +307,8 @@
 								name={`emails[${i}].email`}
 								placeholder="john.doe@example.com"
 								bind:value={email.email}
+								invalid={formElements.emails[i].email?.invalid ?? false}
+								invalidText={formElements.emails[i].email?.invalidText ?? ''}
 							/>
 						</Column>
 						<Column sm={2} md={2} lg={4}>
@@ -291,6 +338,7 @@
 										...client.emails,
 										{ email: '', type: EmailType.JOB, description: '' }
 									];
+									formElements.emails = [...formElements.emails, { email: null }];
 								}}
 							/>
 							<Button
@@ -353,7 +401,9 @@
 							name="address"
 							placeholder="123 Main St."
 							bind:value={client.address}
-							on:keyup={debounce(parseAddress, inputToParseDelay)}
+							invalid={formElements.address.invalid}
+							invalidText={formElements.address.invalidText}
+							on:keyup={debounce(parseAddress, inputToProcessDelay)}
 						/>
 					</Column>
 					<Column sm={1} md={2} lg={3}>
@@ -362,6 +412,8 @@
 							required
 							name="city"
 							placeholder="Los Angeles"
+							invalid={formElements.city.invalid}
+							invalidText={formElements.city.invalidText}
 							bind:value={client.city}
 						/>
 					</Column>
@@ -371,6 +423,8 @@
 							required
 							name="state"
 							placeholder="Code: CA, NY etc"
+							invalid={formElements.state.invalid}
+							invalidText={formElements.state.invalidText}
 							bind:value={client.state}
 						/>
 					</Column>
@@ -383,6 +437,8 @@
 							required
 							name="country"
 							placeholder="USA, UK etc"
+							invalid={formElements.country.invalid}
+							invalidText={formElements.country.invalidText}
 							bind:value={client.country}
 						/>
 					</Column>
@@ -437,5 +493,5 @@
 				>{formTitle}</Button
 			>
 		</ModalFooter>
-	</Form>
+	</form>
 </ComposedModal>
