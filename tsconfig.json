@@ -10,18 +10,18 @@
 		"sourceMap": true,
 		"strict": true,
 		"paths": {
-			"$lib": ["src/lib"],
-			"$lib/*": ["src/lib/*"],
-			"$models": ["src/lib/models"],
-			"$models/*": ["src/lib/models/*"],
-			"$db": ["src/lib/services/db"],
-			"$db/*": ["src/lib/services/db/*"],
-			"$enums": ["src/lib/enums"],
-			"$enums/*": ["src/lib/enums/*"],
-			"$utils": ["src/lib/utils"],
-			"$utils/*": ["src/lib/utils/*"],
-			"interfaces": ["src/lib/interfaces"],
-			"interfaces/*": ["src/lib/interfaces/*"]
+			"$lib": ["./src/lib"],
+			"$lib/*": ["./src/lib/*"],
+			"$models": ["./src/lib/models"],
+			"$models/*": ["./src/lib/models/*"],
+			"$db": ["./src/lib/services/db"],
+			"$db/*": ["./src/lib/services/db/*"],
+			"$enums": ["./src/lib/enums"],
+			"$enums/*": ["./src/lib/enums/*"],
+			"$utils": ["./src/lib/utils"],
+			"$utils/*": ["./src/lib/utils/*"],
+			"interfaces": ["./src/lib/interfaces"],
+			"interfaces/*": ["./src/lib/interfaces/*"]
 		}
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
