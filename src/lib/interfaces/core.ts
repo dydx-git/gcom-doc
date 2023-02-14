@@ -25,3 +25,8 @@ export interface IHasDate {
 export interface ISupportsAdditionalEmail extends IHasEmails {
 	additionalEmail: Email[];
 }
+
+export enum Environment {
+	Development = 'DEV',
+	Production = 'PROD'
+}

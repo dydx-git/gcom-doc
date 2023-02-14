@@ -2,7 +2,9 @@ lockfileVersion: 5.4
 
 specifiers:
   '@ghostebony/sse': ^0.1.0
-  '@prisma/client': ^4.8.1
+  '@lucia-auth/adapter-prisma': ^0.4.0
+  '@lucia-auth/sveltekit': ^0.6.3
+  '@prisma/client': ^4.10.1
   '@sveltejs/adapter-auto': ^1.0.0
   '@sveltejs/kit': ^1.5.6
   '@types/debounce': ^1.2.1
@@ -22,9 +24,10 @@ specifiers:
   just-clone: ^6.2.0
   lodash.get: ^4.4.2
   lodash.set: ^4.3.2
+  lucia-auth: ^0.6.0
   prettier: ^2.8.0
   prettier-plugin-svelte: ^2.8.1
-  prisma: ^4.8.1
+  prisma: ^4.10.1
   sass: ^1.57.1
   svelte: ^3.54.0
   svelte-check: ^2.9.2
@@ -35,13 +38,16 @@ specifiers:
 
 dependencies:
   '@ghostebony/sse': 0.1.0
-  '@prisma/client': 4.8.1_prisma@4.8.1
+  '@lucia-auth/adapter-prisma': 0.4.0_lucia-auth@0.6.0
+  '@lucia-auth/sveltekit': 0.6.3_doxmnrlmpce6diptgs2y5gev6m
+  '@prisma/client': 4.10.1_prisma@4.10.1
   access-key-label-polyfill: 0.1.1
   dayjs: 1.11.7
   debounce: 1.2.1
   just-clone: 6.2.0
   lodash.get: 4.4.2
   lodash.set: 4.3.2
+  lucia-auth: 0.6.0
   svelte-local-storage-store: 0.4.0_svelte@3.55.0
 
 devDependencies:
@@ -60,7 +66,7 @@ devDependencies:
   eslint-plugin-svelte3: 4.0.0_6go7qzsvzihesfwmyvq3tnl5qq
   prettier: 2.8.2
   prettier-plugin-svelte: 2.9.0_74vfyr7qjo56zgjcvkwi6gyjxm
-  prisma: 4.8.1
+  prisma: 4.10.1
   sass: 1.57.1
   svelte: 3.55.0
   svelte-check: 2.10.3_sass@1.57.1+svelte@3.55.0
@@ -327,6 +333,29 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
 
+  /@lucia-auth/adapter-prisma/0.4.0_lucia-auth@0.6.0:
+    resolution: {integrity: sha512-HMaGbVfB5KTZBs6KPqI5z6RFKVl4AKfm9u2KrrQglthpd/rWJoJRDI2oYkdcEX4Xu1FNdNJJrEtKKBtVAXYqrw==}
+    peerDependencies:
+      lucia-auth: 0.6.x
+    dependencies:
+      lucia-auth: 0.6.0
+    dev: false
+
+  /@lucia-auth/sveltekit/0.6.3_doxmnrlmpce6diptgs2y5gev6m:
+    resolution: {integrity: sha512-Xs0dTcmr/XtHrORAHAqvRt7KbZLokIXw/YT9HuP8zJ+9a3ARhwffr/p4JJVAzzSNI9oM8qNs/O8FdKSzbI+3/w==}
+    peerDependencies:
+      lucia-auth: 0.5.x - 0.6.x
+      svelte: 3.x
+    dependencies:
+      '@noble/hashes': 1.2.0
+      lucia-auth: 0.6.0
+      svelte: 3.55.0
+    dev: false
+
+  /@noble/hashes/1.2.0:
+    resolution: {integrity: sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==}
+    dev: false
+
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -352,8 +381,8 @@ packages:
     resolution: {integrity: sha512-a5Sab1C4/icpTZVzZc5Ghpz88yQtGOyNqYXcZgOssB2uuAr+wF/MvN6bgtW32q7HHrvBki+BsZ0OuNv6EV3K9g==}
     dev: true
 
-  /@prisma/client/4.8.1_prisma@4.8.1:
-    resolution: {integrity: sha512-d4xhZhETmeXK/yZ7K0KcVOzEfI5YKGGEr4F5SBV04/MU4ncN/HcE28sy3e4Yt8UFW0ZuImKFQJE+9rWt9WbGSQ==}
+  /@prisma/client/4.10.1_prisma@4.10.1:
+    resolution: {integrity: sha512-VonXLJZybdt8e5XZH5vnIGCRNnIh6OMX1FS3H/yzMGLT3STj5TJ/OkMcednrvELgk8PK89Vo3aSh51MWNO0axA==}
     engines: {node: '>=14.17'}
     requiresBuild: true
     peerDependencies:
@@ -362,16 +391,16 @@ packages:
       prisma:
         optional: true
     dependencies:
-      '@prisma/engines-version': 4.8.0-61.d6e67a83f971b175a593ccc12e15c4a757f93ffe
-      prisma: 4.8.1
+      '@prisma/engines-version': 4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19
+      prisma: 4.10.1
     dev: false
 
-  /@prisma/engines-version/4.8.0-61.d6e67a83f971b175a593ccc12e15c4a757f93ffe:
-    resolution: {integrity: sha512-MHSOSexomRMom8QN4t7bu87wPPD+pa+hW9+71JnVcF3DqyyO/ycCLhRL1we3EojRpZxKvuyGho2REQsMCvxcJw==}
+  /@prisma/engines-version/4.10.1-2.aead147aa326ccb985dcfed5b065b4fdabd44b19:
+    resolution: {integrity: sha512-tsjTho7laDhf9EJ9EnDxAPEf7yrigSMDhniXeU4YoWc7azHAs4GPxRi2P9LTFonmHkJLMOLjR77J1oIP8Ife1w==}
     dev: false
 
-  /@prisma/engines/4.8.1:
-    resolution: {integrity: sha512-93tctjNXcIS+i/e552IO6tqw17sX8liivv8WX9lDMCpEEe3ci+nT9F+1oHtAafqruXLepKF80i/D20Mm+ESlOw==}
+  /@prisma/engines/4.10.1:
+    resolution: {integrity: sha512-B3tcTxjx196nuAu1GOTKO9cGPUgTFHYRdkPkTS4m5ptb2cejyBlH9X7GOfSt3xlI7p4zAJDshJP4JJivCg9ouA==}
     requiresBuild: true
 
   /@sveltejs/adapter-auto/1.0.0_@sveltejs+kit@1.5.6:
@@ -419,7 +448,7 @@ packages:
       vite: ^4.0.0
     dependencies:
       debug: 4.3.4
-      deepmerge: 4.2.2
+      deepmerge: 4.3.0
       kleur: 4.1.5
       magic-string: 0.27.0
       svelte: 3.55.0
@@ -817,8 +846,8 @@ packages:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
     dev: true
 
-  /deepmerge/4.2.2:
-    resolution: {integrity: sha512-FJ3UgI4gIl+PHZm53knsuSFpE+nESMr7M4v9QcgB7S63Kj/6WqMiFQJpBBYz1Pt+66bZpP3Q7Lye0Oo9MPKEdg==}
+  /deepmerge/4.3.0:
+    resolution: {integrity: sha512-z2wJZXrmeHdvYJp/Ux55wIjqo81G5Bp4c+oELTW+7ar6SogWHajt5a9gO3s3IDaGSAXjDk0vlQKN3rms8ab3og==}
     engines: {node: '>=0.10.0'}
     dev: true
 
@@ -1322,6 +1351,13 @@ packages:
       yallist: 4.0.0
     dev: true
 
+  /lucia-auth/0.6.0:
+    resolution: {integrity: sha512-8j5nPl3RbbqGoZWULER4q+2PP7i8F3Eq3OeN7EnL+bxi4YAn5I+5FcNq/ikUCj8neOxGZyzJiRzFJq+t3r28+g==}
+    dependencies:
+      '@noble/hashes': 1.2.0
+      nanoid: 4.0.1
+    dev: false
+
   /magic-string/0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
     dependencies:
@@ -1395,6 +1431,12 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
     dev: true
+
+  /nanoid/4.0.1:
+    resolution: {integrity: sha512-udKGtCCUafD3nQtJg9wBhRP3KMbPglUsgV5JVsXhvyBs/oefqb4sqMEhKBBgqZncYowu58p1prsZQBYvAj/Gww==}
+    engines: {node: ^14 || ^16 || >=18}
+    hasBin: true
+    dev: false
 
   /natural-compare-lite/1.4.0:
     resolution: {integrity: sha512-Tj+HTDSJJKaZnfiuw+iaF9skdPpTo2GtEly5JHnWV/hfv2Qj/9RKsGISQtLh2ox3l5EAGw487hnBee0sIJ6v2g==}
@@ -1519,13 +1561,13 @@ packages:
     hasBin: true
     dev: true
 
-  /prisma/4.8.1:
-    resolution: {integrity: sha512-ZMLnSjwulIeYfaU1O6/LF6PEJzxN5par5weykxMykS9Z6ara/j76JH3Yo2AH3bgJbPN4Z6NeCK9s5fDkzf33cg==}
+  /prisma/4.10.1:
+    resolution: {integrity: sha512-0jDxgg+DruB1kHVNlcspXQB9au62IFfVg9drkhzXudszHNUAQn0lVuu+T8np0uC2z1nKD5S3qPeCyR8u5YFLnA==}
     engines: {node: '>=14.17'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      '@prisma/engines': 4.8.1
+      '@prisma/engines': 4.10.1
 
   /punycode/2.2.0:
     resolution: {integrity: sha512-LN6QV1IJ9ZhxWTNdktaPClrNfp8xdSAYS0Zk2ddX7XsXZAxckMHPCBcHRo0cTcEIgYPRiGEkmji3Idkh2yFtYw==}

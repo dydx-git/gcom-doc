@@ -1,9 +1,5 @@
+import { handleHooks } from '@lucia-auth/sveltekit';
+import { auth } from '$lib/models/auth';
 import type { Handle } from '@sveltejs/kit';
 
-export const handle: Handle = async ({ event, resolve }) => {
-	const response = await resolve(event);
-
-	// do something with response
-
-	return response;
-};
+export const handle: Handle = handleHooks(auth);
