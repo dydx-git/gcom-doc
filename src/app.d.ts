@@ -1,11 +1,5 @@
 import type { User } from '@prisma/client';
 
-/// <reference types="lucia-auth" />
-declare namespace Lucia {
-	type Auth = import('$lib/models/auth').Auth;
-	type UserAttributes = User;
-}
-
 declare global {
 	namespace App {
 		interface Error {
@@ -19,6 +13,12 @@ declare global {
 		}
 		// interface PageData {}
 		// interface Platform {}
+	}
+
+	/// <reference types="lucia-auth" />
+	declare namespace Lucia {
+		type Auth = import('$lib/models/auth').Auth;
+		type UserAttributes = User;
 	}
 }
 
