@@ -1,8 +1,8 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import clientColumns from '$lib/data/datatable/client';
+	import type { ClientFormData } from '$lib/interfaces/form';
 	import { FormSubmitType } from '$lib/models/client-form';
-	import type { ActionData } from '.svelte-kit/types/src/routes/client/$types';
 	import type { Client } from '@prisma/client';
 	import {
 		Grid,
@@ -20,7 +20,7 @@
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
 	export let tableData: Client[] = [];
-	export let form: ActionData;
+	export let formData: ClientFormData;
 
 	let isSearchExpanded = true;
 	let searchText = '';
@@ -72,4 +72,9 @@
 	</Row>
 </Grid>
 
-<ClientForm bind:open={isAddNewModalOpen} bind:isValid={isFormValid} bind:submitType />
+<ClientForm
+	bind:open={isAddNewModalOpen}
+	bind:isValid={isFormValid}
+	bind:client={formData}
+	bind:submitType
+/>

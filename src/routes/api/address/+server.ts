@@ -2,15 +2,6 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { BING_MAPS_ENDPOINT, BING_MAPS_KEY } from '$env/static/private';
 
-export type Address = {
-	formattedAddress: string;
-	addressLine: string | null;
-	city: string | null;
-	state: string | null;
-	zip: string | null;
-	country: string | null;
-};
-
 export const GET: RequestHandler = async (req) => {
 	const inputAddress = req.url.searchParams.get('address');
 	if (!inputAddress) throw error(400, { message: 'Missing parameter: address' });

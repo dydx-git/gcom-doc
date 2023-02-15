@@ -6,12 +6,9 @@
 	import set from 'lodash.set';
 	import {
 		Button,
-		Checkbox,
 		Column,
 		ComboBox,
 		ComposedModal,
-		Dropdown,
-		Form,
 		FormGroup,
 		FormLabel,
 		InlineLoading,
@@ -26,12 +23,10 @@
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { clientFormDataStore, keepClientDataOnCloseStore } from './store';
-	import type { Address } from 'src/routes/api/address/+server';
 	import { Company, CompanyLabel, FormSubmitType } from '$lib/models/client-form';
 	import type { ClientFormData } from '$lib/interfaces/form';
 	import { screenSizeStore } from '$lib/store';
-	import type { ValidatedInput } from '$lib/models/form';
+	import type { BingAddress, ValidatedInput } from '$lib/models/form';
 
 	export let open = false;
 	export let isValid = false;
@@ -39,7 +34,7 @@
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
-		items: [] as (Address & { id: number })[],
+		items: [] as (BingAddress & { id: number })[],
 		placeholderText: 'No suggestions available.',
 		response: null as Promise<Response> | null
 	};
@@ -98,9 +93,7 @@
 		country: {} as ValidatedInput
 	};
 
-	export let client: ClientFormData = $keepClientDataOnCloseStore
-		? $clientFormDataStore ?? getEmptyClient()
-		: getEmptyClient();
+	export let client: ClientFormData = getEmptyClient();
 
 	let formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
 	let formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
@@ -109,19 +102,10 @@
 		isValid = true;
 	};
 
-	const onClose = (e: Event) => {
-		if ($keepClientDataOnCloseStore) {
-			$clientFormDataStore = client;
-		} else {
-			$clientFormDataStore = null;
-			client = getEmptyClient();
-		}
-	};
+	const onClose = (e: Event) => {};
 
 	const onSubmit = (e: Event) => {
 		const nameInput = document.getElementById('name') as HTMLInputElement;
-
-		$keepClientDataOnCloseStore = false;
 	};
 
 	const parseAddress = async () => {
@@ -138,7 +122,7 @@
 		const response = await addressSuggestionProps.response;
 		if (!response.ok) return;
 
-		const addresses: Address[] = await response.json();
+		const addresses: BingAddress[] = await response.json();
 		addressSuggestionProps.items = addresses
 			.filter((suggestion) => suggestion.city && suggestion.state)
 			.map((suggestion, index) => {
@@ -171,7 +155,7 @@
 
 		element.invalid = true;
 		element.invalidText = 'This field is required.';
-		set(formElements, element);
+		set(formElements, name, element);
 
 		isValid = false;
 		return;
@@ -184,7 +168,6 @@
 </script>
 
 <ComposedModal
-	preventCloseOnClickOutside
 	bind:open
 	selectorPrimaryFocus="#name"
 	on:open={onOpen}
@@ -197,11 +180,6 @@
 				<Column sm={12} md={4} lg={8}>
 					<h3>Client</h3>
 				</Column>
-				{#if submitType === FormSubmitType.AddNew}
-					<Column sm={12} md={{ span: 2, offset: 2 }} lg={{ span: 5, offset: 3 }}>
-						<Checkbox labelText="Keep input on close" bind:checked={$keepClientDataOnCloseStore} />
-					</Column>
-				{/if}
 			</Row>
 		</ModalHeader>
 		<ModalBody hasForm class={$screenSizeStore == 'sm' ? 'mobile-form' : ''}>

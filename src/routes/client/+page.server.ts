@@ -1,11 +1,6 @@
 import { createObjectFromFormData } from '$lib/core';
 import type { Client } from '@prisma/client';
 import { fail, type Actions } from '@sveltejs/kit';
-import type { RequestHandler } from '../api/client/$types';
-
-export const POST: RequestHandler = async ({ request, fetch }) => {
-	return new Response();
-};
 
 export const actions: Actions = {
 	create: async ({ request, fetch }) => {

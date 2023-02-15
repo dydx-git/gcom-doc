@@ -1,9 +1,14 @@
 <script lang="ts">
 	import Clients from '$lib/content/client/Clients.svelte';
-	import type { ActionData, PageData } from './$types';
+	import type { ClientFormData } from '$lib/interfaces/form';
+	import type { Snapshot } from './$types';
 
-	export let data: PageData;
-	export let form: ActionData;
+	let formData: ClientFormData;
+
+	export const snapshot: Snapshot = {
+		capture: () => formData,
+		restore: (value) => (formData = value)
+	};
 </script>
 
-<Clients description="" bind:form />
+<Clients description="" bind:formData />
