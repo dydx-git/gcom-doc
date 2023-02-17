@@ -175,7 +175,6 @@ model Company {
 model User {
   id       String    @id @unique
   username String    @unique
-  email    String    @unique
   role     UserRoles
   session  Session[]
   Key      Key[]

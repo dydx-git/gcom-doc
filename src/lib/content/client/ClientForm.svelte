@@ -9,6 +9,7 @@
 		Column,
 		ComboBox,
 		ComposedModal,
+		Dropdown,
 		FormGroup,
 		FormLabel,
 		InlineLoading,
@@ -59,6 +60,7 @@
 				}
 			],
 			company: Company.ThreadTapes,
+			salesRep: null,
 			notes: '',
 			paymentMethod: PayMethod.UNKNOWN,
 			currency: Currency.USD,
@@ -342,6 +344,17 @@
 						{/each}
 					</Select>
 				</Column>
+				<Column sm={2} md={2} lg={4}>
+					<Dropdown
+						labelText="Sales Person*"
+						items={salesReps}
+						itemToString={(item) => item?.name ?? ''}
+						bind:selected={client.salesRep}
+						required
+					/>
+				</Column>
+			</Row>
+			<Row class="default-gap">
 				<Column sm={2} md={2} lg={4}>
 					<Select labelText="Invoice Currency*" bind:selected={client.currency} required>
 						{#each Object.keys(Currency) as currency}

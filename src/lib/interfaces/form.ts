@@ -8,6 +8,7 @@ export interface ClientFormData {
 	phones: PhoneFormData[];
 	emails: EmailFormData[];
 	company: number;
+	salesRep: number | null;
 	paymentMethod: PayMethod;
 	currency: string;
 	addTransactionCharge: boolean;
