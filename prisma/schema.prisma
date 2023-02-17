@@ -17,11 +17,15 @@ model Client {
   payMethod             PayMethod               @map("pay_method")
   currency              Currency
   status                ClientStatus
+  salesRepUsername      String                  @map("sales_rep_username") @db.VarChar(100)
+  companyId             Int                     @map("company_id")
   emails                ClientEmail[]
-  addresses             ClientAddress[]
   phones                ClientPhone[]
   orders                PurchaseOrder[]
-  ClientSalesRepCompany ClientSalesRepCompany[]
+  clientSalesRepCompany ClientSalesRepCompany[]
+  salesRep              SalesRep                @relation(fields: [salesRepUsername], references: [username], map: "client_sales_rep")
+  company               Company                 @relation(fields: [companyId], references: [id], map: "client_company")
+  clientAddress         ClientAddress?
 
   @@map("clients")
 }
@@ -81,42 +85,44 @@ model PurchaseOrder {
 
 model SalesRep {
   id        Int    @id @default(autoincrement())
+  username  String @unique @map("user_name") @db.VarChar(100)
   name      String @db.VarChar(100)
   email     String @db.VarChar(100)
   phone     String @db.VarChar(100)
   companyId Int    @map("company_id")
 
   company               Company                 @relation(fields: [companyId], references: [id])
-  ClientSalesRepCompany ClientSalesRepCompany[]
+  user                  User                    @relation(fields: [username], references: [username], map: "sales_rep_user")
+  clientSalesRepCompany ClientSalesRepCompany[]
+  client                Client[]
 
   @@map("sales_reps")
 }
 
 model ClientSalesRepCompany {
-  clientId   String   @map("client_id") @db.VarChar(32)
-  salesRepId Int      @map("sales_rep_id")
-  companyId  Int      @map("company_id")
-  fromDate   DateTime @default(now()) @db.DateTime(0)
-  toDate     DateTime @db.DateTime(0)
-  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_sales_rep_client")
-  salesRep   SalesRep @relation(fields: [salesRepId], references: [id], onDelete: Cascade, map: "client_sales_rep_sales_rep")
-  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade, map: "client_sales_rep_company")
+  clientId         String   @map("client_id") @db.VarChar(32)
+  salesRepUsername String   @map("sales_rep_username") @db.VarChar(100)
+  companyId        Int      @map("company_id")
+  fromDate         DateTime @default(now()) @db.DateTime(0)
+  toDate           DateTime @db.DateTime(0)
+  client           Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_sales_rep_client")
+  salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "client_sales_rep_sales_rep")
+  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade, map: "client_sales_rep_company")
 
-  @@id([clientId, salesRepId])
-  @@index([salesRepId, fromDate(sort: Desc), toDate(sort: Desc)], map: "client_sales_rep_sales_rep_index")
+  @@id([clientId, salesRepUsername])
+  @@index([salesRepUsername, fromDate(sort: Desc), toDate(sort: Desc)], map: "client_sales_rep_sales_rep_index")
   @@map("client_sales_reps")
 }
 
 model ClientAddress {
-  id        Int      @id @default(autoincrement())
+  clientId  String   @id @map("client_id") @db.VarChar(32)
   address   String   @db.VarChar(100)
   city      String   @db.VarChar(100)
   state     String   @db.VarChar(2)
   country   String   @db.VarChar(100)
   zip       String   @db.VarChar(16)
-  clientId  String   @map("client_id") @db.VarChar(32)
   updatedAt DateTime @updatedAt @db.DateTime(0)
-  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_addresses_FK")
+  Client    Client?  @relation(fields: [clientId], references: [id])
 
   @@index([clientId], map: "client_addresses_FK")
   @@map("client_addresses")
@@ -161,6 +167,7 @@ model Company {
   website               String                  @db.VarChar(100)
   SalesRep              SalesRep[]
   ClientSalesRepCompany ClientSalesRepCompany[]
+  Client                Client[]
 
   @@map("companies")
 }
@@ -172,6 +179,7 @@ model User {
   role     UserRoles
   session  Session[]
   Key      Key[]
+  SalesRep SalesRep?
 
   @@map("user")
 }

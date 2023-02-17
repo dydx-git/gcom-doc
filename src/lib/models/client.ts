@@ -1,42 +1,57 @@
 import client from '$db/client';
+import {
+	UserRoles,
+	type Client,
+	type ClientAddress,
+	type ClientEmail,
+	type ClientPhone
+} from '@prisma/client';
+import type { User } from 'lucia-auth';
+
+export type ClientsWithSalesRepAndCompany = (Client & {
+	emails: ClientEmail[];
+	phones: ClientPhone[];
+	clientAddress: ClientAddress | null;
+	salesRep: {
+		id: number;
+		name: string;
+	};
+	company: {
+		id: number;
+		name: string;
+	};
+})[];
 
 export class Clients {
-	// it should expect a user id
-	public async read(): Promise<any> {
+	public async read(user: User): Promise<ClientsWithSalesRepAndCompany> {
+		const where =
+			user.role == UserRoles.USER
+				? {
+						salesRep: {
+							username: user.username
+						}
+				  }
+				: {};
+
 		return await client.client.findMany({
 			include: {
-				ClientSalesRepCompany: {
-					include: {
-						company: {
-							select: {
-								whe
-							}
-						},
-						salesRep: true
+				emails: true,
+				phones: true,
+				salesRep: {
+					select: {
+						id: true,
+						name: true
 					}
 				},
-				addresses: true,
-				emails: true,
-				phones: true
-			},
-			where: {
-				ClientSalesRepCompany: {
-					every: {
-						fromDate: {
-							equals: await client.clientSalesRepCompany.groupBy({
-								_max: {
-									fromDate: true
-								},
-								by: ['clientId', 'fromDate'],
-								orderBy: {
-									fromDate: 'desc'
-								},
-								take: 1
-							})
-						}
+				company: {
+					select: {
+						id: true,
+						name: true
 					}
-				}
-			}
+				},
+				clientAddress: true
+			},
+			where
 		});
 	}
 }
