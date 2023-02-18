@@ -1,7 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import type { PageLoad } from './$types';
-import { userPreferencesStore } from '../../lib/store';
+import { userPreferencesStore } from '$lib/store';
 import type { JobsWithVendorAndClient } from '$lib/models/order';
 import dayjs from 'dayjs';
 import { type OrderDataTable, OrderStatus } from '$lib/models/client-form';
