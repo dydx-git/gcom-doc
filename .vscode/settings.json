@@ -1,4 +1,8 @@
 {
 	"editor.formatOnSave": true,
-	"editor.formatOnSaveMode": "file"
+	"editor.formatOnSaveMode": "file",
+	"workbench.editor.labelFormat": "short",
+	"explorer.sortOrder": "filesFirst",
+	"explorer.compactFolders": false,
+	"workbench.tree.indent": 12
 }
