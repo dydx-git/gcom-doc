@@ -1,10 +1,10 @@
-import { UserRoles } from '@prisma/client';
+import type { UserRoles } from '@prisma/client';
 import { auth } from './auth';
 
 export class User {
-	public async create(username: string, password: string) {
+	public async create(username: string, password: string, role: UserRoles) {
 		const attributes = {
-			role: UserRoles.ADMIN,
+			role,
 			username
 		} as Lucia.UserAttributes;
 
