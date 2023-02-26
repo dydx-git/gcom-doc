@@ -2,6 +2,7 @@ import { handleHooks } from '@lucia-auth/sveltekit';
 import { auth } from '$lib/models/auth';
 import type { Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
+import { form_data } from 'sk-form-data';
 import { dev } from '$app/environment';
 
 const handleAuth: Handle = async ({ event, resolve }) => {
@@ -20,4 +21,4 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	}
 	return await resolve(event);
 };
-export const handle: Handle = sequence(handleHooks(auth), handleAuth);
+export const handle: Handle = sequence(handleHooks(auth), handleAuth, form_data);
