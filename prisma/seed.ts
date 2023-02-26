@@ -1,7 +1,11 @@
-import { ClientStatus, Currency, EmailType, PayMethod, PhoneType, PrismaClient } from "@prisma/client";
+import { ClientStatus, Currency, Department, EmailType, JobStatus, JobType, PayMethod, PhoneType, PrismaClient, VendorStatus } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function createCompany() {
+    const company = await prisma.company.findFirst();
+    if (company)
+        return company;
+
     return await prisma.company.create({
         data: {
             name: 'Acme Corporation',
@@ -19,7 +23,7 @@ async function createCompany() {
 
 async function createClient() {
     const company = await createCompany();
-    const salesRep = await prisma.salesRep.create({
+    const salesRep = await prisma.salesRep.findFirst() ?? await prisma.salesRep.create({
         data: {
             username: 'admin',
             name: 'John Doe',
@@ -28,7 +32,7 @@ async function createClient() {
             companyId: company.id,
         }
     });
-    const client = await prisma.client.create({
+    const client = await prisma.client.findFirst() ?? await prisma.client.create({
         data: {
             id: 'client1',
             name: 'John Doe',
@@ -51,7 +55,7 @@ async function createClient() {
             phones: {
                 create: [
                     {
-                        phone: '123-456-7890',
+                        phone: '123-456-7888',
                         type: PhoneType.PRIMARY,
                     },
                     {
@@ -75,21 +79,20 @@ async function createClient() {
             orders: {
                 create: [
                     {
-                        id: 'order1',
                         jobs: {
                             create: [
                                 {
                                     id: 'job1',
                                     name: 'Design a logo',
                                     price: 1000.0,
-                                    type: 'Design',
-                                    status: 'Pending',
+                                    type: JobType.JOB,
+                                    status: JobStatus.PENDING,
                                     vendor: {
                                         create: {
-                                            name: 'Design Co.',
+                                            name: 'Faheem Khagra',
                                             email: 'designco@example.com',
-                                            department: 'Design',
-                                            status: 'Active',
+                                            department: Department.DIGITIZING,
+                                            status: VendorStatus.ACTIVE,
                                         },
                                     },
                                 },
@@ -97,24 +100,23 @@ async function createClient() {
                         },
                     },
                     {
-                        id: 'order2',
                         jobs: {
                             create: [
                                 {
                                     id: 'job2',
-                                    name: 'Design a logo',
+                                    name: 'Design another logo',
                                     price: 1000.0,
-                                    type: 'Design',
-                                    status: 'Pending',
+                                    type: JobType.JOB,
+                                    status: JobStatus.PENDING,
                                     vendor: {
                                         create: {
-                                            name: 'Design Co.',
-                                            email: 'islo@df.com',
-                                            department: 'Design',
-                                            status: 'Active',
+                                            name: 'Raheem Jhagra',
+                                            email: 'raheem@example.com',
+                                            department: Department.DIGITIZING,
+                                            status: VendorStatus.ACTIVE,
                                         },
                                     },
-                                },
+                                }
                             ],
                         },
                     }
