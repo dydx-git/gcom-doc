@@ -19,4 +19,15 @@ export class User {
 
 		return user;
 	}
+
+	public async login(username: string, password: string) {
+		const key = await auth.validateKeyPassword(
+			'username',
+			username,
+			password
+		);
+
+		const session = await auth.createSession(key.userId);
+		return session;
+	}
 }

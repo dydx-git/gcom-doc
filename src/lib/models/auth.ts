@@ -10,6 +10,7 @@ export const auth = lucia({
 	transformUserData: (user) => {
 		return {
 			userId: user.id,
+			username: user.username,
 			role: user.role
 		};
 	}
