@@ -1,4 +1,5 @@
 <script lang="ts">
+	import 'carbon-components-svelte/css/all.css';
 	import './app.scss';
 	import {
 		Header,
@@ -23,6 +24,9 @@
 
 	import { onMount } from 'svelte';
 	import { screenSizeStore } from '$lib/store';
+	import type { LayoutData } from './$types';
+
+	export let data: LayoutData;
 
 	let theme: CarbonTheme = 'g10';
 
@@ -50,6 +54,8 @@
 				}
 			]
 		});
+
+		console.log(data.user);
 
 		return () => {
 			eventSource.close();
@@ -104,5 +110,8 @@
 	:global(html, body) {
 		max-width: 100%;
 		overflow-x: hidden;
+	}
+	:global(.default-gap) {
+		padding-top: var(--cds-spacing-05);
 	}
 </style>

@@ -8,6 +8,7 @@
 		HeaderUtilities
 	} from 'carbon-components-svelte';
 	import { FaceActivatedAdd, Login } from 'carbon-icons-svelte';
+	import 'carbon-components-svelte/css/all.css';
 </script>
 
 <Header company="Thread Tapes" platformName="DOC" href="/login">
@@ -28,3 +29,9 @@
 <Content>
 	<slot />
 </Content>
+
+<style>
+	:global(.default-gap) {
+		padding-top: var(--cds-spacing-05);
+	}
+</style>

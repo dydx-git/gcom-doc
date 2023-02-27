@@ -1,10 +1,10 @@
-import { UserRoles } from '@prisma/client';
+import type { UserRoles } from '@prisma/client';
 import { auth } from './auth';
 
 export class User {
-	public async create(username: string, password: string) {
+	public async create(username: string, password: string, role: UserRoles) {
 		const attributes = {
-			role: UserRoles.ADMIN,
+			role,
 			username
 		} as Lucia.UserAttributes;
 
@@ -18,5 +18,16 @@ export class User {
 		});
 
 		return user;
+	}
+
+	public async login(username: string, password: string) {
+		const key = await auth.validateKeyPassword(
+			'username',
+			username,
+			password
+		);
+
+		const session = await auth.createSession(key.userId);
+		return session;
 	}
 }

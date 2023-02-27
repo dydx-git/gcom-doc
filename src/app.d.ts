@@ -11,6 +11,7 @@ declare global {
 			validate: import('@lucia-auth/sveltekit').Validate;
 			validateUser: import('@lucia-auth/sveltekit').ValidateUser;
 			setSession: import('@lucia-auth/sveltekit').SetSession;
+			form_data: Record<string, any>;
 		}
 		// interface PageData {}
 		// interface Platform {}
@@ -23,4 +24,4 @@ declare global {
 	}
 }
 
-export {};
+export { };
