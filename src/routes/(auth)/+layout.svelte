@@ -12,7 +12,6 @@
 </script>
 
 <Header company="Thread Tapes" platformName="DOC" href="/login">
-	<HeaderNav>Taha</HeaderNav>
 	<HeaderUtilities>
 		{#if dev}
 			<HeaderActionLink aria-label="Login" href="/login" icon={Login} textContent="Login" />
