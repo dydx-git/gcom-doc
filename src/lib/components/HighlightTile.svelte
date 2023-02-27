@@ -11,7 +11,7 @@
 {#if clickHandler}
 	<ClickableTile>
 		{text}
-		<span class="cds--type-heading-06 highlight success">
+		<span class="--cds-type-heading-06 highlight success">
 			{highlight}
 		</span>
 	</ClickableTile>

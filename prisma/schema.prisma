@@ -56,28 +56,31 @@ model GmailMsg {
 }
 
 model Job {
-  id            String        @id @db.VarChar(32)
-  name          String        @db.VarChar(100)
-  price         Decimal       @db.Decimal(10, 2)
-  createdAt     DateTime      @default(now()) @db.DateTime(0)
-  updatedAt     DateTime      @updatedAt @db.DateTime(0)
+  id            String         @id @db.VarChar(32)
+  name          String         @db.VarChar(100)
+  price         Decimal        @db.Decimal(10, 2)
+  createdAt     DateTime       @default(now()) @db.DateTime(0)
+  updatedAt     DateTime       @updatedAt @db.DateTime(0)
   type          JobType
   status        JobStatus
-  vendorId      Int           @map("vendor_id")
-  jobId         Int           @map("job_id")
+  vendorId      Int            @map("vendor_id")
+  jobId         Int            @map("job_id")
   GmailMsgs     GmailMsg[]
-  purchaseOrder PurchaseOrder @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "job_purchase_order")
-  vendor        Vendor        @relation(fields: [vendorId], references: [id])
+  purchaseOrder PurchaseOrder  @relation(name: "PurchaseOrder", fields: [jobId], references: [id], onDelete: Cascade, map: "job_purchase_order")
+  vendor        Vendor         @relation(fields: [vendorId], references: [id])
+  PurchaseOrder PurchaseOrder?
 
   @@index([jobId], map: "job_purchase_order")
   @@map("jobs")
 }
 
 model PurchaseOrder {
-  id       Int    @id @default(autoincrement())
-  clientId String @map("client_id") @db.VarChar(32)
-  jobs     Job[]
-  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "purchase_order_client")
+  id           Int    @id @default(autoincrement())
+  clientId     String @map("client_id") @db.VarChar(32)
+  primaryJobId String @unique @map("primary_job_id") @db.VarChar(32)
+  jobs         Job[]  @relation(name: "PurchaseOrder")
+  client       Client @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "purchase_order_client")
+  primaryJob   Job    @relation(fields: [primaryJobId], references: [id], map: "primary_job")
 
   @@index([clientId], map: "purchase_order_client")
   @@map("purchase_orders")

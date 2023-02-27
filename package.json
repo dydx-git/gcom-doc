@@ -42,6 +42,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@carbon/type": "^11.15.0",
 		"@ghostebony/sse": "^0.1.0",
 		"@lucia-auth/adapter-prisma": "^0.4.0",
 		"@lucia-auth/sveltekit": "^0.6.3",
@@ -53,6 +54,7 @@
 		"lodash.get": "^4.4.2",
 		"lodash.set": "^4.3.2",
 		"lucia-auth": "^0.6.0",
+		"svelte-color-picker": "^1.0.7",
 		"svelte-local-storage-store": "^0.4.0"
 	}
 }

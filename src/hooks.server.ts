@@ -1,21 +1,17 @@
 import { handleHooks } from '@lucia-auth/sveltekit';
 import { auth } from '$lib/models/auth';
-import type { Handle } from '@sveltejs/kit';
+import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { dev } from '$app/environment';
-
 const handleAuth: Handle = async ({ event, resolve }) => {
 	const pathname = event.url.pathname;
+	let allowedPaths = ['/login', '/api/login'];
+	if (dev) allowedPaths = allowedPaths.concat(['/api/register', '/register']);
 
-	if (!pathname.startsWith('/login') && !pathname.startsWith('/api/login')) {
+	if (!allowedPaths.includes(pathname)) {
 		const { user } = await event.locals.validateUser();
-		if (!user && !dev) {
-			return new Response('Unauthorized. Please <a href="login">sign in</a>', {
-				status: 401,
-				headers: {
-					'Content-Type': 'text/html'
-				}
-			});
+		if (!user) {
+			throw redirect(307, '/login');
 		}
 	}
 	return await resolve(event);
