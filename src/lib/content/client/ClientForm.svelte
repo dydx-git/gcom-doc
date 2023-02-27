@@ -27,7 +27,7 @@
 	import { Company, CompanyLabel, FormSubmitType } from '$lib/models/client-form';
 	import type { ClientFormData } from '$lib/interfaces/form';
 	import { screenSizeStore } from '$lib/store';
-	import type { BingAddress, ValidatedInput } from '$lib/models/form';
+	import type { Address, ValidatedInput } from '$lib/models/form';
 
 	export let open = false;
 	export let isValid = false;
@@ -35,7 +35,7 @@
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
-		items: [] as (BingAddress & { id: number })[],
+		items: [] as (Address & { id: number })[],
 		placeholderText: 'No suggestions available.',
 		response: null as Promise<Response> | null
 	};
@@ -124,7 +124,7 @@
 		const response = await addressSuggestionProps.response;
 		if (!response.ok) return;
 
-		const addresses: BingAddress[] = await response.json();
+		const addresses: Address[] = await response.json();
 		addressSuggestionProps.items = addresses
 			.filter((suggestion) => suggestion.city && suggestion.state)
 			.map((suggestion, index) => {

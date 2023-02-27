@@ -3,7 +3,7 @@ export type ValidatedInput = {
 	invalidText: string;
 };
 
-export type BingAddress = {
+export type Address = {
 	formattedAddress: string;
 	addressLine: string | null;
 	city: string | null;

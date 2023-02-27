@@ -26,7 +26,6 @@
 		colors: [] as string[]
 	};
 	let color: string, centerColor: string, selected: number;
-	let shake: boolean = false;
 
 	$: invalid = !/^(?=.*[a-z])(?=.*[A-Z])(?=.*d)[a-zA-Zd]{6,}$/.test(user.password);
 	let reTypePassword = '';
@@ -46,13 +45,35 @@
 		user.colors.push(color);
 		user.colors = [...new Set(user.colors)];
 	};
+
+	const registerUser = async (e: Event) => {
+		e.preventDefault();
+		var formData = new FormData();
+		for (const [key, value] of Object.entries(user)) {
+			formData.append(key, value as string);
+		}
+		const form = e.target as HTMLFormElement;
+		const res = await fetch(form.action, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body: formData
+		});
+		if (res.status === 200) {
+			alert('User registered successfully');
+			window.location.href = '/login';
+		} else {
+			alert('Error registering user');
+		}
+	};
 </script>
 
 <Grid>
 	<h1>Register</h1>
 	<Row class="default-gap">
 		<Column sm={4} md={8}>
-			<Form method="POST" class="default-gap">
+			<Form method="POST" class="default-gap" on:submit={registerUser}>
 				<Row>
 					<Column sm={4} md={6} lg={5}>
 						<TextInput

@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { BING_MAPS_ENDPOINT, BING_MAPS_KEY } from '$env/static/private';
+import type { Address } from '$lib/models/form';
 
 export const GET: RequestHandler = async (req) => {
 	const inputAddress = req.url.searchParams.get('address');
