@@ -2,6 +2,7 @@
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
 	import { CompanyLabel } from '$lib/models/client-form';
+	import { convertToFormData } from '$lib/utils/formHelper';
 	import {
 		TextInput,
 		PasswordInput,
@@ -48,17 +49,13 @@
 
 	const registerUser = async (e: Event) => {
 		e.preventDefault();
-		var formData = new FormData();
-		for (const [key, value] of Object.entries(user)) {
-			formData.append(key, value as string);
-		}
 		const form = e.target as HTMLFormElement;
 		const res = await fetch(form.action, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
+				'Content-Type': 'application/json'
 			},
-			body: formData
+			body: J
 		});
 		if (res.status === 200) {
 			alert('User registered successfully');
@@ -73,7 +70,7 @@
 	<h1>Register</h1>
 	<Row class="default-gap">
 		<Column sm={4} md={8}>
-			<Form method="POST" class="default-gap" on:submit={registerUser}>
+			<form method="POST" class="default-gap" on:submit|preventDefault={registerUser}>
 				<Row>
 					<Column sm={4} md={6} lg={5}>
 						<TextInput
@@ -144,7 +141,7 @@
 					</Column>
 				</Row>
 				<Button type="submit" style="float: right; margin-right: 100px">Submit</Button>
-			</Form>
+			</form>
 		</Column>
 	</Row>
 </Grid>
