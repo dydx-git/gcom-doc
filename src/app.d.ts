@@ -5,7 +5,7 @@ declare global {
 		interface Error {
 			message?: string;
 			messages?: string[];
-			code: number;
+			code?: number;
 		}
 		interface Locals {
 			validate: import('@lucia-auth/sveltekit').Validate;
@@ -24,4 +24,4 @@ declare global {
 	}
 }
 
-export { };
+export {};
