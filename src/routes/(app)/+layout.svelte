@@ -13,7 +13,9 @@
 		Theme,
 		HeaderNavItem,
 		HeaderNav,
-		Breakpoint
+		Breakpoint,
+		HeaderPanelLink,
+		HeaderPanelDivider
 	} from 'carbon-components-svelte';
 	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
 	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
@@ -77,12 +79,14 @@
 		{/each}
 	</HeaderNav>
 	<HeaderUtilities>
-		<HeaderGlobalAction aria-label="Settings" icon={SettingsAdjust} />
-		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
-			<HeaderPanelLinks />
-		</HeaderAction>
-		<HeaderAction bind:isOpen={isOpen2}>
-			<HeaderPanelLinks />
+		<HeaderAction bind:isOpen={isOpen1} icon={SettingsAdjust} closeIcon={SettingsAdjust}>
+			<HeaderPanelLinks>
+				<HeaderPanelDivider>Profile settings</HeaderPanelDivider>
+				<HeaderPanelLink>Table page size</HeaderPanelLink>
+				<HeaderPanelLink>Auto Approval</HeaderPanelLink>
+				<HeaderPanelDivider>Access Control</HeaderPanelDivider>
+				<HeaderPanelLink href="/api/logout">Log out</HeaderPanelLink>
+			</HeaderPanelLinks>
 		</HeaderAction>
 	</HeaderUtilities>
 </Header>

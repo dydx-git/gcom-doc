@@ -55,7 +55,7 @@
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: J
+			body: JSON.stringify(user)
 		});
 		if (res.status === 200) {
 			alert('User registered successfully');

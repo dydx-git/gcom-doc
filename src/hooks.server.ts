@@ -11,6 +11,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 	if (!allowedPaths.includes(pathname)) {
 		const { user } = await event.locals.validateUser();
+
 		if (!user) {
 			throw redirect(307, '/login');
 		}
