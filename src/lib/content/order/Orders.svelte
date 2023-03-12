@@ -23,7 +23,6 @@
 	} from 'carbon-components-svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
-	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import {
 		Add,
 		type CarbonIcon,
@@ -127,7 +126,12 @@
 			/>
 		</Column>
 		<Column sm={0} md={4} lg={4}>
-			<HighlightTile clickHandler={() => filterTable('overdue')} text="Overdue:" highlight="10" />
+			<HighlightTile
+				clickHandler={() => filterTable('overdue')}
+				text="Overdue:"
+				highlight="10"
+				type="warning"
+			/>
 		</Column>
 	</Row>
 	<Row class="default-gap">

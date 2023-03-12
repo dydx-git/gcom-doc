@@ -345,13 +345,13 @@
 					</Select>
 				</Column>
 				<Column sm={2} md={2} lg={4}>
-					<Dropdown
+					<!-- <Dropdown
 						labelText="Sales Person*"
 						items={salesReps}
 						itemToString={(item) => item?.name ?? ''}
 						bind:selected={client.salesRep}
 						required
-					/>
+					/> -->
 				</Column>
 			</Row>
 			<Row class="default-gap">

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import 'carbon-components-svelte/css/all.css';
+	import '../base.scss';
 	import './app.scss';
 	import {
 		Header,
@@ -57,8 +58,6 @@
 			]
 		});
 
-		console.log(data.user);
-
 		return () => {
 			eventSource.close();
 		};
@@ -75,7 +74,7 @@
 	</svelte:fragment>
 	<HeaderNav>
 		{#each navBarBtns as btn}
-			<HeaderNavItem href={btn.path} text={btn.name} />
+			<HeaderNavItem href={btn.path} text={btn.name} data-sveltekit-preload-data="hover" />
 		{/each}
 	</HeaderNav>
 	<HeaderUtilities>
