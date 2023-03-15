@@ -19,7 +19,7 @@ declare global {
 
 	/// <reference types="lucia-auth" />
 	declare namespace Lucia {
-		type Auth = import('$lib/models/auth').Auth;
+		type Auth = import('$lib/modules/auth/auth').Auth;
 		type UserAttributes = User;
 	}
 }

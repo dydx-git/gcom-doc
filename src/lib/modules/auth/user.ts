@@ -9,7 +9,7 @@ export class User {
 		} as Lucia.UserAttributes;
 
 		const user = await auth.createUser({
-			key: {
+			primaryKey: {
 				providerId: 'username',
 				providerUserId: username,
 				password
@@ -21,13 +21,12 @@ export class User {
 	}
 
 	public async login(username: string, password: string) {
-		const key = await auth.validateKeyPassword(
-			'username',
-			username,
-			password
-		);
-
-		const session = await auth.createSession(key.userId);
-		return session;
+		try {
+			const key = await auth.useKey("username", username, password);
+			const session = await auth.createSession(key.userId);
+			return session;
+		} catch {
+			return null;
+		}
 	}
 }

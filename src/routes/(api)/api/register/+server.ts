@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { User } from '$lib/models/user';
+import { User } from '$lib/modules/auth/user';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {

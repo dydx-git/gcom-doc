@@ -1,5 +1,5 @@
 import { handleHooks } from '@lucia-auth/sveltekit';
-import { auth } from '$lib/models/auth';
+import { auth } from '$lib/modules/auth/auth';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { form_data } from 'sk-form-data';

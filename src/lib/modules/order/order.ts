@@ -1,26 +1,9 @@
-import client from '$db/client';
-import type { Job, PurchaseOrder } from '@prisma/client';
-
-export type JobsWithVendorAndClient = (PurchaseOrder & {
-	jobs: (Job & {
-		vendor: {
-			id: number;
-			name: string;
-		};
-	})[];
-	client: {
-		id: string;
-		name: string;
-		companyName: string;
-		salesRep: {
-			name: string;
-		};
-	};
-})[];
+import prisma from '$db/client';
+import type { JobsWithVendorAndClient } from './meta';
 
 export class Jobs {
 	public async read(dateUntil: Date): Promise<JobsWithVendorAndClient> {
-		return await client.purchaseOrder.findMany({
+		return await prisma.purchaseOrder.findMany({
 			where: {
 				jobs: {
 					every: {

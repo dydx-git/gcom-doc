@@ -1,4 +1,4 @@
-import type { Email } from '$lib/models/email';
+import type { Email } from '$lib/modules/common/models/email';
 
 export interface INamed {
 	name: string;

@@ -1,4 +1,4 @@
-import { createObjectFromFormData } from '$lib/core';
+import { createObjectFromFormData } from '$lib/modules/common/functions/core';
 import type { Client } from '@prisma/client';
 import { fail, type Actions } from '@sveltejs/kit';
 

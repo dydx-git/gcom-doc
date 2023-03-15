@@ -1,7 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import dayjs from 'dayjs';
-import { Jobs } from '$lib/models/order';
+import { Jobs } from '$lib/modules/order/order';
 
 export const GET: RequestHandler = async (req) => {
 	const { url } = req;

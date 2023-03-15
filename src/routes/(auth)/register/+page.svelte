@@ -1,7 +1,7 @@
 <script lang="ts">
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
-	import { CompanyLabel } from '$lib/models/client-form';
+	import { CompanyLabel } from '$lib/modules/client/meta';
 	import { convertToFormData } from '$lib/utils/formHelper';
 	import {
 		TextInput,
@@ -69,73 +69,77 @@
 <Grid>
 	<h1>Register</h1>
 	<Row class="default-gap">
-		<Column sm={4} md={8}>
-			<form method="POST" class="default-gap" on:submit|preventDefault={registerUser}>
+		<Column sm="{4}" md="{8}">
+			<form method="POST" class="default-gap" on:submit|preventDefault="{registerUser}">
 				<Row>
-					<Column sm={4} md={6} lg={5}>
+					<Column sm="{4}" md="{6}" lg="{5}">
 						<TextInput
 							required
 							id="username"
 							name="username"
 							labelText="Username*"
-							bind:value={user.username}
-							minlength={3}
+							bind:value="{user.username}"
+							minlength="{3}"
 							placeholder="John Doe"
 						/>
 					</Column>
-					<Column sm={4} md={3} lg={5}>
+					<Column sm="{4}" md="{3}" lg="{5}">
 						<PasswordInput
 							labelText="Password"
 							id="password"
 							name="password"
 							placeholder="Password*"
-							{invalid}
+							invalid="{invalid}"
 							required
-							minlength={6}
-							bind:value={user.password}
+							minlength="{6}"
+							bind:value="{user.password}"
 						/>
 					</Column>
-					<Column sm={4} md={3} lg={5}>
+					<Column sm="{4}" md="{3}" lg="{5}">
 						<PasswordInput
 							labelText="Retype Password"
 							id="reTypePassword"
 							name="reTypePassword"
 							placeholder="Password*"
-							{invalid}
+							invalid="{invalid}"
 							required
-							minlength={6}
-							bind:value={reTypePassword}
+							minlength="{6}"
+							bind:value="{reTypePassword}"
 						/>
 					</Column>
 				</Row>
 				<Row>
-					<Column sm={4} md={3} lg={5}>
-						<Select required labelText="Company*" bind:selected={user.company}>
+					<Column sm="{4}" md="{3}" lg="{5}">
+						<Select required labelText="Company*" bind:selected="{user.company}">
 							{#each Object.entries(CompanyLabel) as [key, value]}
-								<SelectItem value={key} text={value} />
+								<SelectItem value="{key}" text="{value}" />
 							{/each}
 						</Select>
 					</Column>
 					<Row style="margin-left: 0px">
 						<Column>
 							<FormLabel textContent="Pick color">Selected color theme</FormLabel>
-							<div class="color" style:--color={color} style:--width="96px" style:--height="96px">
-								<input type="color" bind:value={color} on:input={handleColorInput} />
+							<div class="color" style:--color="{color}" style:--width="96px" style:--height="96px">
+								<input type="color" bind:value="{color}" on:input="{handleColorInput}" />
 								<ColorButton />
 							</div>
 						</Column>
 						<Column>
-							<ColorGrid {centerColor} {selected} on:colorChange={handleSwatchChange} />
+							<ColorGrid
+								centerColor="{centerColor}"
+								selected="{selected}"
+								on:colorChange="{handleSwatchChange}"
+							/>
 						</Column>
 					</Row>
-					<Column sm={4} md={3} lg={4}>
+					<Column sm="{4}" md="{3}" lg="{4}">
 						<FormLabel textContent="Pick color">Selected colors</FormLabel>
 						<UnorderedList expressive>
 							{#each user.colors as color}
-								<ListItem style={`background-color: ${color}`}>{color}</ListItem>
+								<ListItem style="{`background-color: ${color}`}">{color}</ListItem>
 							{/each}
 						</UnorderedList>
-						<p class:alert={user.colors.length >= 5}>
+						<p class:alert="{user.colors.length >= 5}">
 							Max 5 colors. Select a color from color button to clear currently selected colors
 						</p>
 					</Column>

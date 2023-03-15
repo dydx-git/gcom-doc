@@ -1,4 +1,4 @@
-import { User } from '$lib/models/user';
+import { User } from '$lib/modules/auth/user';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -13,6 +13,8 @@ export const actions: Actions = {
 		const { username, password } = locals.form_data;
 		try {
 			const session = await new User().login(username, password);
+			if (!session) return fail(401);
+			
 			locals.setSession(session);
 		} catch (error) {
 			console.error(error);

@@ -1,4 +1,4 @@
-import { SalesRep } from '$lib/models/salesRep';
+import { SalesRep } from '$lib/modules/sales-rep/sales-rep';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 

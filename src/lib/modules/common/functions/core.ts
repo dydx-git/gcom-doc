@@ -1,4 +1,4 @@
-import type { FormSubmitResult } from '$lib/models/client-form';
+import type { FormSubmitResult } from '$lib/modules/client/meta';
 
 export function verifyAgainst<T>(against: T, formData: FormData): FormSubmitResult {
 	const result: FormSubmitResult = {

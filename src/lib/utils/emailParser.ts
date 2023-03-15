@@ -1,5 +1,5 @@
-import type { ISupportsAdditionalEmail } from '$lib/interfaces/core';
-import { Email } from '$models/email';
+import type { ISupportsAdditionalEmail } from '$lib/modules/common/interfaces/core';
+import { Email } from '$lib/modules/common/models/email';
 import { StringToCollectionParser } from './stringToCollectionParser';
 
 export abstract class EmailParser {

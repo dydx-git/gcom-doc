@@ -1,4 +1,14 @@
-import type { Navbar } from "$lib/models/navbar";
+interface Navbar {
+	logoPath: string;
+	navButtons: NavButton[];
+}
+
+interface NavButton {
+	name: string;
+	path?: string;
+	isVisible?: boolean;
+	nestedButtons?: NavButton[];
+}
 
 const navbar: Navbar = {
 	logoPath: '',
