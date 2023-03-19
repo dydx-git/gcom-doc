@@ -2,7 +2,8 @@
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
 	import { CompanyLabel } from '$lib/modules/client/meta';
-	import { convertToFormData } from '$lib/utils/formHelper';
+	import type { ValidatedFormElements, ValidatedInput } from '$lib/modules/common/interfaces/form';
+	import { UserRoles } from '@prisma/client';
 	import {
 		TextInput,
 		PasswordInput,
@@ -10,14 +11,17 @@
 		Column,
 		Row,
 		Button,
-		Form,
 		Select,
 		SelectItem,
 		FormLabel,
 		ListItem,
 		UnorderedList
 	} from 'carbon-components-svelte';
+	import { userPreferencesStore } from '$lib/store';
+	import debounce from 'debounce';
+	import { FormValidator } from '$lib/modules/validation/validation';
 
+	const userPreferences = $userPreferencesStore;
 	let invalid = false;
 	let user = {
 		username: '',
@@ -26,6 +30,17 @@
 		role: '',
 		colors: [] as string[]
 	};
+	let formElements: ValidatedFormElements = {
+		username: {} as ValidatedInput,
+		password: {} as ValidatedInput,
+		reTypePassword: {} as ValidatedInput,
+		company: {} as ValidatedInput,
+		role: {} as ValidatedInput,
+		colors: {} as ValidatedInput
+	};
+
+	const formValidator = new FormValidator(formElements);
+
 	let color: string, centerColor: string, selected: number;
 
 	$: invalid = !/^(?=.*[a-z])(?=.*[A-Z])(?=.*d)[a-zA-Zd]{6,}$/.test(user.password);
@@ -64,13 +79,20 @@
 			alert('Error registering user');
 		}
 	};
+
+	$: console.log(formValidator.formElements);
 </script>
 
 <Grid>
 	<h1>Register</h1>
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
-			<form method="POST" class="default-gap" on:submit|preventDefault="{registerUser}">
+			<form
+				method="POST"
+				class="default-gap"
+				on:submit|preventDefault="{registerUser}"
+				on:input="{debounce(formValidator.validate, userPreferences.inputToProcessDelay)}"
+			>
 				<Row>
 					<Column sm="{4}" md="{6}" lg="{5}">
 						<TextInput
@@ -80,7 +102,10 @@
 							labelText="Username*"
 							bind:value="{user.username}"
 							minlength="{3}"
-							placeholder="John Doe"
+							pattern="^[a-zA-Z0-9]+$"
+							placeholder="johndoe"
+							invalid="{formValidator.formElements.username.invalid}"
+							invalidText="{formValidator.formElements.username.invalidText}"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
@@ -112,6 +137,11 @@
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<Select required labelText="Company*" bind:selected="{user.company}">
 							{#each Object.entries(CompanyLabel) as [key, value]}
+								<SelectItem value="{key}" text="{value}" />
+							{/each}
+						</Select>
+						<Select required labelText="Role*" bind:selected="{user.role}">
+							{#each Object.entries(UserRoles) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
 						</Select>

@@ -24,7 +24,7 @@
 	} from 'carbon-components-svelte';
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
-	import { screenSizeStore } from '$lib/store';
+	import { screenSizeStore, userPreferencesStore } from '$lib/store';
 	import { Company, CompanyLabel, FormSubmitType, type Address, type ClientFormData } from './meta';
 	import type { ValidatedInput } from '../common/interfaces/form';
 
@@ -38,7 +38,9 @@
 		placeholderText: 'No suggestions available.',
 		response: null as Promise<Response> | null
 	};
-	const inputToProcessDelay = 400;
+
+	const userPreferences = $userPreferencesStore;
+	
 	const getEmptyClient = (): ClientFormData => {
 		const defaultValues = {
 			id: null,
@@ -175,7 +177,7 @@
 	on:close="{onClose}"
 	on:submit="{onSubmit}"
 >
-	<form method="POST" on:input="{debounce(validate, inputToProcessDelay)}">
+	<form method="POST" on:input="{debounce(validate, )}">
 		<ModalHeader label="{formTitle}">
 			<Row>
 				<Column sm="{12}" md="{4}" lg="{8}">
@@ -396,7 +398,7 @@
 							bind:value="{client.address}"
 							invalid="{formElements.address.invalid}"
 							invalidText="{formElements.address.invalidText}"
-							on:keyup="{debounce(parseAddress, inputToProcessDelay)}"
+							on:keyup="{debounce(parseAddress, userPreferences.inputToProcessDelay)}"
 						/>
 					</Column>
 					<Column sm="{1}" md="{2}" lg="{3}">

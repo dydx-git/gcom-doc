@@ -5,6 +5,7 @@ export type UserSettings = {
 			showRecordsForLastDays: number;
 		};
 	};
+	inputToProcessDelay: number;
 };
 
 export const userPreferences: UserSettings = {
@@ -13,5 +14,6 @@ export const userPreferences: UserSettings = {
 		order: {
 			showRecordsForLastDays: 40
 		}
-	}
+	},
+	inputToProcessDelay: 500
 };
