@@ -19,7 +19,6 @@ export const GET: RequestHandler = async (req) => {
 	const parsedResponse: BingAddressResponse = await response.json();
 	const { resourceSets } = parsedResponse;
 	const resourceEntities = resourceSets?.[0];
-	console.log(resourceEntities);
 
 	if (!resourceEntities || resourceEntities.estimatedTotal === 0 || !resourceEntities.resources)
 		throw error(404, { message: 'No results found' });
