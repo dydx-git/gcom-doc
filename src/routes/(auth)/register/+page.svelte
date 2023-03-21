@@ -3,7 +3,6 @@
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
 	import { CompanyLabel } from '$lib/modules/client/meta';
 	import type { ValidatedFormElements, ValidatedInput } from '$lib/modules/common/interfaces/form';
-	import { UserRoles } from '@prisma/client';
 	import {
 		TextInput,
 		PasswordInput,
@@ -20,30 +19,33 @@
 	import { userPreferencesStore } from '$lib/store';
 	import debounce from 'debounce';
 	import { FormValidator } from '$lib/modules/validation/validation';
+	import { UserRoleLabels } from '$lib/modules/auth/meta';
 
 	const userPreferences = $userPreferencesStore;
-	let invalid = false;
+
 	let user = {
 		username: '',
 		password: '',
-		company: '',
+		companyId: '',
 		role: '',
+		name: '',
+		email: '',
+		phone: '',
 		colors: [] as string[]
 	};
-	let formElements: ValidatedFormElements = {
-		username: {} as ValidatedInput,
-		password: {} as ValidatedInput,
-		reTypePassword: {} as ValidatedInput,
-		company: {} as ValidatedInput,
-		role: {} as ValidatedInput,
-		colors: {} as ValidatedInput
-	};
 
-	const formValidator = new FormValidator(formElements);
+	let errors: string[] = [];
 
-	let color: string, centerColor: string, selected: number;
+	const formValidator = new FormValidator(user);
+	$: formElementsStore = $formValidator.formElements;
 
-	$: invalid = !/^(?=.*[a-z])(?=.*[A-Z])(?=.*d)[a-zA-Zd]{6,}$/.test(user.password);
+	const randomColor = '#000000'.replace(/0/g, () => (~~(Math.random() * 16)).toString(16));
+
+	let color: string = randomColor,
+		centerColor: string = randomColor,
+		selected: number,
+		maxColors: number = 4;
+
 	let reTypePassword = '';
 
 	const handleColorInput = (e: Event) => {
@@ -54,7 +56,7 @@
 	};
 
 	const handleSwatchChange = (e: CustomEvent) => {
-		if (user.colors.length >= 5) return;
+		if (user.colors.length >= maxColors) return;
 
 		color = e.detail.color;
 		selected = e.detail.index;
@@ -73,29 +75,38 @@
 			body: JSON.stringify(user)
 		});
 		if (res.status === 200) {
-			alert('User registered successfully');
 			window.location.href = '/login';
 		} else {
-			alert('Error registering user');
+			const data = await res.json();
+			errors = data.messages;
+			console.log(errors);
 		}
 	};
-
-	$: console.log(formValidator.formElements);
 </script>
 
 <Grid>
 	<h1>Register</h1>
+	{#if errors.length > 0}
+		<div style:margin-left="var(--cds-spacing-05)">
+			<UnorderedList class="default-gap">
+				{#each errors as error}
+					<ListItem style="color: var(--cds-text-error)">{error}</ListItem>
+				{/each}
+			</UnorderedList>
+		</div>
+	{/if}
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
 			<form
 				method="POST"
 				class="default-gap"
 				on:submit|preventDefault="{registerUser}"
-				on:input="{debounce(formValidator.validate, userPreferences.inputToProcessDelay)}"
+				on:input="{debounce($formValidator.validate, userPreferences.inputToProcessDelay)}"
 			>
 				<Row>
 					<Column sm="{4}" md="{6}" lg="{5}">
 						<TextInput
+							autofocus
 							required
 							id="username"
 							name="username"
@@ -103,18 +114,21 @@
 							bind:value="{user.username}"
 							minlength="{3}"
 							pattern="^[a-zA-Z0-9]+$"
-							placeholder="johndoe"
-							invalid="{formValidator.formElements.username.invalid}"
-							invalidText="{formValidator.formElements.username.invalidText}"
+							placeholder="jdoe1"
+							helperText="Only letters and numbers allowed"
+							invalid="{formElementsStore.username.invalid}"
+							invalidText="{formElementsStore.username.invalidText}"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<PasswordInput
-							labelText="Password"
-							id="password"
+							labelText="Password*"
 							name="password"
-							placeholder="Password*"
-							invalid="{invalid}"
+							placeholder="p@ssw0Rd1"
+							helperText="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
+							pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).+$"
+							invalid="{formElementsStore.password.invalid}"
+							invalidText="{formElementsStore.password.invalidText}"
 							required
 							minlength="{6}"
 							bind:value="{user.password}"
@@ -123,32 +137,65 @@
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<PasswordInput
 							labelText="Retype Password"
-							id="reTypePassword"
 							name="reTypePassword"
-							placeholder="Password*"
-							invalid="{invalid}"
+							placeholder="p@ssw0Rd1"
+							invalid="{reTypePassword !== user.password}"
 							required
-							minlength="{6}"
 							bind:value="{reTypePassword}"
 						/>
 					</Column>
 				</Row>
-				<Row>
+				<Row class="default-gap">
+					<Column sm="{4}" md="{6}" lg="{5}">
+						<TextInput
+							required
+							name="name"
+							labelText="Full Name*"
+							bind:value="{user.name}"
+							placeholder="John Doe"
+							invalid="{formElementsStore.name.invalid}"
+							invalidText="{formElementsStore.name.invalidText}"
+						/>
+					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
-						<Select required labelText="Company*" bind:selected="{user.company}">
+						<TextInput
+							required
+							name="email"
+							labelText="Email*"
+							bind:value="{user.email}"
+							pattern="^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+							placeholder="user@example.com"
+						/>
+					</Column>
+					<Column sm="{4}" md="{3}" lg="{5}">
+						<TextInput
+							required
+							name="phone"
+							labelText="Phone*"
+							bind:value="{user.phone}"
+							pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
+							placeholder="(123) 456-7890"
+							invalid="{formElementsStore.phone.invalid}"
+							invalidText="{formElementsStore.phone.invalidText}"
+						/>
+					</Column>
+				</Row>
+				<Row class="default-gap">
+					<Column sm="{4}" md="{3}" lg="{5}">
+						<Select required labelText="Company*" bind:selected="{user.companyId}">
 							{#each Object.entries(CompanyLabel) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
 						</Select>
-						<Select required labelText="Role*" bind:selected="{user.role}">
-							{#each Object.entries(UserRoles) as [key, value]}
+						<Select required labelText="Role*" bind:selected="{user.role}" class="default-gap">
+							{#each Object.entries(UserRoleLabels) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
 						</Select>
 					</Column>
 					<Row style="margin-left: 0px">
 						<Column>
-							<FormLabel textContent="Pick color">Selected color theme</FormLabel>
+							<FormLabel textContent="Pick color">Color button</FormLabel>
 							<div class="color" style:--color="{color}" style:--width="96px" style:--height="96px">
 								<input type="color" bind:value="{color}" on:input="{handleColorInput}" />
 								<ColorButton />
@@ -169,8 +216,8 @@
 								<ListItem style="{`background-color: ${color}`}">{color}</ListItem>
 							{/each}
 						</UnorderedList>
-						<p class:alert="{user.colors.length >= 5}">
-							Max 5 colors. Select a color from color button to clear currently selected colors
+						<p class:alert="{user.colors.length >= maxColors}">
+							Max {maxColors} colors. Select a color from color button to clear currently selected colors
 						</p>
 					</Column>
 				</Row>

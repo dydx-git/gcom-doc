@@ -24,3 +24,16 @@ export function createObjectFromFormData<T>(formData: FormData): T {
 
 	return obj as T;
 }
+
+export function validateObject<T extends Record<string, unknown>>(obj: T): T {
+	const props: Array<keyof T> = Object.keys(obj) as Array<keyof T>;
+	const missingProps = props.filter((prop) => !(prop in obj));
+
+	if (missingProps.length > 0) throw new Error(`Missing properties: ${missingProps.join(', ')}`);
+
+	const invalidProps = props.filter((prop) => typeof obj[prop] !== typeof ({} as T)[prop]);
+
+	if (invalidProps.length > 0) throw new Error(`Invalid properties: ${invalidProps.join(', ')}`);
+
+	return obj;
+}

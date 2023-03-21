@@ -1,5 +1,4 @@
 <script lang="ts">
-	import 'carbon-components-svelte/css/all.css';
 	import '../base.scss';
 	import './app.scss';
 	import {
@@ -22,7 +21,7 @@
 	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
-	import navbarData from '$lib/data/nav/nav-menu';
+	import navbarData from '$lib/components/data/nav/nav-menu';
 	import { Client } from '@ghostebony/sse/client';
 
 	import { onMount } from 'svelte';
@@ -64,9 +63,9 @@
 	});
 </script>
 
-<Theme bind:theme persist persistKey="__carbon-theme" />
+<Theme bind:theme="{theme}" persist persistKey="__carbon-theme" />
 
-<Breakpoint bind:size={screenSize} on:change={(e) => screenSizeStore.set(screenSize)} />
+<Breakpoint bind:size="{screenSize}" on:change="{(e) => screenSizeStore.set(screenSize)}" />
 
 <Header company="Thread Tapes" platformName="DOC">
 	<svelte:fragment slot="skip-to-content">
@@ -74,11 +73,11 @@
 	</svelte:fragment>
 	<HeaderNav>
 		{#each navBarBtns as btn}
-			<HeaderNavItem href={btn.path} text={btn.name} data-sveltekit-preload-data="hover" />
+			<HeaderNavItem href="{btn.path}" text="{btn.name}" data-sveltekit-preload-data="hover" />
 		{/each}
 	</HeaderNav>
 	<HeaderUtilities>
-		<HeaderAction bind:isOpen={isOpen1} icon={SettingsAdjust} closeIcon={SettingsAdjust}>
+		<HeaderAction bind:isOpen="{isOpen1}" icon="{SettingsAdjust}" closeIcon="{SettingsAdjust}">
 			<HeaderPanelLinks>
 				<HeaderPanelDivider>Profile settings</HeaderPanelDivider>
 				<HeaderPanelLink>Table page size</HeaderPanelLink>

@@ -1,25 +1,19 @@
 <script>
 	import { dev } from '$app/environment';
-	import {
-		Content,
-		Header,
-		HeaderActionLink,
-		HeaderNav,
-		HeaderUtilities
-	} from 'carbon-components-svelte';
+	import { Content, Header, HeaderActionLink, HeaderUtilities } from 'carbon-components-svelte';
 	import { FaceActivatedAdd, Login } from 'carbon-icons-svelte';
-	import 'carbon-components-svelte/css/all.css';
+	import '../base.scss';
 </script>
 
 <Header company="Thread Tapes" platformName="DOC" href="/login">
 	<HeaderUtilities>
 		{#if dev}
-			<HeaderActionLink aria-label="Login" href="/login" icon={Login} textContent="Login" />
+			<HeaderActionLink aria-label="Login" href="/login" icon="{Login}" textContent="Login" />
 			<HeaderActionLink
 				aria-label="Register"
 				href="/register"
 				textContent="Register"
-				icon={FaceActivatedAdd}
+				icon="{FaceActivatedAdd}"
 			/>
 		{/if}
 	</HeaderUtilities>

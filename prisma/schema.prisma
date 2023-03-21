@@ -98,8 +98,21 @@ model SalesRep {
   user                  User                    @relation(fields: [username], references: [username], map: "sales_rep_user")
   clientSalesRepCompany ClientSalesRepCompany[]
   client                Client[]
+  SalesRepColors        SalesRepColors[]
 
   @@map("sales_reps")
+}
+
+model SalesRepColors {
+  salesRepUsername String   @map("sales_rep_username") @db.VarChar(100)
+  accentColor      String   @db.VarChar(8)
+  primaryColor     String   @db.VarChar(8)
+  secondaryColor   String   @db.VarChar(8)
+  auxiliaryColor   String   @db.VarChar(8)
+  salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "sales_rep_colors_sales_rep")
+
+  @@id([salesRepUsername])
+  @@map("sales_rep_colors")
 }
 
 model ClientSalesRepCompany {

@@ -12,7 +12,7 @@
 </script>
 
 {#if clickHandler}
-	<ClickableTile on:click={clickHandler}>
+	<ClickableTile on:click="{clickHandler}">
 		{text}
 		<span class="cds--type-heading-06 highlight {type}">
 			{highlight}
@@ -30,11 +30,5 @@
 <style>
 	.highlight {
 		float: right;
-	}
-	.success {
-		color: var(--cds-support-success-inverse);
-	}
-	.warning {
-		color: var(--cds-support-warning-inverse);
 	}
 </style>

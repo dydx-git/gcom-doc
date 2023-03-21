@@ -1,3 +1,4 @@
+@use 'carbon-components-svelte/css/all.css';
 @use '@carbon/type';
 // Include type reset
 @include type.reset();
@@ -7,3 +8,17 @@
 
 // Include utility classes for type-related properties
 @include type.type-classes();
+
+::-ms-reveal {
+    display: none;
+}
+
+.success {
+    color: var(--cds-support-success-inverse);
+}
+.warning {
+    color: var(--cds-support-warning-inverse);
+}
+.danger {
+    color: var(--cds-support-danger-inverse);
+}
