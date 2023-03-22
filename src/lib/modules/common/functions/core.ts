@@ -31,9 +31,5 @@ export function validateObject<T extends Record<string, unknown>>(obj: T): T {
 
 	if (missingProps.length > 0) throw new Error(`Missing properties: ${missingProps.join(', ')}`);
 
-	const invalidProps = props.filter((prop) => typeof obj[prop] !== typeof ({} as T)[prop]);
-
-	if (invalidProps.length > 0) throw new Error(`Invalid properties: ${invalidProps.join(', ')}`);
-
 	return obj;
 }

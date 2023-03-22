@@ -1,6 +1,6 @@
 export interface IDbCRUD {
-	read: (args: object | null) => Promise<object>;
-	create: (args: object) => Promise<object>;
-	update: (args: object) => Promise<object>;
-	delete: (args: object) => Promise<object>;
+	create(...args: any[]): Promise<object>;
+	read(args: object): Promise<object>;
+	update(id: string | number, ...args: any[]): Promise<object>;
+	delete(id: string | number): Promise<object>;
 }

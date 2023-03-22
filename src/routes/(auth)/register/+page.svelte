@@ -2,7 +2,6 @@
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
 	import { CompanyLabel } from '$lib/modules/client/meta';
-	import type { ValidatedFormElements, ValidatedInput } from '$lib/modules/common/interfaces/form';
 	import {
 		TextInput,
 		PasswordInput,
@@ -14,24 +13,31 @@
 		SelectItem,
 		FormLabel,
 		ListItem,
-		UnorderedList
+		UnorderedList,
+		StructuredList,
+		StructuredListBody,
+		StructuredListRow,
+		StructuredListCell,
+		StructuredListHead,
+		StructuredListInput
 	} from 'carbon-components-svelte';
 	import { userPreferencesStore } from '$lib/store';
 	import debounce from 'debounce';
 	import { FormValidator } from '$lib/modules/validation/validation';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
+	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 
 	const userPreferences = $userPreferencesStore;
 
 	let user = {
 		username: '',
 		password: '',
-		companyId: '',
-		role: '',
+		companyId: Object.keys(CompanyLabel)[0],
+		role: Object.keys(UserRoleLabels)[0],
 		name: '',
 		email: '',
 		phone: '',
-		colors: [] as string[]
+		colors: getEmptyColorsObject()
 	};
 
 	let errors: string[] = [];
@@ -40,28 +46,49 @@
 	$: formElementsStore = $formValidator.formElements;
 
 	const randomColor = '#000000'.replace(/0/g, () => (~~(Math.random() * 16)).toString(16));
+	const colorTypes = Object.keys(user.colors);
 
 	let color: string = randomColor,
 		centerColor: string = randomColor,
 		selected: number,
-		maxColors: number = 4;
+		selectedColorType: string = colorTypes[0];
 
 	let reTypePassword = '';
 
+	function getEmptyColorsObject(): SalesRepColors {
+		return {
+			primaryColor: '',
+			secondaryColor: '',
+			accentColor: '',
+			auxiliaryColor: ''
+		};
+	}
+
+	function validateAllColorsPicked(colors: SalesRepColors) {
+		const colorsList = Object.values(colors);
+
+		return colorsList.every((color) => color !== '');
+	}
+
 	const handleColorInput = (e: Event) => {
-		user.colors = [];
+		user.colors = getEmptyColorsObject();
 		const target = e.target as HTMLInputElement;
 		centerColor = target.value;
 		selected = 6;
 	};
 
 	const handleSwatchChange = (e: CustomEvent) => {
-		if (user.colors.length >= maxColors) return;
-
 		color = e.detail.color;
 		selected = e.detail.index;
-		user.colors.push(color);
-		user.colors = [...new Set(user.colors)];
+
+		user.colors[selectedColorType as keyof SalesRepColors] = color;
+		// change the selected color type to the next one, or the first one if we're at the end
+		const nextColorTypeIndex = colorTypes.indexOf(selectedColorType) + 1;
+		if (nextColorTypeIndex < colorTypes.length) {
+			selectedColorType = colorTypes[nextColorTypeIndex];
+		} else {
+			selectedColorType = colorTypes[0];
+		}
 	};
 
 	const registerUser = async (e: Event) => {
@@ -173,7 +200,7 @@
 							name="phone"
 							labelText="Phone*"
 							bind:value="{user.phone}"
-							pattern="^\(\d{3}\)\s\d{3}-\d{4}$"
+							pattern="[0-9\- ()]+"
 							placeholder="(123) 456-7890"
 							invalid="{formElementsStore.phone.invalid}"
 							invalidText="{formElementsStore.phone.invalidText}"
@@ -211,14 +238,47 @@
 					</Row>
 					<Column sm="{4}" md="{3}" lg="{4}">
 						<FormLabel textContent="Pick color">Selected colors</FormLabel>
-						<UnorderedList expressive>
-							{#each user.colors as color}
-								<ListItem style="{`background-color: ${color}`}">{color}</ListItem>
-							{/each}
-						</UnorderedList>
-						<p class:alert="{user.colors.length >= maxColors}">
-							Max {maxColors} colors. Select a color from color button to clear currently selected colors
-						</p>
+						{#if !validateAllColorsPicked(user.colors)}
+							<p class="alert">Please select all colors</p>
+						{/if}
+						<StructuredList selection bind:selected="{selectedColorType}" condensed>
+							<StructuredListHead>
+								<StructuredListRow head>
+									<StructuredListCell head>Color Type</StructuredListCell>
+									<StructuredListCell head>Color</StructuredListCell>
+								</StructuredListRow>
+							</StructuredListHead>
+							<StructuredListBody>
+								{#each Object.entries(user.colors) as [key, color]}
+									<StructuredListRow
+										label
+										for="row-{key}"
+										class="{`row-${selectedColorType}` === `row-${key}` ? 'selected-row' : ''}"
+										on:click="{() => (selectedColorType = `row-${key}`)}"
+									>
+										<StructuredListCell>{key}</StructuredListCell>
+										<StructuredListCell>{color}</StructuredListCell>
+										<StructuredListCell>
+											<div
+												class="color"
+												style:--color="{color}"
+												style:--width="14spx"
+												style:--height="14px"
+											>
+												<input type="color" bind:value="{color}" disabled />
+												<ColorButton />
+											</div>
+										</StructuredListCell>
+										<StructuredListInput
+											id="row-{key}"
+											value="{key}"
+											title="row-{key}-title"
+											name="row-{key}-name"
+										/>
+									</StructuredListRow>
+								{/each}
+							</StructuredListBody>
+						</StructuredList>
 					</Column>
 				</Row>
 				<Button type="submit" style="float: right; margin-right: 100px">Submit</Button>

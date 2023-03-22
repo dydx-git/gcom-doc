@@ -113,7 +113,4 @@
 		max-width: 100%;
 		overflow-x: hidden;
 	}
-	:global(.default-gap) {
-		padding-top: var(--cds-spacing-05);
-	}
 </style>
