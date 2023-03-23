@@ -1,5 +1,7 @@
 generator zod {
-  provider = "zod-prisma-types"
+  provider                         = "zod-prisma-types"
+  writeNullishInModelTypes         = true
+  createOptionalDefaultValuesTypes = true
 }
 
 datasource db {
