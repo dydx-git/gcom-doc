@@ -112,9 +112,13 @@ model SalesRep {
 
 model SalesRepColors {
   salesRepUsername String   @map("sales_rep_username") @db.VarChar(100)
+  /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   accentColor      String   @db.VarChar(8)
+  /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   primaryColor     String   @db.VarChar(8)
+  /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   secondaryColor   String   @db.VarChar(8)
+  /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   auxiliaryColor   String   @db.VarChar(8)
   salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "sales_rep_colors_sales_rep")
 
