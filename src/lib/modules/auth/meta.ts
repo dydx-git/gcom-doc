@@ -7,13 +7,8 @@ export const UserRoleLabels: { [key in UserRoles]: string } = {
 	[UserRoles.USER]: UserRoles.USER
 };
 
-export interface UserCreateData extends Record<string, unknown> {
+export interface UserCreateData {
 	username: string;
 	password: string;
-	name: string;
-	email: string;
-	phone: string;
 	role: UserRoles;
-	companyId: number;
-	colors: SalesRepColors;
 }

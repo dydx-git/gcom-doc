@@ -17,7 +17,7 @@ const config = {
 	alias: {
 		$models: path.resolve('./src/lib/models'),
 		$db: path.resolve('./src/lib/services/db'),
-		$interfaces: path.resolve('./src/lib/interfaces')
+		$baseTypes: path.resolve('./prisma/generated/zod')
 	}
 };
 

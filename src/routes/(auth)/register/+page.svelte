@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
+	import type { PageData, PageServerData } from './$types';
 	import { CompanyLabel } from '$lib/modules/client/meta';
 	import {
 		TextInput,
@@ -26,27 +27,15 @@
 	import { FormValidator } from '$lib/modules/validation/validation';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
 	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
+	import { superForm } from 'sveltekit-superforms/client';
 
 	const userPreferences = $userPreferencesStore;
 
-	let user = {
-		username: '',
-		password: '',
-		companyId: Object.keys(CompanyLabel)[0],
-		role: Object.keys(UserRoleLabels)[0],
-		name: '',
-		email: '',
-		phone: '',
-		colors: getEmptyColorsObject()
-	};
-
-	let errors: string[] = [];
-
-	const formValidator = new FormValidator(user);
-	$: formElementsStore = $formValidator.formElements;
+	export let data: PageServerData;
+	const { form, errors, enhance } = superForm(data.form, { dataType: 'json' });
 
 	const randomColor = '#000000'.replace(/0/g, () => (~~(Math.random() * 16)).toString(16));
-	const colorTypes = Object.keys(user.colors);
+	const colorTypes = Object.keys(getEmptyColorsObject());
 
 	let color: string = randomColor,
 		centerColor: string = randomColor,
@@ -54,6 +43,7 @@
 		selectedColorType: string = colorTypes[0];
 
 	let reTypePassword = '';
+	let username = '';
 
 	function getEmptyColorsObject(): SalesRepColors {
 		return {
@@ -71,7 +61,7 @@
 	}
 
 	const handleColorInput = (e: Event) => {
-		user.colors = getEmptyColorsObject();
+		$form.colors = { salesRepUsername: username, ...getEmptyColorsObject() };
 		const target = e.target as HTMLInputElement;
 		centerColor = target.value;
 		selected = 6;
@@ -81,7 +71,7 @@
 		color = e.detail.color;
 		selected = e.detail.index;
 
-		user.colors[selectedColorType as keyof SalesRepColors] = color;
+		$form.colors[selectedColorType as keyof SalesRepColors] = color;
 		// change the selected color type to the next one, or the first one if we're at the end
 		const nextColorTypeIndex = colorTypes.indexOf(selectedColorType) + 1;
 		if (nextColorTypeIndex < colorTypes.length) {
@@ -91,36 +81,32 @@
 		}
 	};
 
+	$: console.log($form);
+
 	const registerUser = async (e: Event) => {
-		if (!validateAllColorsPicked(user.colors)) {
-			errors = [...errors, 'Please pick a color for each color type'];
+		if (!validateAllColorsPicked($form.colors)) {
 			return;
 		}
-		if (formValidator.invalid) {
-			errors = [...errors, 'Please fix the errors in the form'];
-			return;
-		}
-		const form = e.target as HTMLFormElement;
-		const res = await fetch(form.action, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(user)
-		});
-		if (res.status === 200) {
-			window.location.href = '/login';
-		} else {
-			const data = await res.json();
-			errors = data.messages;
-			console.log(errors);
-		}
+		// const formElement = e.target as HTMLFormElement;
+		// const res = await fetch(formElement.action, {
+		// 	method: 'POST',
+		// 	headers: {
+		// 		'Content-Type': 'application/json'
+		// 	},
+		// 	body: JSON.stringify()
+		// });
+		// if (res.status === 200) {
+		// 	window.location.href = '/login';
+		// } else {
+		// 	const data = await res.json();
+		// 	console.log(errors);
+		// }
 	};
 </script>
 
 <Grid>
 	<h1>Register</h1>
-	{#if errors?.length > 0}
+	<!-- {#if errors?.length > 0}
 		<div style:margin-left="var(--cds-spacing-05)">
 			<UnorderedList class="default-gap">
 				{#each errors as error}
@@ -128,30 +114,22 @@
 				{/each}
 			</UnorderedList>
 		</div>
-	{/if}
+	{/if} -->
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
-			<form
-				method="POST"
-				class="default-gap"
-				on:submit|preventDefault="{registerUser}"
-				on:input="{debounce($formValidator.validate, userPreferences.inputToProcessDelay)}"
-			>
+			<form method="POST" class="default-gap" use:enhance>
 				<Row>
 					<Column sm="{4}" md="{6}" lg="{5}">
 						<TextInput
 							autofocus
-							required
 							id="username"
 							name="username"
 							labelText="Username*"
-							bind:value="{user.username}"
-							minlength="{3}"
-							pattern="^[a-zA-Z0-9]+$"
+							bind:value="{$form.auth.username}"
 							placeholder="jdoe1"
 							helperText="Only letters and numbers allowed"
-							invalid="{formElementsStore.username.invalid}"
-							invalidText="{formElementsStore.username.invalidText}"
+							invalid="{($errors?.auth?.username?.length ?? 0) > 0}"
+							invalidText="{($errors?.auth?.username ?? [''])[0]}"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
@@ -159,13 +137,9 @@
 							labelText="Password*"
 							name="password"
 							placeholder="p@ssw0Rd1"
-							helperText="Must contain at least one number and one uppercase and lowercase letter, and at least 6 or more characters"
-							pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).+$"
-							invalid="{formElementsStore.password.invalid}"
-							invalidText="{formElementsStore.password.invalidText}"
-							required
-							minlength="{6}"
-							bind:value="{user.password}"
+							invalid="{($errors?.auth?.password?.length ?? 0) > 0}"
+							invalidText="{($errors?.auth?.password ?? [''])[0]}"
+							bind:value="{$form.auth.password}"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
@@ -173,8 +147,7 @@
 							labelText="Retype Password"
 							name="reTypePassword"
 							placeholder="p@ssw0Rd1"
-							invalid="{reTypePassword !== user.password}"
-							required
+							invalid="{$form.auth.password !== reTypePassword}"
 							bind:value="{reTypePassword}"
 						/>
 					</Column>
@@ -185,43 +158,46 @@
 							required
 							name="name"
 							labelText="Full Name*"
-							bind:value="{user.name}"
+							bind:value="{$form.salesRep.name}"
 							placeholder="John Doe"
-							invalid="{formElementsStore.name.invalid}"
-							invalidText="{formElementsStore.name.invalidText}"
+							invalid="{($errors?.salesRep?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep ?? [''])[0]}"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<TextInput
-							required
 							name="email"
 							labelText="Email*"
-							bind:value="{user.email}"
-							pattern="^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+							bind:value="{$form.salesRep.email}"
+							invalid="{($errors?.salesRep?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep ?? [''])[0]}"
 							placeholder="user@example.com"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<TextInput
-							required
 							name="phone"
 							labelText="Phone*"
-							bind:value="{user.phone}"
-							pattern="[0-9\- ()]+"
+							bind:value="{$form.salesRep.phone}"
 							placeholder="(123) 456-7890"
-							invalid="{formElementsStore.phone.invalid}"
-							invalidText="{formElementsStore.phone.invalidText}"
+							invalid="{($errors?.salesRep?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep ?? [''])[0]}"
 						/>
 					</Column>
 				</Row>
 				<Row class="default-gap">
 					<Column sm="{4}" md="{3}" lg="{5}">
-						<Select required labelText="Company*" bind:selected="{user.companyId}">
+						<Select required labelText="Company*" bind:selected="{$form.salesRep.companyId}">
 							{#each Object.entries(CompanyLabel) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
 						</Select>
-						<Select required labelText="Role*" bind:selected="{user.role}" class="default-gap">
+						<Select
+							required
+							labelText="Role*"
+							bind:selected="{$form.auth.role}"
+							class="default-gap"
+						>
 							{#each Object.entries(UserRoleLabels) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
@@ -245,7 +221,7 @@
 					</Row>
 					<Column sm="{4}" md="{3}" lg="{4}">
 						<FormLabel textContent="Pick color">Selected colors</FormLabel>
-						{#if !validateAllColorsPicked(user.colors)}
+						{#if !validateAllColorsPicked($form.colors)}
 							<p class="alert">Please select all colors</p>
 						{/if}
 						<StructuredList selection bind:selected="{selectedColorType}" condensed>
@@ -256,7 +232,7 @@
 								</StructuredListRow>
 							</StructuredListHead>
 							<StructuredListBody>
-								{#each Object.entries(user.colors) as [key, color]}
+								{#each Object.entries($form.colors) as [key, color]}
 									<StructuredListRow
 										label
 										for="row-{key}"

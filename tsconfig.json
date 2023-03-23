@@ -34,11 +34,8 @@
 			"$utils/*": [
 				"./src/lib/utils/*"
 			],
-			"interfaces": [
-				"./src/lib/modules/common/interfaces"
-			],
-			"interfaces/*": [
-				"./src/lib/modules/common/interfaces/*"
+			"$baseTypes": [
+				"./prisma/generated/zod"
 			]
 		}
 	}
