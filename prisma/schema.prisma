@@ -6,6 +6,7 @@ generator zod {
   provider                         = "zod-prisma-types"
   writeNullishInModelTypes         = true
   createOptionalDefaultValuesTypes = true
+  createRelationValuesTypes        = true
 }
 
 datasource db {
@@ -99,6 +100,7 @@ model SalesRep {
   name      String @db.VarChar(100)
   email     String @db.VarChar(100)
   phone     String @db.VarChar(100)
+  /// @zod.custom.use(z.coerce.number())
   companyId Int    @map("company_id")
 
   company               Company                 @relation(fields: [companyId], references: [id])

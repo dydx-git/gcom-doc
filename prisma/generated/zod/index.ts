@@ -141,6 +141,46 @@ export const ClientOptionalDefaultsSchema = ClientSchema.merge(z.object({
 
 export type ClientOptionalDefaults = z.infer<typeof ClientOptionalDefaultsSchema>
 
+// CLIENT RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientRelations = {
+  emails: ClientEmailWithRelations[];
+  phones: ClientPhoneWithRelations[];
+  orders: PurchaseOrderWithRelations[];
+  clientSalesRepCompany: ClientSalesRepCompanyWithRelations[];
+  salesRep: SalesRepWithRelations;
+  company: CompanyWithRelations;
+  clientAddress?: ClientAddressWithRelations | null;
+};
+
+export type ClientWithRelations = z.infer<typeof ClientSchema> & ClientRelations
+
+export const ClientWithRelationsSchema: z.ZodType<ClientWithRelations> = ClientSchema.merge(z.object({
+  emails: z.lazy(() => ClientEmailWithRelationsSchema).array(),
+  phones: z.lazy(() => ClientPhoneWithRelationsSchema).array(),
+  orders: z.lazy(() => PurchaseOrderWithRelationsSchema).array(),
+  clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
+  salesRep: z.lazy(() => SalesRepWithRelationsSchema),
+  company: z.lazy(() => CompanyWithRelationsSchema),
+  clientAddress: z.lazy(() => ClientAddressWithRelationsSchema).nullish(),
+}))
+
+// CLIENT OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientOptionalDefaultsWithRelations = z.infer<typeof ClientOptionalDefaultsSchema> & ClientRelations
+
+export const ClientOptionalDefaultsWithRelationsSchema: z.ZodType<ClientOptionalDefaultsWithRelations> = ClientOptionalDefaultsSchema.merge(z.object({
+  emails: z.lazy(() => ClientEmailWithRelationsSchema).array(),
+  phones: z.lazy(() => ClientPhoneWithRelationsSchema).array(),
+  orders: z.lazy(() => PurchaseOrderWithRelationsSchema).array(),
+  clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
+  salesRep: z.lazy(() => SalesRepWithRelationsSchema),
+  company: z.lazy(() => CompanyWithRelationsSchema),
+  clientAddress: z.lazy(() => ClientAddressWithRelationsSchema).nullish(),
+}))
+
 /////////////////////////////////////////
 // VENDOR SCHEMA
 /////////////////////////////////////////
@@ -168,6 +208,28 @@ export const VendorOptionalDefaultsSchema = VendorSchema.merge(z.object({
 
 export type VendorOptionalDefaults = z.infer<typeof VendorOptionalDefaultsSchema>
 
+// VENDOR RELATION SCHEMA
+//------------------------------------------------------
+
+export type VendorRelations = {
+  orders: JobWithRelations[];
+};
+
+export type VendorWithRelations = z.infer<typeof VendorSchema> & VendorRelations
+
+export const VendorWithRelationsSchema: z.ZodType<VendorWithRelations> = VendorSchema.merge(z.object({
+  orders: z.lazy(() => JobWithRelationsSchema).array(),
+}))
+
+// VENDOR OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type VendorOptionalDefaultsWithRelations = z.infer<typeof VendorOptionalDefaultsSchema> & VendorRelations
+
+export const VendorOptionalDefaultsWithRelationsSchema: z.ZodType<VendorOptionalDefaultsWithRelations> = VendorOptionalDefaultsSchema.merge(z.object({
+  orders: z.lazy(() => JobWithRelationsSchema).array(),
+}))
+
 /////////////////////////////////////////
 // GMAIL MSG SCHEMA
 /////////////////////////////////////////
@@ -180,6 +242,19 @@ export const GmailMsgSchema = z.object({
 })
 
 export type GmailMsg = z.infer<typeof GmailMsgSchema>
+
+// GMAIL MSG RELATION SCHEMA
+//------------------------------------------------------
+
+export type GmailMsgRelations = {
+  job: JobWithRelations;
+};
+
+export type GmailMsgWithRelations = z.infer<typeof GmailMsgSchema> & GmailMsgRelations
+
+export const GmailMsgWithRelationsSchema: z.ZodType<GmailMsgWithRelations> = GmailMsgSchema.merge(z.object({
+  job: z.lazy(() => JobWithRelationsSchema),
+}))
 
 /////////////////////////////////////////
 // JOB SCHEMA
@@ -209,6 +284,37 @@ export const JobOptionalDefaultsSchema = JobSchema.merge(z.object({
 
 export type JobOptionalDefaults = z.infer<typeof JobOptionalDefaultsSchema>
 
+// JOB RELATION SCHEMA
+//------------------------------------------------------
+
+export type JobRelations = {
+  GmailMsgs: GmailMsgWithRelations[];
+  purchaseOrder: PurchaseOrderWithRelations;
+  vendor: VendorWithRelations;
+  PurchaseOrder?: PurchaseOrderWithRelations | null;
+};
+
+export type JobWithRelations = z.infer<typeof JobSchema> & JobRelations
+
+export const JobWithRelationsSchema: z.ZodType<JobWithRelations> = JobSchema.merge(z.object({
+  GmailMsgs: z.lazy(() => GmailMsgWithRelationsSchema).array(),
+  purchaseOrder: z.lazy(() => PurchaseOrderWithRelationsSchema),
+  vendor: z.lazy(() => VendorWithRelationsSchema),
+  PurchaseOrder: z.lazy(() => PurchaseOrderWithRelationsSchema).nullish(),
+}))
+
+// JOB OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type JobOptionalDefaultsWithRelations = z.infer<typeof JobOptionalDefaultsSchema> & JobRelations
+
+export const JobOptionalDefaultsWithRelationsSchema: z.ZodType<JobOptionalDefaultsWithRelations> = JobOptionalDefaultsSchema.merge(z.object({
+  GmailMsgs: z.lazy(() => GmailMsgWithRelationsSchema).array(),
+  purchaseOrder: z.lazy(() => PurchaseOrderWithRelationsSchema),
+  vendor: z.lazy(() => VendorWithRelationsSchema),
+  PurchaseOrder: z.lazy(() => PurchaseOrderWithRelationsSchema).nullish(),
+}))
+
 /////////////////////////////////////////
 // PURCHASE ORDER SCHEMA
 /////////////////////////////////////////
@@ -230,6 +336,34 @@ export const PurchaseOrderOptionalDefaultsSchema = PurchaseOrderSchema.merge(z.o
 
 export type PurchaseOrderOptionalDefaults = z.infer<typeof PurchaseOrderOptionalDefaultsSchema>
 
+// PURCHASE ORDER RELATION SCHEMA
+//------------------------------------------------------
+
+export type PurchaseOrderRelations = {
+  jobs: JobWithRelations[];
+  client: ClientWithRelations;
+  primaryJob?: JobWithRelations | null;
+};
+
+export type PurchaseOrderWithRelations = z.infer<typeof PurchaseOrderSchema> & PurchaseOrderRelations
+
+export const PurchaseOrderWithRelationsSchema: z.ZodType<PurchaseOrderWithRelations> = PurchaseOrderSchema.merge(z.object({
+  jobs: z.lazy(() => JobWithRelationsSchema).array(),
+  client: z.lazy(() => ClientWithRelationsSchema),
+  primaryJob: z.lazy(() => JobWithRelationsSchema).nullish(),
+}))
+
+// PURCHASE ORDER OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type PurchaseOrderOptionalDefaultsWithRelations = z.infer<typeof PurchaseOrderOptionalDefaultsSchema> & PurchaseOrderRelations
+
+export const PurchaseOrderOptionalDefaultsWithRelationsSchema: z.ZodType<PurchaseOrderOptionalDefaultsWithRelations> = PurchaseOrderOptionalDefaultsSchema.merge(z.object({
+  jobs: z.lazy(() => JobWithRelationsSchema).array(),
+  client: z.lazy(() => ClientWithRelationsSchema),
+  primaryJob: z.lazy(() => JobWithRelationsSchema).nullish(),
+}))
+
 /////////////////////////////////////////
 // SALES REP SCHEMA
 /////////////////////////////////////////
@@ -240,7 +374,7 @@ export const SalesRepSchema = z.object({
   name: z.string(),
   email: z.string(),
   phone: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number(),
 })
 
 export type SalesRep = z.infer<typeof SalesRepSchema>
@@ -254,19 +388,66 @@ export const SalesRepOptionalDefaultsSchema = SalesRepSchema.merge(z.object({
 
 export type SalesRepOptionalDefaults = z.infer<typeof SalesRepOptionalDefaultsSchema>
 
+// SALES REP RELATION SCHEMA
+//------------------------------------------------------
+
+export type SalesRepRelations = {
+  company: CompanyWithRelations;
+  user: UserWithRelations;
+  clientSalesRepCompany: ClientSalesRepCompanyWithRelations[];
+  client: ClientWithRelations[];
+  SalesRepColors: SalesRepColorsWithRelations[];
+};
+
+export type SalesRepWithRelations = z.infer<typeof SalesRepSchema> & SalesRepRelations
+
+export const SalesRepWithRelationsSchema: z.ZodType<SalesRepWithRelations> = SalesRepSchema.merge(z.object({
+  company: z.lazy(() => CompanyWithRelationsSchema),
+  user: z.lazy(() => UserWithRelationsSchema),
+  clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
+  client: z.lazy(() => ClientWithRelationsSchema).array(),
+  SalesRepColors: z.lazy(() => SalesRepColorsWithRelationsSchema).array(),
+}))
+
+// SALES REP OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type SalesRepOptionalDefaultsWithRelations = z.infer<typeof SalesRepOptionalDefaultsSchema> & SalesRepRelations
+
+export const SalesRepOptionalDefaultsWithRelationsSchema: z.ZodType<SalesRepOptionalDefaultsWithRelations> = SalesRepOptionalDefaultsSchema.merge(z.object({
+  company: z.lazy(() => CompanyWithRelationsSchema),
+  user: z.lazy(() => UserWithRelationsSchema),
+  clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
+  client: z.lazy(() => ClientWithRelationsSchema).array(),
+  SalesRepColors: z.lazy(() => SalesRepColorsWithRelationsSchema).array(),
+}))
+
 /////////////////////////////////////////
 // SALES REP COLORS SCHEMA
 /////////////////////////////////////////
 
 export const SalesRepColorsSchema = z.object({
   salesRepUsername: z.string(),
-  accentColor: z.string(),
-  primaryColor: z.string(),
-  secondaryColor: z.string(),
-  auxiliaryColor: z.string(),
+  accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
 })
 
 export type SalesRepColors = z.infer<typeof SalesRepColorsSchema>
+
+// SALES REP COLORS RELATION SCHEMA
+//------------------------------------------------------
+
+export type SalesRepColorsRelations = {
+  salesRep: SalesRepWithRelations;
+};
+
+export type SalesRepColorsWithRelations = z.infer<typeof SalesRepColorsSchema> & SalesRepColorsRelations
+
+export const SalesRepColorsWithRelationsSchema: z.ZodType<SalesRepColorsWithRelations> = SalesRepColorsSchema.merge(z.object({
+  salesRep: z.lazy(() => SalesRepWithRelationsSchema),
+}))
 
 /////////////////////////////////////////
 // CLIENT SALES REP COMPANY SCHEMA
@@ -290,6 +471,34 @@ export const ClientSalesRepCompanyOptionalDefaultsSchema = ClientSalesRepCompany
 }))
 
 export type ClientSalesRepCompanyOptionalDefaults = z.infer<typeof ClientSalesRepCompanyOptionalDefaultsSchema>
+
+// CLIENT SALES REP COMPANY RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientSalesRepCompanyRelations = {
+  client: ClientWithRelations;
+  salesRep: SalesRepWithRelations;
+  company: CompanyWithRelations;
+};
+
+export type ClientSalesRepCompanyWithRelations = z.infer<typeof ClientSalesRepCompanySchema> & ClientSalesRepCompanyRelations
+
+export const ClientSalesRepCompanyWithRelationsSchema: z.ZodType<ClientSalesRepCompanyWithRelations> = ClientSalesRepCompanySchema.merge(z.object({
+  client: z.lazy(() => ClientWithRelationsSchema),
+  salesRep: z.lazy(() => SalesRepWithRelationsSchema),
+  company: z.lazy(() => CompanyWithRelationsSchema),
+}))
+
+// CLIENT SALES REP COMPANY OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientSalesRepCompanyOptionalDefaultsWithRelations = z.infer<typeof ClientSalesRepCompanyOptionalDefaultsSchema> & ClientSalesRepCompanyRelations
+
+export const ClientSalesRepCompanyOptionalDefaultsWithRelationsSchema: z.ZodType<ClientSalesRepCompanyOptionalDefaultsWithRelations> = ClientSalesRepCompanyOptionalDefaultsSchema.merge(z.object({
+  client: z.lazy(() => ClientWithRelationsSchema),
+  salesRep: z.lazy(() => SalesRepWithRelationsSchema),
+  company: z.lazy(() => CompanyWithRelationsSchema),
+}))
 
 /////////////////////////////////////////
 // CLIENT ADDRESS SCHEMA
@@ -316,6 +525,28 @@ export const ClientAddressOptionalDefaultsSchema = ClientAddressSchema.merge(z.o
 
 export type ClientAddressOptionalDefaults = z.infer<typeof ClientAddressOptionalDefaultsSchema>
 
+// CLIENT ADDRESS RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientAddressRelations = {
+  Client?: ClientWithRelations | null;
+};
+
+export type ClientAddressWithRelations = z.infer<typeof ClientAddressSchema> & ClientAddressRelations
+
+export const ClientAddressWithRelationsSchema: z.ZodType<ClientAddressWithRelations> = ClientAddressSchema.merge(z.object({
+  Client: z.lazy(() => ClientWithRelationsSchema).nullish(),
+}))
+
+// CLIENT ADDRESS OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientAddressOptionalDefaultsWithRelations = z.infer<typeof ClientAddressOptionalDefaultsSchema> & ClientAddressRelations
+
+export const ClientAddressOptionalDefaultsWithRelationsSchema: z.ZodType<ClientAddressOptionalDefaultsWithRelations> = ClientAddressOptionalDefaultsSchema.merge(z.object({
+  Client: z.lazy(() => ClientWithRelationsSchema).nullish(),
+}))
+
 /////////////////////////////////////////
 // CLIENT EMAIL SCHEMA
 /////////////////////////////////////////
@@ -339,6 +570,28 @@ export const ClientEmailOptionalDefaultsSchema = ClientEmailSchema.merge(z.objec
 
 export type ClientEmailOptionalDefaults = z.infer<typeof ClientEmailOptionalDefaultsSchema>
 
+// CLIENT EMAIL RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientEmailRelations = {
+  client: ClientWithRelations;
+};
+
+export type ClientEmailWithRelations = z.infer<typeof ClientEmailSchema> & ClientEmailRelations
+
+export const ClientEmailWithRelationsSchema: z.ZodType<ClientEmailWithRelations> = ClientEmailSchema.merge(z.object({
+  client: z.lazy(() => ClientWithRelationsSchema),
+}))
+
+// CLIENT EMAIL OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientEmailOptionalDefaultsWithRelations = z.infer<typeof ClientEmailOptionalDefaultsSchema> & ClientEmailRelations
+
+export const ClientEmailOptionalDefaultsWithRelationsSchema: z.ZodType<ClientEmailOptionalDefaultsWithRelations> = ClientEmailOptionalDefaultsSchema.merge(z.object({
+  client: z.lazy(() => ClientWithRelationsSchema),
+}))
+
 /////////////////////////////////////////
 // CLIENT PHONE SCHEMA
 /////////////////////////////////////////
@@ -361,6 +614,28 @@ export const ClientPhoneOptionalDefaultsSchema = ClientPhoneSchema.merge(z.objec
 }))
 
 export type ClientPhoneOptionalDefaults = z.infer<typeof ClientPhoneOptionalDefaultsSchema>
+
+// CLIENT PHONE RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientPhoneRelations = {
+  client: ClientWithRelations;
+};
+
+export type ClientPhoneWithRelations = z.infer<typeof ClientPhoneSchema> & ClientPhoneRelations
+
+export const ClientPhoneWithRelationsSchema: z.ZodType<ClientPhoneWithRelations> = ClientPhoneSchema.merge(z.object({
+  client: z.lazy(() => ClientWithRelationsSchema),
+}))
+
+// CLIENT PHONE OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type ClientPhoneOptionalDefaultsWithRelations = z.infer<typeof ClientPhoneOptionalDefaultsSchema> & ClientPhoneRelations
+
+export const ClientPhoneOptionalDefaultsWithRelationsSchema: z.ZodType<ClientPhoneOptionalDefaultsWithRelations> = ClientPhoneOptionalDefaultsSchema.merge(z.object({
+  client: z.lazy(() => ClientWithRelationsSchema),
+}))
 
 /////////////////////////////////////////
 // COMPANY SCHEMA
@@ -390,6 +665,34 @@ export const CompanyOptionalDefaultsSchema = CompanySchema.merge(z.object({
 
 export type CompanyOptionalDefaults = z.infer<typeof CompanyOptionalDefaultsSchema>
 
+// COMPANY RELATION SCHEMA
+//------------------------------------------------------
+
+export type CompanyRelations = {
+  SalesRep: SalesRepWithRelations[];
+  ClientSalesRepCompany: ClientSalesRepCompanyWithRelations[];
+  Client: ClientWithRelations[];
+};
+
+export type CompanyWithRelations = z.infer<typeof CompanySchema> & CompanyRelations
+
+export const CompanyWithRelationsSchema: z.ZodType<CompanyWithRelations> = CompanySchema.merge(z.object({
+  SalesRep: z.lazy(() => SalesRepWithRelationsSchema).array(),
+  ClientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
+  Client: z.lazy(() => ClientWithRelationsSchema).array(),
+}))
+
+// COMPANY OPTIONAL DEFAULTS RELATION SCHEMA
+//------------------------------------------------------
+
+export type CompanyOptionalDefaultsWithRelations = z.infer<typeof CompanyOptionalDefaultsSchema> & CompanyRelations
+
+export const CompanyOptionalDefaultsWithRelationsSchema: z.ZodType<CompanyOptionalDefaultsWithRelations> = CompanyOptionalDefaultsSchema.merge(z.object({
+  SalesRep: z.lazy(() => SalesRepWithRelationsSchema).array(),
+  ClientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
+  Client: z.lazy(() => ClientWithRelationsSchema).array(),
+}))
+
 /////////////////////////////////////////
 // USER SCHEMA
 /////////////////////////////////////////
@@ -401,6 +704,23 @@ export const UserSchema = z.object({
 })
 
 export type User = z.infer<typeof UserSchema>
+
+// USER RELATION SCHEMA
+//------------------------------------------------------
+
+export type UserRelations = {
+  session: SessionWithRelations[];
+  Key: KeyWithRelations[];
+  SalesRep?: SalesRepWithRelations | null;
+};
+
+export type UserWithRelations = z.infer<typeof UserSchema> & UserRelations
+
+export const UserWithRelationsSchema: z.ZodType<UserWithRelations> = UserSchema.merge(z.object({
+  session: z.lazy(() => SessionWithRelationsSchema).array(),
+  Key: z.lazy(() => KeyWithRelationsSchema).array(),
+  SalesRep: z.lazy(() => SalesRepWithRelationsSchema).nullish(),
+}))
 
 /////////////////////////////////////////
 // SESSION SCHEMA
@@ -415,6 +735,19 @@ export const SessionSchema = z.object({
 
 export type Session = z.infer<typeof SessionSchema>
 
+// SESSION RELATION SCHEMA
+//------------------------------------------------------
+
+export type SessionRelations = {
+  user: UserWithRelations;
+};
+
+export type SessionWithRelations = z.infer<typeof SessionSchema> & SessionRelations
+
+export const SessionWithRelationsSchema: z.ZodType<SessionWithRelations> = SessionSchema.merge(z.object({
+  user: z.lazy(() => UserWithRelationsSchema),
+}))
+
 /////////////////////////////////////////
 // KEY SCHEMA
 /////////////////////////////////////////
@@ -428,6 +761,19 @@ export const KeySchema = z.object({
 })
 
 export type Key = z.infer<typeof KeySchema>
+
+// KEY RELATION SCHEMA
+//------------------------------------------------------
+
+export type KeyRelations = {
+  user: UserWithRelations;
+};
+
+export type KeyWithRelations = z.infer<typeof KeySchema> & KeyRelations
+
+export const KeyWithRelationsSchema: z.ZodType<KeyWithRelations> = KeySchema.merge(z.object({
+  user: z.lazy(() => UserWithRelationsSchema),
+}))
 
 /////////////////////////////////////////
 // SELECT & INCLUDE
@@ -2094,7 +2440,7 @@ export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   name: z.string(),
   email: z.string(),
   phone: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   SalesRepColors: z.lazy(() => SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
@@ -2117,7 +2463,7 @@ export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   SalesRepColors: z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
@@ -2129,7 +2475,7 @@ export const SalesRepCreateManyInputSchema: z.ZodType<Prisma.SalesRepCreateManyI
   name: z.string(),
   email: z.string(),
   phone: z.string(),
-  companyId: z.number().int()
+  companyId: z.coerce.number()
 }).strict();
 
 export const SalesRepUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepUpdateManyMutationInput> = z.object({
@@ -2144,62 +2490,62 @@ export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUn
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepColorsCreateInputSchema: z.ZodType<Prisma.SalesRepColorsCreateInput> = z.object({
-  accentColor: z.string(),
-  primaryColor: z.string(),
-  secondaryColor: z.string(),
-  auxiliaryColor: z.string(),
+  accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   salesRep: z.lazy(() => SalesRepCreateNestedOneWithoutSalesRepColorsInputSchema)
 }).strict();
 
 export const SalesRepColorsUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedCreateInput> = z.object({
   salesRepUsername: z.string(),
-  accentColor: z.string(),
-  primaryColor: z.string(),
-  secondaryColor: z.string(),
-  auxiliaryColor: z.string()
+  accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' })
 }).strict();
 
 export const SalesRepColorsUpdateInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateInput> = z.object({
-  accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   salesRep: z.lazy(() => SalesRepUpdateOneRequiredWithoutSalesRepColorsNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepColorsUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateInput> = z.object({
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepColorsCreateManyInputSchema: z.ZodType<Prisma.SalesRepColorsCreateManyInput> = z.object({
   salesRepUsername: z.string(),
-  accentColor: z.string(),
-  primaryColor: z.string(),
-  secondaryColor: z.string(),
-  auxiliaryColor: z.string()
+  accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' })
 }).strict();
 
 export const SalesRepColorsUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateManyMutationInput> = z.object({
-  accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepColorsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateManyInput> = z.object({
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyCreateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateInput> = z.object({
@@ -7456,10 +7802,10 @@ export const ClientCreateManySalesRepInputSchema: z.ZodType<Prisma.ClientCreateM
 }).strict();
 
 export const SalesRepColorsCreateManySalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsCreateManySalesRepInput> = z.object({
-  accentColor: z.string(),
-  primaryColor: z.string(),
-  secondaryColor: z.string(),
-  auxiliaryColor: z.string()
+  accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' })
 }).strict();
 
 export const ClientSalesRepCompanyUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutSalesRepInput> = z.object({
@@ -7540,10 +7886,10 @@ export const SalesRepColorsUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<
 }).strict();
 
 export const SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInput> = z.object({
-  accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepCreateManyCompanyInputSchema: z.ZodType<Prisma.SalesRepCreateManyCompanyInput> = z.object({

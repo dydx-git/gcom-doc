@@ -21,7 +21,8 @@
 		StructuredListRow,
 		StructuredListCell,
 		StructuredListHead,
-		StructuredListInput
+		StructuredListInput,
+		InlineNotification
 	} from 'carbon-components-svelte';
 	import { userPreferencesStore } from '$lib/store';
 	import debounce from 'debounce';
@@ -33,7 +34,11 @@
 	const userPreferences = $userPreferencesStore;
 
 	export let data: PageServerData;
-	const { form, errors, enhance } = superForm(data.form, { dataType: 'json' });
+	const { form, errors, enhance, constraints } = superForm(data.form, {
+		dataType: 'json',
+		autoFocusOnError: 'detect',
+		defaultValidator: 'clear'
+	});
 
 	const randomColor = '#000000'.replace(/0/g, () => (~~(Math.random() * 16)).toString(16));
 	const colorTypes = Object.keys(getEmptyColorsObject());
@@ -44,10 +49,9 @@
 		selectedColorType: string = colorTypes[0];
 
 	let reTypePassword = '';
-	let username = '';
 
-	$: $form.colors.salesRepUsername = $form.auth.username;
 	$: $form.salesRep.username = $form.auth.username;
+	$: console.log(Object.values(CompanyLabel).includes(String($form.salesRep.companyId)));
 
 	function getEmptyColorsObject(): SalesRepColors {
 		return {
@@ -56,12 +60,6 @@
 			accentColor: '',
 			auxiliaryColor: ''
 		};
-	}
-
-	function validateAllColorsPicked(colors: SalesRepColors) {
-		const colorsList = Object.values(colors);
-
-		return colorsList.every((color) => color !== '');
 	}
 
 	const handleColorInput = (e: Event) => {
@@ -84,29 +82,9 @@
 			selectedColorType = colorTypes[0];
 		}
 	};
-
-	const registerUser = async (e: Event) => {
-		if (!validateAllColorsPicked($form.colors)) {
-			return;
-		}
-		// const formElement = e.target as HTMLFormElement;
-		// const res = await fetch(formElement.action, {
-		// 	method: 'POST',
-		// 	headers: {
-		// 		'Content-Type': 'application/json'
-		// 	},
-		// 	body: JSON.stringify()
-		// });
-		// if (res.status === 200) {
-		// 	window.location.href = '/login';
-		// } else {
-		// 	const data = await res.json();
-		// 	console.log(errors);
-		// }
-	};
 </script>
 
-<SuperDebug data="{$form}" />
+<SuperDebug data="{$errors}" />
 
 <Grid>
 	<h1>Register</h1>
@@ -130,6 +108,7 @@
 							name="username"
 							labelText="Username*"
 							bind:value="{$form.auth.username}"
+							{...$constraints.auth?.username}
 							placeholder="jdoe1"
 							helperText="Only letters and numbers allowed"
 							invalid="{($errors?.auth?.username?.length ?? 0) > 0}"
@@ -144,6 +123,7 @@
 							invalid="{($errors?.auth?.password?.length ?? 0) > 0}"
 							invalidText="{($errors?.auth?.password ?? [''])[0]}"
 							bind:value="{$form.auth.password}"
+							{...$constraints.auth?.password}
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
@@ -153,6 +133,7 @@
 							placeholder="p@ssw0Rd1"
 							invalid="{$form.auth.password !== reTypePassword}"
 							bind:value="{reTypePassword}"
+							{...$constraints.auth?.password}
 						/>
 					</Column>
 				</Row>
@@ -163,9 +144,10 @@
 							name="name"
 							labelText="Full Name*"
 							bind:value="{$form.salesRep.name}"
+							{...$constraints.salesRep?.name}
 							placeholder="John Doe"
-							invalid="{($errors?.salesRep?.length ?? 0) > 0}"
-							invalidText="{($errors?.salesRep ?? [''])[0]}"
+							invalid="{($errors?.salesRep?.name?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep?.name ?? [''])[0]}"
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
@@ -173,8 +155,9 @@
 							name="email"
 							labelText="Email*"
 							bind:value="{$form.salesRep.email}"
-							invalid="{($errors?.salesRep?.length ?? 0) > 0}"
-							invalidText="{($errors?.salesRep ?? [''])[0]}"
+							{...$constraints.salesRep?.email}
+							invalid="{($errors?.salesRep?.email?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep?.email ?? [''])[0]}"
 							placeholder="user@example.com"
 						/>
 					</Column>
@@ -183,25 +166,27 @@
 							name="phone"
 							labelText="Phone*"
 							bind:value="{$form.salesRep.phone}"
+							{...$constraints.salesRep?.phone}
 							placeholder="(123) 456-7890"
-							invalid="{($errors?.salesRep?.length ?? 0) > 0}"
-							invalidText="{($errors?.salesRep ?? [''])[0]}"
+							invalid="{($errors?.salesRep?.phone?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep?.phone ?? [''])[0]}"
 						/>
 					</Column>
 				</Row>
 				<Row class="default-gap">
 					<Column sm="{4}" md="{3}" lg="{5}">
-						<Select required labelText="Company*" bind:selected="{$form.salesRep.companyId}">
+						<Select
+							labelText="Company*"
+							bind:selected="{$form.salesRep.companyId}"
+							invalid="{($errors?.salesRep?.companyId?.length ?? 0) > 0}"
+							invalidText="{($errors?.salesRep?.companyId ?? [''])[0]}"
+						>
+							<SelectItem value="0" text="Select company" />
 							{#each Object.entries(CompanyLabel) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
 						</Select>
-						<Select
-							required
-							labelText="Role*"
-							bind:selected="{$form.auth.role}"
-							class="default-gap"
-						>
+						<Select labelText="Role*" bind:selected="{$form.auth.role}" class="default-gap">
 							{#each Object.entries(UserRoleLabels) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
 							{/each}
@@ -225,9 +210,6 @@
 					</Row>
 					<Column sm="{4}" md="{3}" lg="{4}">
 						<FormLabel textContent="Pick color">Selected colors</FormLabel>
-						{#if !validateAllColorsPicked($form.colors)}
-							<p class="alert">Please select all colors</p>
-						{/if}
 						<StructuredList selection bind:selected="{selectedColorType}" condensed>
 							<StructuredListHead>
 								<StructuredListRow head>

@@ -1,15 +1,22 @@
 import type { PageServerLoad } from './$types';
 import {
-	SalesRepColorsUncheckedCreateInputSchema,
-	SalesRepUncheckedCreateInputSchema,
+	SalesRepColorsSchema,
+	SalesRepOptionalDefaultsSchema,
 	UserRolesSchema
 } from '$baseTypes';
-import { superValidate } from 'sveltekit-superforms/server';
+import { superValidate } from "sveltekit-superforms/server";
 import { z } from 'zod';
 import { fail, type Actions } from '@sveltejs/kit';
+import client from '$lib/services/db/client';
+import { User } from '$lib/modules/auth/user';
+
+
+const SalesRepDefaultCompanySchema = SalesRepOptionalDefaultsSchema.merge(z.object({
+	companyId: z.number().int().gte(1, { message: 'Please select a valid company' })
+}));
 
 const schema = z.object({
-	colors: SalesRepColorsUncheckedCreateInputSchema,
+	colors: SalesRepColorsSchema.omit({ salesRepUsername: true }),
 	auth: z.object({
 		username: z
 			.string()
@@ -27,7 +34,7 @@ const schema = z.object({
 			}),
 		role: UserRolesSchema
 	}),
-	salesRep: SalesRepUncheckedCreateInputSchema
+	salesRep: SalesRepDefaultCompanySchema
 });
 
 export const load: PageServerLoad = async (event) => {
@@ -38,18 +45,25 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions = {
 	default: async (event) => {
-		// Same syntax as in the load function
 		const form = await superValidate(event, schema);
-		console.log('POST', form);
 
-		// Convenient validation check:
 		if (!form.valid) {
-			// Again, always return { form } and things will just work.
 			return fail(400, { form });
 		}
 
-		// TODO: Do something with the validated data
-
+		const data = form.data;
+		const auth = data.auth;
+		await new User().create(auth.username, auth.password, auth.role);
+		client.salesRepColors.create({
+			data: {
+				...data.colors,
+				salesRep: {
+					create: {
+						...data.salesRep,
+					}
+				}
+			}
+		});
 		// Yep, return { form } here too
 		return { form };
 	}
