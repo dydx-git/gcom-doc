@@ -7,6 +7,11 @@ export class FormValidator {
 	formElements: ValidatedFormElements;
 	private _store: Writable<this>;
 
+	get invalid() {
+		// return true if any of the form elements are invalid
+		return Object.values(this.formElements).some((element) => element.invalid);
+	}
+
 	constructor(formElements: Record<string, unknown>) {
 		this.formElements = {} as ValidatedFormElements;
 		for (const key in formElements) {

@@ -92,7 +92,14 @@
 	};
 
 	const registerUser = async (e: Event) => {
-		e.preventDefault();
+		if (!validateAllColorsPicked(user.colors)) {
+			errors = [...errors, 'Please pick a color for each color type'];
+			return;
+		}
+		if (formValidator.invalid) {
+			errors = [...errors, 'Please fix the errors in the form'];
+			return;
+		}
 		const form = e.target as HTMLFormElement;
 		const res = await fetch(form.action, {
 			method: 'POST',
@@ -113,7 +120,7 @@
 
 <Grid>
 	<h1>Register</h1>
-	{#if errors.length > 0}
+	{#if errors?.length > 0}
 		<div style:margin-left="var(--cds-spacing-05)">
 			<UnorderedList class="default-gap">
 				{#each errors as error}

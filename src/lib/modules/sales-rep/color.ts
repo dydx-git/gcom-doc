@@ -16,7 +16,9 @@ export class SalesRepColor implements IDbCRUD {
 	}
 
 	public async create(args: SalesRepColors, username: string) {
+		SalesRepColor.validateColors(args);
 		const data = { ...args, salesRepUsername: username };
+
 		return await client.salesRepColors.create({ data });
 	}
 
