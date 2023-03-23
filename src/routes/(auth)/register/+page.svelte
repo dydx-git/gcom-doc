@@ -3,6 +3,7 @@
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
 	import type { PageData, PageServerData } from './$types';
 	import { CompanyLabel } from '$lib/modules/client/meta';
+	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import {
 		TextInput,
 		PasswordInput,
@@ -45,6 +46,9 @@
 	let reTypePassword = '';
 	let username = '';
 
+	$: $form.colors.salesRepUsername = $form.auth.username;
+	$: $form.salesRep.username = $form.auth.username;
+
 	function getEmptyColorsObject(): SalesRepColors {
 		return {
 			primaryColor: '',
@@ -61,7 +65,7 @@
 	}
 
 	const handleColorInput = (e: Event) => {
-		$form.colors = { salesRepUsername: username, ...getEmptyColorsObject() };
+		$form.colors = { ...$form.colors, ...getEmptyColorsObject() };
 		const target = e.target as HTMLInputElement;
 		centerColor = target.value;
 		selected = 6;
@@ -80,8 +84,6 @@
 			selectedColorType = colorTypes[0];
 		}
 	};
-
-	$: console.log($form);
 
 	const registerUser = async (e: Event) => {
 		if (!validateAllColorsPicked($form.colors)) {
@@ -103,6 +105,8 @@
 		// }
 	};
 </script>
+
+<SuperDebug data="{$form}" />
 
 <Grid>
 	<h1>Register</h1>
