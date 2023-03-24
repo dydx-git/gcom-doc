@@ -1,35 +1,14 @@
-import type { FormSubmitResult } from '$lib/modules/client/meta';
+import { z, type ZodTypeAny } from "zod";
 
-export function verifyAgainst<T>(against: T, formData: FormData): FormSubmitResult {
-	const result: FormSubmitResult = {
-		success: true,
-		errors: []
-	};
-	const formKeys = Array.from(formData.keys());
-	for (const prop in against) {
-		if (!formKeys.includes(prop)) {
-			result.success = false;
-			result.errors.push(`Missing property: ${prop}`);
-		}
-	}
+export function withDefaults<T extends z.AnyZodObject>(schema: T, defaults: Partial<z.output<T>>): T {
+	const defaultSchemaShape = Object.entries(defaults).reduce((acc, [key, value]) => {
+		acc[key] = (schema as any).shape[key].default(value);
+		return acc;
+	}, {} as Record<string, ZodTypeAny>);
 
-	return result;
+	const defaultSchema = z.object(defaultSchemaShape);
+	return schema.merge(defaultSchema) as T;
 }
 
-export function createObjectFromFormData<T>(formData: FormData): T {
-	const obj = {} as any;
-	for (const [key, value] of formData) {
-		obj[key] = value as keyof T;
-	}
-
-	return obj as T;
-}
-
-export function validateObject<T extends Record<string, unknown>>(obj: T): T {
-	const props: Array<keyof T> = Object.keys(obj) as Array<keyof T>;
-	const missingProps = props.filter((prop) => !(prop in obj));
-
-	if (missingProps.length > 0) throw new Error(`Missing properties: ${missingProps.join(', ')}`);
-
-	return obj;
-}
+// example usage
+// const schema = withDefaults(z.object({ a: z.string() }), { a: 'b' });

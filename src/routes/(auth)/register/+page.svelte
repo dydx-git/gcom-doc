@@ -1,9 +1,8 @@
 <script lang="ts">
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
-	import type { PageData, PageServerData } from './$types';
+	import type { PageServerData } from './$types';
 	import { CompanyLabel } from '$lib/modules/client/meta';
-	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import {
 		TextInput,
 		PasswordInput,
@@ -14,30 +13,35 @@
 		Select,
 		SelectItem,
 		FormLabel,
-		ListItem,
-		UnorderedList,
 		StructuredList,
 		StructuredListBody,
 		StructuredListRow,
 		StructuredListCell,
 		StructuredListHead,
-		StructuredListInput,
-		InlineNotification
+		StructuredListInput
 	} from 'carbon-components-svelte';
 	import { userPreferencesStore } from '$lib/store';
-	import debounce from 'debounce';
-	import { FormValidator } from '$lib/modules/validation/validation';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
 	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 	import { superForm } from 'sveltekit-superforms/client';
+	import { schema } from './meta';
+	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 
 	const userPreferences = $userPreferencesStore;
 
 	export let data: PageServerData;
+	let submissionError: Error | null = null;
+
 	const { form, errors, enhance, constraints } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
-		defaultValidator: 'clear'
+		defaultValidator: 'clear',
+		validators: schema,
+		onResult: ({ result }) => {
+			if (result.type !== 'failure') return;
+
+			submissionError = result?.data?.error;
+		}
 	});
 
 	const randomColor = '#000000'.replace(/0/g, () => (~~(Math.random() * 16)).toString(16));
@@ -51,7 +55,6 @@
 	let reTypePassword = '';
 
 	$: $form.salesRep.username = $form.auth.username;
-	$: console.log(Object.values(CompanyLabel).includes(String($form.salesRep.companyId)));
 
 	function getEmptyColorsObject(): SalesRepColors {
 		return {
@@ -84,19 +87,13 @@
 	};
 </script>
 
-<SuperDebug data="{$errors}" />
+<SuperDebug data="{$form}" />
 
 <Grid>
 	<h1>Register</h1>
-	<!-- {#if errors?.length > 0}
-		<div style:margin-left="var(--cds-spacing-05)">
-			<UnorderedList class="default-gap">
-				{#each errors as error}
-					<ListItem style="color: var(--cds-text-error)">{error}</ListItem>
-				{/each}
-			</UnorderedList>
-		</div>
-	{/if} -->
+	{#if submissionError}
+		<p class="error">{submissionError.message}</p>
+	{/if}
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
 			<form method="POST" class="default-gap" use:enhance>
@@ -108,7 +105,6 @@
 							name="username"
 							labelText="Username*"
 							bind:value="{$form.auth.username}"
-							{...$constraints.auth?.username}
 							placeholder="jdoe1"
 							helperText="Only letters and numbers allowed"
 							invalid="{($errors?.auth?.username?.length ?? 0) > 0}"
@@ -123,7 +119,6 @@
 							invalid="{($errors?.auth?.password?.length ?? 0) > 0}"
 							invalidText="{($errors?.auth?.password ?? [''])[0]}"
 							bind:value="{$form.auth.password}"
-							{...$constraints.auth?.password}
 						/>
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
@@ -133,7 +128,6 @@
 							placeholder="p@ssw0Rd1"
 							invalid="{$form.auth.password !== reTypePassword}"
 							bind:value="{reTypePassword}"
-							{...$constraints.auth?.password}
 						/>
 					</Column>
 				</Row>
@@ -144,7 +138,6 @@
 							name="name"
 							labelText="Full Name*"
 							bind:value="{$form.salesRep.name}"
-							{...$constraints.salesRep?.name}
 							placeholder="John Doe"
 							invalid="{($errors?.salesRep?.name?.length ?? 0) > 0}"
 							invalidText="{($errors?.salesRep?.name ?? [''])[0]}"
@@ -155,7 +148,6 @@
 							name="email"
 							labelText="Email*"
 							bind:value="{$form.salesRep.email}"
-							{...$constraints.salesRep?.email}
 							invalid="{($errors?.salesRep?.email?.length ?? 0) > 0}"
 							invalidText="{($errors?.salesRep?.email ?? [''])[0]}"
 							placeholder="user@example.com"
@@ -166,7 +158,6 @@
 							name="phone"
 							labelText="Phone*"
 							bind:value="{$form.salesRep.phone}"
-							{...$constraints.salesRep?.phone}
 							placeholder="(123) 456-7890"
 							invalid="{($errors?.salesRep?.phone?.length ?? 0) > 0}"
 							invalidText="{($errors?.salesRep?.phone ?? [''])[0]}"
@@ -265,9 +256,5 @@
 		background: transparent;
 		position: absolute;
 		opacity: 0;
-	}
-
-	.alert {
-		color: red;
 	}
 </style>

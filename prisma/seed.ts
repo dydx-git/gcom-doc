@@ -22,10 +22,14 @@ async function createCompany() {
 }
 
 async function createClient() {
+    const user = await prisma.user.findFirst();
+
+    if (!user) throw new Error('No user found. Please sign up for a user first');
+
     const company = await createCompany();
     const salesRep = await prisma.salesRep.findFirst() ?? await prisma.salesRep.create({
         data: {
-            username: 'admin',
+            username: user.username,
             name: 'John Doe',
             email: 'john@doe.com',
             phone: '123-456-7890',
