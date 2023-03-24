@@ -8,10 +8,6 @@ import type {
 	ClientPhone
 } from '@prisma/client';
 
-export enum FormSubmitType {
-	AddNew,
-	Edit
-}
 
 export type FormSubmitResult = {
 	success: boolean;
@@ -42,25 +38,6 @@ export const CompanyLabel: { [key in Company]: string } = {
 	[Company.ItecDesigns]: 'Itec Designs',
 	[Company.ThreadTapes]: 'Thread Tapes'
 };
-
-export interface ClientFormData {
-	id: string | null;
-	name: string;
-	companyName: string;
-	phones: PhoneFormData[];
-	emails: EmailFormData[];
-	company: number;
-	salesRep: number | null;
-	paymentMethod: PayMethod;
-	currency: string;
-	addTransactionCharge: boolean;
-	address: string;
-	city: string;
-	state: string;
-	country: string;
-	zip: string;
-	notes: string;
-}
 
 export type ClientsWithSalesRepAndCompany = (Client & {
 	emails: ClientEmail[];

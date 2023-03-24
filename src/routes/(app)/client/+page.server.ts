@@ -1,19 +1,24 @@
-import { createObjectFromFormData } from '$lib/modules/common/functions/core';
-import type { Client } from '@prisma/client';
 import { fail, type Actions } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms/server';
+import type { PageServerLoad } from './$types';
+import prisma from '$db/client';
+import { schema } from './meta';
+
+export const load: PageServerLoad = async (event) => {
+	const form = superValidate(event, schema);
+	const salesRep = prisma.salesRep.findMany();
+
+	return { form, salesRep };
+};
 
 export const actions: Actions = {
-	create: async ({ request, fetch }) => {
-		const formData = await request.formData();
+	create: async (event) => {
+		const form = await superValidate(event, schema);
 
-		const client = createObjectFromFormData<Client>(formData);
-		const submit = await fetch('/api/client', {
-			method: 'POST',
-			body: JSON.stringify(client)
-		});
+		if (!form.valid) {
+			return fail(400, { form });
+		}
 
-		if (submit.ok)
-			return { success: true, message: 'Form submitted successfully', status: submit.status };
-		else return fail(submit.status);
+		return { form };
 	}
 };

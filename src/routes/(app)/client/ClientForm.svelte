@@ -1,9 +1,9 @@
 <script lang="ts">
-	import clone from 'just-clone';
 	import { debounce } from 'debounce';
 	import { Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
 	import get from 'lodash.get';
 	import set from 'lodash.set';
+	import { superForm } from 'sveltekit-superforms/client';
 	import {
 		Button,
 		Column,
@@ -25,12 +25,29 @@
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
-	import { Company, CompanyLabel, FormSubmitType, type Address, type ClientFormData } from './meta';
-	import type { ValidatedInput } from '../common/interfaces/form';
+	import { CompanyLabel, type Address } from '../../../lib/modules/client/meta';
+	import type { ValidatedInput } from '../../../lib/modules/common/interfaces/form';
+	import { FormSubmitType, schema } from './meta';
+	import type { PageData } from './$types';
 
 	export let open = false;
-	export let isValid = false;
 	export let submitType: FormSubmitType;
+
+	export let data: PageData;
+	let submissionError: Error | null = null;
+
+	const { form, errors, enhance, delayed } = superForm(data.form, {
+		dataType: 'json',
+		autoFocusOnError: 'detect',
+		defaultValidator: 'clear',
+		validators: schema,
+		onResult: ({ result }) => {
+			if (result.type !== 'failure') return;
+			console.log(result);
+
+			submissionError = result?.data?.error;
+		}
+	});
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
@@ -40,70 +57,11 @@
 	};
 
 	const userPreferences = $userPreferencesStore;
-	
-	const getEmptyClient = (): ClientFormData => {
-		const defaultValues = {
-			id: null,
-			name: '',
-			companyName: '',
-			phones: [
-				{
-					phone: '',
-					type: PhoneType.PRIMARY,
-					description: null
-				}
-			],
-			emails: [
-				{
-					email: '',
-					type: EmailType.JOB,
-					description: null
-				}
-			],
-			company: Company.ThreadTapes,
-			salesRep: null,
-			notes: '',
-			paymentMethod: PayMethod.UNKNOWN,
-			currency: Currency.USD,
-			addTransactionCharge: true,
-			city: '',
-			state: '',
-			zip: '',
-			address: '',
-			country: ''
-		};
-		return clone(defaultValues);
-	};
-
-	const formElements = {
-		name: {} as ValidatedInput,
-		companyName: {} as ValidatedInput,
-		phones: [
-			{
-				phone: {} as ValidatedInput | null
-			}
-		],
-		emails: [
-			{
-				email: {} as ValidatedInput | null
-			}
-		],
-		notes: {} as ValidatedInput,
-		city: {} as ValidatedInput,
-		state: {} as ValidatedInput,
-		zip: {} as ValidatedInput,
-		address: {} as ValidatedInput,
-		country: {} as ValidatedInput
-	};
-
-	export let client: ClientFormData = getEmptyClient();
 
 	let formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
 	let formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 
-	const onOpen = (e: Event) => {
-		isValid = true;
-	};
+	const onOpen = (e: Event) => {};
 
 	const onClose = (e: Event) => {};
 
@@ -112,7 +70,7 @@
 	};
 
 	const parseAddress = async () => {
-		const address = client.address;
+		const address = $form.address.address;
 		if (!address) return;
 
 		addressSuggestionProps.selectedItemId = null;
@@ -148,22 +106,6 @@
 		client.country = address?.country || client.country;
 	};
 
-	const validate = (event: Event) => {
-		const target = event.target as HTMLInputElement;
-		const name = target.name;
-		const value = target.value;
-
-		const element = get(formElements, name) as ValidatedInput | null;
-		if (!element) return;
-
-		element.invalid = true;
-		element.invalidText = 'This field is required.';
-		set(formElements, name, element);
-
-		isValid = false;
-		return;
-	};
-
 	onMount(() => {});
 	onDestroy(() => {});
 
@@ -177,7 +119,7 @@
 	on:close="{onClose}"
 	on:submit="{onSubmit}"
 >
-	<form method="POST" on:input="{debounce(validate, )}">
+	<form method="POST" use:enhance>
 		<ModalHeader label="{formTitle}">
 			<Row>
 				<Column sm="{12}" md="{4}" lg="{8}">
@@ -186,17 +128,15 @@
 			</Row>
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
-			<input type="hidden" name="id" bind:value="{client.id}" />
 			<Row>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
-						required
 						id="name"
 						name="name"
 						labelText="Name*"
-						invalid="{formElements.name.invalid}"
-						invalidText="{formElements.name.invalidText}"
-						bind:value="{client.name}"
+						invalid="{($errors?.client?.name?.length ?? 0) > 0}"
+						invalidText="{($errors?.client?.name ?? [''])[0]}"
+						bind:value="{$form.client.name}"
 						minlength="{3}"
 						placeholder="John Doe"
 					/>
@@ -208,26 +148,25 @@
 						name="companyName"
 						placeholder="Company Name"
 						minlength="{3}"
-						invalid="{formElements.companyName.invalid}"
-						invalidText="{formElements.companyName.invalidText}"
-						bind:value="{client.companyName}"
+						bind:value="{$form.client.companyName}"
+						invalid="{($errors?.client?.companyName?.length ?? 0) > 0}"
+						invalidText="{($errors?.client?.companyName ?? [''])[0]}"
 					/>
 				</Column>
 			</Row>
 			<FormGroup class="default-gap">
-				{#each client.phones as phone, i}
+				{#each $form.phones as phone, i}
 					<Row>
 						<Column sm="{2}" md="{3}" lg="{4}">
 							<TextInput
-								required
 								type="tel"
 								id="phone"
 								pattern="(?:\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}"
 								labelText="Phone*"
 								name="{`phones[${i}].phone`}"
 								placeholder="(xxx) xxx-xxxx"
-								invalid="{formElements.phones[i].phone?.invalid ?? false}"
-								invalidText="{formElements.phones[i].phone?.invalidText ?? ''}"
+								invalid="{($errors?.phones?.[i]?.phone?.length ?? 0) > 0}"
+								invalidText="{($errors?.phones?.[i]?.phone ?? [''])[0]}"
 								bind:value="{phone.phone}"
 							/>
 						</Column>
@@ -254,11 +193,10 @@
 								iconDescription="Add phone number"
 								tooltipPosition="left"
 								on:click="{() => {
-									client.phones = [
-										...client.phones,
+									$form.phones = [
+										...$form.phones,
 										{ phone: '', type: PhoneType.PRIMARY, description: '' }
 									];
-									formElements.phones = [...formElements.phones, { phone: null }];
 								}}"
 							/>
 							<Button
@@ -266,10 +204,10 @@
 								icon="{Subtract}"
 								size="small"
 								iconDescription="Remove phone number"
-								disabled="{client.phones.length === 1}"
+								disabled="{$form.phones.length === 1}"
 								tooltipPosition="left"
 								on:click="{() => {
-									client.phones = client.phones.filter((_, index) => index !== i);
+									$form.phones = $form.phones.filter((_, index) => index !== i);
 								}}"
 							/>
 						</Column>
@@ -277,7 +215,7 @@
 				{/each}
 			</FormGroup>
 			<FormGroup>
-				{#each client.emails as email, i}
+				{#each $form.emails as email, i}
 					<Row>
 						<Column sm="{2}" md="{3}" lg="{4}">
 							<TextInput
@@ -288,8 +226,8 @@
 								name="{`emails[${i}].email`}"
 								placeholder="john.doe@example.com"
 								bind:value="{email.email}"
-								invalid="{formElements.emails[i].email?.invalid ?? false}"
-								invalidText="{formElements.emails[i].email?.invalidText ?? ''}"
+								invalid="{($errors?.emails?.[i]?.email?.length ?? 0) > 0}"
+								invalidText="{($errors?.emails?.[i]?.email ?? [''])[0]}"
 							/>
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
@@ -315,11 +253,10 @@
 								iconDescription="Add email"
 								tooltipPosition="left"
 								on:click="{() => {
-									client.emails = [
-										...client.emails,
-										{ email: '', type: EmailType.JOB, description: '' }
+									$form.emails = [
+										...$form.emails,
+										{ email: '', type: EmailType.PRIMARY, description: '' }
 									];
-									formElements.emails = [...formElements.emails, { email: null }];
 								}}"
 							/>
 							<Button
@@ -328,9 +265,9 @@
 								size="small"
 								iconDescription="Remove email"
 								tooltipPosition="left"
-								disabled="{client.emails.length === 1}"
+								disabled="{$form.emails.length === 1}"
 								on:click="{() => {
-									client.emails = client.emails.filter((_, index) => index !== i);
+									$form.emails = $form.emails.filter((_, index) => index !== i);
 								}}"
 							/>
 						</Column>
@@ -339,7 +276,7 @@
 			</FormGroup>
 			<Row>
 				<Column sm="{2}" md="{2}" lg="{4}">
-					<Select required labelText="Company*" bind:selected="{client.company}">
+					<Select required labelText="Company*" bind:selected="{$form.client.companyId}">
 						{#each Object.entries(CompanyLabel) as [key, value]}
 							<SelectItem value="{key}" text="{value}" />
 						{/each}
