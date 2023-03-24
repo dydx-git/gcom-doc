@@ -373,7 +373,7 @@ export const SalesRepSchema = z.object({
   username: z.string(),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
 })
 
@@ -2426,7 +2426,7 @@ export const PurchaseOrderUncheckedUpdateManyInputSchema: z.ZodType<Prisma.Purch
 export const SalesRepCreateInputSchema: z.ZodType<Prisma.SalesRepCreateInput> = z.object({
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
   company: z.lazy(() => CompanyCreateNestedOneWithoutSalesRepInputSchema),
   user: z.lazy(() => UserCreateNestedOneWithoutSalesRepInputSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutSalesRepInputSchema).optional(),
@@ -2439,7 +2439,7 @@ export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   username: z.string(),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
@@ -2449,7 +2449,7 @@ export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUnchec
 export const SalesRepUpdateInputSchema: z.ZodType<Prisma.SalesRepUpdateInput> = z.object({
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutSalesRepNestedInputSchema).optional(),
@@ -2462,7 +2462,7 @@ export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
@@ -2474,14 +2474,14 @@ export const SalesRepCreateManyInputSchema: z.ZodType<Prisma.SalesRepCreateManyI
   username: z.string(),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
 }).strict();
 
 export const SalesRepUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepUpdateManyMutationInput> = z.object({
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyInput> = z.object({
@@ -2489,7 +2489,7 @@ export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUn
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
@@ -7897,7 +7897,7 @@ export const SalesRepCreateManyCompanyInputSchema: z.ZodType<Prisma.SalesRepCrea
   username: z.string(),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' })
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' })
 }).strict();
 
 export const ClientSalesRepCompanyCreateManyCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateManyCompanyInput> = z.object({
@@ -7946,7 +7946,7 @@ export const SalesRepUncheckedUpdateManyWithoutSalesRepInputSchema: z.ZodType<Pr
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(8).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutCompanyInput> = z.object({

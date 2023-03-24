@@ -9,12 +9,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ locals }) => {
-		const { username, password } = locals.form_data;
+	default: async ({ request, locals }) => {
+		const data = await request.formData();
+		const username = data.get('username') as string;
+		const password = data.get('password') as string;
+
 		try {
 			const session = await new User().login(username, password);
 			if (!session) return fail(401);
-			
+
 			locals.setSession(session);
 		} catch (error) {
 			console.error(error);
