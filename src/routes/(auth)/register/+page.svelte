@@ -18,27 +18,27 @@
 		StructuredListRow,
 		StructuredListCell,
 		StructuredListHead,
-		StructuredListInput
+		StructuredListInput,
+		InlineNotification,
+		InlineLoading
 	} from 'carbon-components-svelte';
-	import { userPreferencesStore } from '$lib/store';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
 	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { schema } from './meta';
 	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 
-	const userPreferences = $userPreferencesStore;
-
 	export let data: PageServerData;
 	let submissionError: Error | null = null;
 
-	const { form, errors, enhance, constraints } = superForm(data.form, {
+	const { form, errors, enhance, delayed } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
 		validators: schema,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') return;
+			console.log(result);
 
 			submissionError = result?.data?.error;
 		}
@@ -92,7 +92,11 @@
 <Grid>
 	<h1>Register</h1>
 	{#if submissionError}
-		<p class="error">{submissionError.message}</p>
+		<InlineNotification
+			lowContrast
+			title="{submissionError.name}"
+			subtitle="{submissionError.message}"
+		/>
 	{/if}
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
@@ -134,7 +138,6 @@
 				<Row class="default-gap">
 					<Column sm="{4}" md="{6}" lg="{5}">
 						<TextInput
-							required
 							name="name"
 							labelText="Full Name*"
 							bind:value="{$form.salesRep.name}"
@@ -200,7 +203,11 @@
 						</Column>
 					</Row>
 					<Column sm="{4}" md="{3}" lg="{4}">
-						<FormLabel textContent="Pick color">Selected colors</FormLabel>
+						<FormLabel
+							textContent="Pick color"
+							style="{Object.keys($errors?.colors ?? {}) ? 'color: var(--cds-danger-02);' : ''}"
+							>Selected colors</FormLabel
+						>
 						<StructuredList selection bind:selected="{selectedColorType}" condensed>
 							<StructuredListHead>
 								<StructuredListRow head>
@@ -241,7 +248,11 @@
 						</StructuredList>
 					</Column>
 				</Row>
-				<Button type="submit" style="float: right; margin-right: 100px">Submit</Button>
+				{#if !$delayed}
+					<Button type="submit" style="float: right; margin-right: 100px">Submit</Button>
+				{:else}
+					<InlineLoading status="active" description="Submitting" />
+				{/if}
 			</form>
 		</Column>
 	</Row>

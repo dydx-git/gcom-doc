@@ -99,9 +99,11 @@ model SalesRep {
   id        Int    @id @default(autoincrement())
   username  String @unique @map("user_name") @db.VarChar(100)
   name      String @db.VarChar(100)
+  /// @zod.custom.use(z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }))
   email     String @db.VarChar(100)
+  /// @zod.custom.use(z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }))
   phone     String @db.VarChar(100)
-  /// @zod.custom.use(z.coerce.number())
+  /// @zod.custom.use(z.coerce.number().gte(1, { message: 'Please select a valid company' }))
   companyId Int    @map("company_id")
 
   company               Company                 @relation(fields: [companyId], references: [id])

@@ -24,7 +24,7 @@ export const actions = {
 
 		try {
 			await new User().create(auth.username, auth.password, auth.role);
-			client.salesRepColors.create({
+			await client.salesRepColors.create({
 				data: {
 					...data.colors,
 					salesRep: {
@@ -34,11 +34,12 @@ export const actions = {
 					}
 				}
 			});
-		} catch (err) {
-			const actualError = err as Error;
-			return fail(400, { form, error: { name: actualError.name, message: actualError.message } });
+		} catch (e) {
+			const err = e as Error;
+			return fail(400, { form, error: { name: err.name, message: err.message } });
 		}
 
 		throw redirect(302, '/login');
 	}
 } satisfies Actions;
+

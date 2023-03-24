@@ -1,10 +1,6 @@
 import { SalesRepColorsSchema, SalesRepOptionalDefaultsSchema, UserRolesSchema } from "$lib/zod-prisma";
 import { z } from "zod";
 
-const SalesRepDefaultCompanySchema = SalesRepOptionalDefaultsSchema.merge(z.object({
-    companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
-}));
-
 export const schema = z.object({
     colors: SalesRepColorsSchema.omit({ salesRepUsername: true }),
     auth: z.object({
@@ -24,5 +20,5 @@ export const schema = z.object({
             }),
         role: UserRolesSchema
     }),
-    salesRep: SalesRepDefaultCompanySchema
+    salesRep: SalesRepOptionalDefaultsSchema
 });
