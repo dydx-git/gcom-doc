@@ -316,6 +316,8 @@
 						items="{Object.entries(PayMethod).map((key) => ({ id: key[0], text: key[1] }))}"
 						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.client.payMethod}"
+						invalid="{($errors?.client?.payMethod?.length ?? 0) > 0}"
+						invalidText="{($errors?.client?.payMethod ?? [''])[0]}"
 					/>
 				</Column>
 				<Column sm="{2}" md="{3}" lg="{4}">
@@ -325,6 +327,8 @@
 						items="{Object.entries(Currency).map((key) => ({ id: key[0], text: key[1] }))}"
 						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.client.currency}"
+						invalid="{($errors?.client?.currency?.length ?? 0) > 0}"
+						invalidText="{($errors?.client?.currency ?? [''])[0]}"
 					/>
 				</Column>
 				<Column sm="{2}" md="{2}" lg="{4}">
@@ -372,6 +376,8 @@
 							name="zip"
 							placeholder="12345"
 							bind:value="{$form.address.zip}"
+							invalid="{($errors?.address?.zip?.length ?? 0) > 0}"
+							invalidText="{($errors?.address?.zip ?? [''])[0]}"
 						/>
 					</Column>
 					<Column sm="{2}" md="{3}" lg="{3}">

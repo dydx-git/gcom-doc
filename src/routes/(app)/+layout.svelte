@@ -28,6 +28,7 @@
 	import type { LayoutData } from './$types';
 	import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 	import { IbmCloud, UserAvatar } from 'carbon-icons-svelte';
+	import PageTransition from '$lib/components/PageTransition.svelte';
 
 	export let data: LayoutData;
 
@@ -89,11 +90,13 @@
 	</HeaderUtilities>
 </Header>
 
-<Content id="main-content">
-	<Grid>
-		<slot />
-	</Grid>
-</Content>
+<PageTransition pathname="{data.pathname}">
+	<Content id="main-content">
+		<Grid>
+			<slot />
+		</Grid>
+	</Content>
+</PageTransition>
 
 <style>
 	:global(.bx--data-table--sticky-header) {

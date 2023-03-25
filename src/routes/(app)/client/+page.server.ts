@@ -28,7 +28,6 @@ export const actions: Actions = {
 		if (!form.valid) {
 			return fail(400, { form });
 		}
-		console.log(locals.room);
 
 		ServerManager.sendRoomEveryone(PUBLIC_SSE_CHANNEL, PUBLIC_SSE_CHANNEL, { test: 'test' });
 

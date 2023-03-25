@@ -25,7 +25,7 @@ model Client {
   addTransactionCharges Boolean                 @map("add_tc")
   updatedAt             DateTime                @updatedAt @db.DateTime(0)
   payMethod             PayMethod               @map("pay_method")
-  /// @zod.string.min(3).max(3)
+  /// @zod.enum
   currency              Currency
   status                ClientStatus
   notes                 String?
@@ -107,7 +107,7 @@ model SalesRep {
   name      String @db.VarChar(100)
   /// @zod.custom.use(z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }))
   email     String @db.VarChar(100)
-  /// @zod.custom.use(z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }))
+  /// @zod.custom.use(z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }))
   phone     String @db.VarChar(100)
   /// @zod.custom.use(z.coerce.number().gte(1, { message: 'Please select a valid company' }))
   companyId Int    @map("company_id")
@@ -160,9 +160,10 @@ model ClientAddress {
   address   String   @db.VarChar(100)
   /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }))
   state     String   @db.VarChar(2)
+  /// @zod.string.min(1).max(100)
   city      String   @db.VarChar(100)
-  /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }))
-  country   String   @db.VarChar(100)
+  /// @zod.custom.use(z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }))
+  country   String   @db.VarChar(10)
   /// @zod.custom.use(z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }))
   zip       String   @db.VarChar(16)
   updatedAt DateTime @updatedAt @db.DateTime(0)
@@ -188,6 +189,7 @@ model ClientEmail {
 }
 
 model ClientPhone {
+  /// @zod.custom.use(z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }))
   phone       String    @db.VarChar(100)
   clientId    String    @map("client_id") @db.VarChar(32)
   description String?   @db.VarChar(100)

@@ -78,4 +78,6 @@
 	</Row>
 </Grid>
 
-<ClientForm bind:open="{isAddNewModalOpen}" bind:submitType="{submitType}" data="{data}" />
+{#if isAddNewModalOpen}
+	<ClientForm bind:open="{isAddNewModalOpen}" bind:submitType="{submitType}" data="{data}" />
+{/if}

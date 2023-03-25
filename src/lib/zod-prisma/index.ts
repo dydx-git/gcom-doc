@@ -374,7 +374,7 @@ export const SalesRepSchema = z.object({
   username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
 })
 
@@ -507,10 +507,10 @@ export const ClientSalesRepCompanyOptionalDefaultsWithRelationsSchema: z.ZodType
 
 export const ClientAddressSchema = z.object({
   clientId: z.string(),
-  address: z.string(),
-  state: z.string(),
-  city: z.string(),
-  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  address: z.string().min(1).max(100),
+  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  city: z.string().min(1).max(100),
+  country: z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date(),
 })
@@ -599,7 +599,7 @@ export const ClientEmailOptionalDefaultsWithRelationsSchema: z.ZodType<ClientEma
 
 export const ClientPhoneSchema = z.object({
   type: PhoneTypeSchema,
-  phone: z.string(),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   clientId: z.string(),
   description: z.string().nullish(),
   updatedAt: z.coerce.date(),
@@ -2439,7 +2439,7 @@ export const PurchaseOrderUncheckedUpdateManyInputSchema: z.ZodType<Prisma.Purch
 export const SalesRepCreateInputSchema: z.ZodType<Prisma.SalesRepCreateInput> = z.object({
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   company: z.lazy(() => CompanyCreateNestedOneWithoutSalesRepInputSchema),
   user: z.lazy(() => UserCreateNestedOneWithoutSalesRepInputSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutSalesRepInputSchema).optional(),
@@ -2452,7 +2452,7 @@ export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
@@ -2462,7 +2462,7 @@ export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUnchec
 export const SalesRepUpdateInputSchema: z.ZodType<Prisma.SalesRepUpdateInput> = z.object({
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutSalesRepNestedInputSchema).optional(),
@@ -2475,7 +2475,7 @@ export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
@@ -2487,14 +2487,14 @@ export const SalesRepCreateManyInputSchema: z.ZodType<Prisma.SalesRepCreateManyI
   username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
 }).strict();
 
 export const SalesRepUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepUpdateManyMutationInput> = z.object({
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyInput> = z.object({
@@ -2502,7 +2502,7 @@ export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUn
   username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
@@ -2615,10 +2615,10 @@ export const ClientSalesRepCompanyUncheckedUpdateManyInputSchema: z.ZodType<Pris
 }).strict();
 
 export const ClientAddressCreateInputSchema: z.ZodType<Prisma.ClientAddressCreateInput> = z.object({
-  address: z.string(),
-  state: z.string(),
-  city: z.string(),
-  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  address: z.string().min(1).max(100),
+  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  city: z.string().min(1).max(100),
+  country: z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date().optional(),
   Client: z.lazy(() => ClientCreateNestedOneWithoutClientAddressInputSchema).optional()
@@ -2626,19 +2626,19 @@ export const ClientAddressCreateInputSchema: z.ZodType<Prisma.ClientAddressCreat
 
 export const ClientAddressUncheckedCreateInputSchema: z.ZodType<Prisma.ClientAddressUncheckedCreateInput> = z.object({
   clientId: z.string(),
-  address: z.string(),
-  state: z.string(),
-  city: z.string(),
-  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  address: z.string().min(1).max(100),
+  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  city: z.string().min(1).max(100),
+  country: z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const ClientAddressUpdateInputSchema: z.ZodType<Prisma.ClientAddressUpdateInput> = z.object({
-  address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  address: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  city: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   Client: z.lazy(() => ClientUpdateOneWithoutClientAddressNestedInputSchema).optional()
@@ -2646,39 +2646,39 @@ export const ClientAddressUpdateInputSchema: z.ZodType<Prisma.ClientAddressUpdat
 
 export const ClientAddressUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientAddressUncheckedUpdateInput> = z.object({
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  address: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  city: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientAddressCreateManyInputSchema: z.ZodType<Prisma.ClientAddressCreateManyInput> = z.object({
   clientId: z.string(),
-  address: z.string(),
-  state: z.string(),
-  city: z.string(),
-  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  address: z.string().min(1).max(100),
+  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
+  city: z.string().min(1).max(100),
+  country: z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const ClientAddressUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientAddressUpdateManyMutationInput> = z.object({
-  address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  address: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  city: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientAddressUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientAddressUncheckedUpdateManyInput> = z.object({
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  address: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  city: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(3).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
@@ -2739,7 +2739,7 @@ export const ClientEmailUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientE
 }).strict();
 
 export const ClientPhoneCreateInputSchema: z.ZodType<Prisma.ClientPhoneCreateInput> = z.object({
-  phone: z.string(),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   description: z.string().optional().nullable(),
   updatedAt: z.coerce.date().optional(),
   type: z.lazy(() => PhoneTypeSchema),
@@ -2747,7 +2747,7 @@ export const ClientPhoneCreateInputSchema: z.ZodType<Prisma.ClientPhoneCreateInp
 }).strict();
 
 export const ClientPhoneUncheckedCreateInputSchema: z.ZodType<Prisma.ClientPhoneUncheckedCreateInput> = z.object({
-  phone: z.string(),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   clientId: z.string(),
   description: z.string().optional().nullable(),
   updatedAt: z.coerce.date().optional(),
@@ -2755,7 +2755,7 @@ export const ClientPhoneUncheckedCreateInputSchema: z.ZodType<Prisma.ClientPhone
 }).strict();
 
 export const ClientPhoneUpdateInputSchema: z.ZodType<Prisma.ClientPhoneUpdateInput> = z.object({
-  phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   type: z.union([ z.lazy(() => PhoneTypeSchema),z.lazy(() => EnumPhoneTypeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2763,7 +2763,7 @@ export const ClientPhoneUpdateInputSchema: z.ZodType<Prisma.ClientPhoneUpdateInp
 }).strict();
 
 export const ClientPhoneUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientPhoneUncheckedUpdateInput> = z.object({
-  phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2771,7 +2771,7 @@ export const ClientPhoneUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientPhone
 }).strict();
 
 export const ClientPhoneCreateManyInputSchema: z.ZodType<Prisma.ClientPhoneCreateManyInput> = z.object({
-  phone: z.string(),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   clientId: z.string(),
   description: z.string().optional().nullable(),
   updatedAt: z.coerce.date().optional(),
@@ -2779,14 +2779,14 @@ export const ClientPhoneCreateManyInputSchema: z.ZodType<Prisma.ClientPhoneCreat
 }).strict();
 
 export const ClientPhoneUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientPhoneUpdateManyMutationInput> = z.object({
-  phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   type: z.union([ z.lazy(() => PhoneTypeSchema),z.lazy(() => EnumPhoneTypeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientPhoneUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientPhoneUncheckedUpdateManyInput> = z.object({
-  phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -7631,7 +7631,7 @@ export const ClientEmailCreateManyClientInputSchema: z.ZodType<Prisma.ClientEmai
 }).strict();
 
 export const ClientPhoneCreateManyClientInputSchema: z.ZodType<Prisma.ClientPhoneCreateManyClientInput> = z.object({
-  phone: z.string(),
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
   description: z.string().optional().nullable(),
   updatedAt: z.coerce.date().optional(),
   type: z.lazy(() => PhoneTypeSchema)
@@ -7685,7 +7685,7 @@ export const ClientPhoneUncheckedUpdateWithoutClientInputSchema: z.ZodType<Prism
 }).strict();
 
 export const ClientPhoneUncheckedUpdateManyWithoutPhonesInputSchema: z.ZodType<Prisma.ClientPhoneUncheckedUpdateManyWithoutPhonesInput> = z.object({
-  phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   type: z.union([ z.lazy(() => PhoneTypeSchema),z.lazy(() => EnumPhoneTypeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -7942,7 +7942,7 @@ export const SalesRepCreateManyCompanyInputSchema: z.ZodType<Prisma.SalesRepCrea
   username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
-  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' })
+  phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' })
 }).strict();
 
 export const ClientSalesRepCompanyCreateManyCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateManyCompanyInput> = z.object({
@@ -7992,7 +7992,7 @@ export const SalesRepUncheckedUpdateManyWithoutSalesRepInputSchema: z.ZodType<Pr
   username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutCompanyInput> = z.object({
