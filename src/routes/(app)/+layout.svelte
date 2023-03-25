@@ -43,7 +43,7 @@
 	onMount(async () => {
 		eventSource = new Client({
 			source: {
-				url: `/api/sse/`
+				url: `/api/sse`
 			},
 			listeners: [
 				{

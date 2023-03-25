@@ -356,6 +356,7 @@
 							labelText="City*"
 							name="city"
 							placeholder="Los Angeles"
+							bind:value="{$form.address.city}"
 							invalid="{($errors?.address?.city?.length ?? 0) > 0}"
 							invalidText="{($errors?.address?.city ?? [''])[0]}"
 						/>

@@ -29,8 +29,6 @@ export const actions: Actions = {
 			return fail(400, { form });
 		}
 
-		ServerManager.sendRoomEveryone(PUBLIC_SSE_CHANNEL, PUBLIC_SSE_CHANNEL, { test: 'test' });
-
 		return { form };
 	}
 };
