@@ -1,6 +1,6 @@
 import { withDefaults } from "$lib/modules/common/functions/core";
 import { ClientAddressOptionalDefaultsSchema, ClientEmailOptionalDefaultsSchema, ClientOptionalDefaultsSchema, ClientPhoneOptionalDefaultsSchema } from "$lib/zod-prisma";
-import { EmailType, PhoneType } from "@prisma/client";
+import { EmailType, PhoneType, type Client, type ClientAddress, type ClientPhone } from "@prisma/client";
 import { z } from "zod";
 
 export enum FormSubmitType {

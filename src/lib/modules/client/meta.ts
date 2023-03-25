@@ -39,20 +39,6 @@ export const CompanyLabel: { [key in Company]: string } = {
 	[Company.ThreadTapes]: 'Thread Tapes'
 };
 
-export type ClientsWithSalesRepAndCompany = (Client & {
-	emails: ClientEmail[];
-	phones: ClientPhone[];
-	clientAddress: ClientAddress | null;
-	salesRep: {
-		id: number;
-		name: string;
-	};
-	company: {
-		id: number;
-		name: string;
-	};
-})[];
-
 export type Address = {
 	formattedAddress: string;
 	addressLine: string | null;
