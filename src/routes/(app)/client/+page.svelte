@@ -23,8 +23,6 @@
 	export let description = 'Showing all clients';
 	export let tableData: Client[] = [];
 
-	console.log('data', tableData);
-
 	let isSearchExpanded = true;
 	let searchText = '';
 	let isAddNewModalOpen = false;

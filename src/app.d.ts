@@ -1,4 +1,5 @@
 import type { User } from '@prisma/client';
+import type { Server } from "@ghostebony/sse/server";
 
 declare global {
 	namespace App {
@@ -11,7 +12,7 @@ declare global {
 			validate: import('@lucia-auth/sveltekit').Validate;
 			validateUser: import('@lucia-auth/sveltekit').ValidateUser;
 			setSession: import('@lucia-auth/sveltekit').SetSession;
-			form_data: Record<string, any>;
+			room: Server;
 		}
 		// interface PageData {}
 		// interface Platform {}
@@ -24,4 +25,4 @@ declare global {
 	}
 }
 
-export {};
+export { };

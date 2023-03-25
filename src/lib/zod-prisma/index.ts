@@ -126,7 +126,7 @@ export const ClientSchema = z.object({
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date(),
   notes: z.string().nullish(),
-  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  salesRepUsername: z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
 })
 
@@ -2094,7 +2094,7 @@ export const ClientUncheckedCreateInputSchema: z.ZodType<Prisma.ClientUncheckedC
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
   notes: z.string().optional().nullable(),
-  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  salesRepUsername: z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -2134,7 +2134,7 @@ export const ClientUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientUncheckedU
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
   notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  salesRepUsername: z.union([ z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -2154,7 +2154,7 @@ export const ClientCreateManyInputSchema: z.ZodType<Prisma.ClientCreateManyInput
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
   notes: z.string().optional().nullable(),
-  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  salesRepUsername: z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
 }).strict();
 
@@ -2182,7 +2182,7 @@ export const ClientUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientUnchec
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
   notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
-  salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  salesRepUsername: z.union([ z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
@@ -7963,7 +7963,7 @@ export const ClientCreateManyCompanyInputSchema: z.ZodType<Prisma.ClientCreateMa
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
   notes: z.string().optional().nullable(),
-  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' })
+  salesRepUsername: z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' })
 }).strict();
 
 export const SalesRepUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepUpdateWithoutCompanyInput> = z.object({

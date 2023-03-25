@@ -37,7 +37,6 @@
 		validators: schema,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') return;
-			console.log(result);
 
 			submissionError = result?.data?.error;
 		}

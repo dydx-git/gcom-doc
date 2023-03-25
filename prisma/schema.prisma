@@ -25,10 +25,11 @@ model Client {
   addTransactionCharges Boolean                 @map("add_tc")
   updatedAt             DateTime                @updatedAt @db.DateTime(0)
   payMethod             PayMethod               @map("pay_method")
+  /// @zod.string.min(3).max(3)
   currency              Currency
   status                ClientStatus
   notes                 String?
-  /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }))
+  /// @zod.custom.use(z.string().min(2).max(20).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }))
   salesRepUsername      String                  @map("sales_rep_username") @db.VarChar(100)
   /// @zod.custom.use(z.coerce.number().gte(1, { message: 'Please select a valid company' }))
   companyId             Int                     @map("company_id")
@@ -155,10 +156,12 @@ model ClientSalesRepCompany {
 
 model ClientAddress {
   clientId  String   @id @map("client_id") @db.VarChar(32)
+  /// @zod.string.min(1).max(100)
   address   String   @db.VarChar(100)
+  /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }))
   state     String   @db.VarChar(2)
   city      String   @db.VarChar(100)
-  /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }))
+  /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid country code' }))
   country   String   @db.VarChar(100)
   /// @zod.custom.use(z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }))
   zip       String   @db.VarChar(16)

@@ -4,6 +4,8 @@ import type { PageServerLoad } from './$types';
 import prisma from '$db/client';
 import { schema } from './meta';
 import { Clients } from './client';
+import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
+import { ServerManager } from '@ghostebony/sse/server';
 
 export const load: PageServerLoad = async (event) => {
 	const form = superValidate(event, schema);
@@ -15,19 +17,20 @@ export const load: PageServerLoad = async (event) => {
 	}
 	const client = new Clients().read(user);
 
-	console.log('client', client);
-
-
 	return { form, salesRep, client };
 };
 
 export const actions: Actions = {
 	create: async (event) => {
 		const form = await superValidate(event, schema);
+		const { locals } = event;
 
 		if (!form.valid) {
 			return fail(400, { form });
 		}
+		console.log(locals.room);
+
+		ServerManager.sendRoomEveryone(PUBLIC_SSE_CHANNEL, PUBLIC_SSE_CHANNEL, { test: 'test' });
 
 		return { form };
 	}

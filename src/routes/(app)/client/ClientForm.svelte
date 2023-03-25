@@ -24,6 +24,7 @@
 	import { CompanyLabel, type Address } from '../../../lib/modules/client/meta';
 	import { FormSubmitType, schema } from './meta';
 	import type { PageData } from './$types';
+	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 
 	export let open = false;
 	export let submitType: FormSubmitType;
@@ -38,7 +39,6 @@
 		validators: schema,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') return;
-			console.log(result);
 
 			submissionError = result?.data?.error;
 		}
@@ -54,8 +54,9 @@
 
 	const userPreferences = $userPreferencesStore;
 
-	let formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
-	let formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
+	const formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
+	const formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
+	const formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
 	const onOpen = (e: Event) => {};
 
@@ -108,6 +109,8 @@
 	$: if (addressSuggestionProps.selectedItemId !== null) setAddress();
 </script>
 
+<SuperDebug data="{$errors}" />
+
 <ComposedModal
 	bind:open="{open}"
 	selectorPrimaryFocus="#name"
@@ -115,7 +118,7 @@
 	on:close="{onClose}"
 	on:submit="{onSubmit}"
 >
-	<form method="POST" use:enhance>
+	<form method="POST" use:enhance action="{formActionUrl}">
 		<ModalHeader label="{formTitle}">
 			<Row>
 				<Column sm="{12}" md="{4}" lg="{8}">
@@ -135,9 +138,10 @@
 						bind:value="{$form.client.name}"
 						minlength="{3}"
 						placeholder="John Doe"
+						tabindex="{1}"
 					/>
 				</Column>
-				<Column sm="{4}" md="{4}" lg="{7}">
+				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
 						labelText="Company"
 						id="company"
@@ -147,28 +151,34 @@
 						bind:value="{$form.client.companyName}"
 						invalid="{($errors?.client?.companyName?.length ?? 0) > 0}"
 						invalidText="{($errors?.client?.companyName ?? [''])[0]}"
+						tabindex="{2}"
 					/>
 				</Column>
 			</Row>
 			<Row class="default-gap">
-				<Column sm="{2}" md="{2}" lg="{4}">
+				<Column sm="{2}" md="{4}" lg="{8}">
 					<Dropdown
 						titleText="Company*"
 						label="Company*"
 						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
 						invalid="{($errors?.client?.companyId?.length ?? 0) > 0}"
+						invalidText="{($errors?.client?.companyId ?? [''])[0]}"
 						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.client.companyId}"
+						tabindex="{3}"
 					/>
 				</Column>
-				<Column sm="{2}" md="{2}" lg="{4}">
+				<Column sm="{2}" md="{4}" lg="{8}">
 					<ComboBox
 						placeholder="Select a sales rep"
 						titleText="Sales Rep*"
 						label="Sales Rep*"
-						items="{salesReps.map((rep) => ({ id: rep.username, text: rep.name }))}"
+						items="{salesReps?.map((rep) => ({ id: rep.username, text: rep.name }))}"
 						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.client.salesRepUsername}"
+						invalid="{($errors?.client?.salesRepUsername?.length ?? 0) > 0}"
+						invalidText="{($errors?.client?.salesRepUsername ?? [''])[0]}"
+						tabindex="{4}"
 					/>
 				</Column>
 			</Row>
@@ -179,13 +189,13 @@
 							<TextInput
 								type="tel"
 								id="phone"
-								pattern="(?:\(\d{3}\)|\d{3})[- ]?\d{3}[- ]?\d{4}"
 								labelText="Phone*"
 								name="{`phones[${i}].phone`}"
 								placeholder="(xxx) xxx-xxxx"
 								invalid="{($errors?.phones?.[i]?.phone?.length ?? 0) > 0}"
 								invalidText="{($errors?.phones?.[i]?.phone ?? [''])[0]}"
 								bind:value="{phone.phone}"
+								tabindex="{5 + i}"
 							/>
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
@@ -195,6 +205,7 @@
 								items="{Object.entries(PhoneType).map((key) => ({ id: key[0], text: key[1] }))}"
 								itemToString="{(item) => item?.text ?? ''}"
 								bind:selectedId="{$form.phones[i].type}"
+								tabindex="{6 + i}"
 							/>
 						</Column>
 						<Column sm="{0}" md="{2}" lg="{6}">
@@ -203,6 +214,7 @@
 								placeholder="Personal phone etc."
 								labelText="Description"
 								bind:value="{phone.description}"
+								tabindex="{7 + i}"
 							/>
 						</Column>
 						<Column sm="{0}" md="{1}" lg="{1}">
@@ -297,7 +309,7 @@
 			</FormGroup>
 
 			<Row>
-				<Column sm="{2}" md="{2}" lg="{4}">
+				<Column sm="{2}" md="{4}" lg="{6}">
 					<Dropdown
 						titleText="Payment Method*"
 						label="Payment Method*"
@@ -306,7 +318,7 @@
 						bind:selectedId="{$form.client.payMethod}"
 					/>
 				</Column>
-				<Column sm="{2}" md="{2}" lg="{4}">
+				<Column sm="{2}" md="{3}" lg="{4}">
 					<Dropdown
 						titleText="Currency*"
 						label="Currency*"
@@ -335,7 +347,7 @@
 							on:keyup="{debounce(parseAddress, userPreferences.inputToProcessDelay)}"
 						/>
 					</Column>
-					<Column sm="{1}" md="{2}" lg="{3}">
+					<Column sm="{1}" md="{2}" lg="{4}">
 						<TextInput
 							labelText="City*"
 							name="city"
@@ -374,7 +386,7 @@
 					</Column>
 				</Row>
 				<Row class="default-gap">
-					<Column sm="{3}" md="{5}" lg="{10}">
+					<Column sm="{3}" md="{5}" lg="{12}">
 						<FormLabel>Address Suggestions</FormLabel>
 						<ComboBox
 							direction="top"

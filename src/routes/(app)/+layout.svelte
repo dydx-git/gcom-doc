@@ -5,7 +5,6 @@
 		Header,
 		HeaderUtilities,
 		HeaderAction,
-		HeaderGlobalAction,
 		HeaderPanelLinks,
 		SkipToContent,
 		Content,
@@ -15,9 +14,9 @@
 		HeaderNav,
 		Breakpoint,
 		HeaderPanelLink,
-		HeaderPanelDivider
+		HeaderPanelDivider,
+		HeaderGlobalAction
 	} from 'carbon-components-svelte';
-	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
 	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
@@ -27,13 +26,12 @@
 	import { onMount } from 'svelte';
 	import { screenSizeStore } from '$lib/store';
 	import type { LayoutData } from './$types';
+	import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
+	import { IbmCloud, UserAvatar } from 'carbon-icons-svelte';
 
 	export let data: LayoutData;
 
 	let theme: CarbonTheme = 'g10';
-
-	let isOpen1 = false;
-	let isOpen2 = false;
 
 	let navBarBtns = navbarData.navButtons;
 
@@ -44,11 +42,11 @@
 	onMount(async () => {
 		eventSource = new Client({
 			source: {
-				url: '/api/sse/job'
+				url: `/api/sse/`
 			},
 			listeners: [
 				{
-					channel: 'jobs',
+					channel: PUBLIC_SSE_CHANNEL,
 					listener: ({ data }) => {
 						console.log(data);
 					},
@@ -56,6 +54,7 @@
 				}
 			]
 		});
+		console.log(eventSource);
 
 		return () => {
 			eventSource.close();
@@ -77,9 +76,10 @@
 		{/each}
 	</HeaderNav>
 	<HeaderUtilities>
-		<HeaderAction bind:isOpen="{isOpen1}" icon="{SettingsAdjust}" closeIcon="{SettingsAdjust}">
+		<HeaderGlobalAction aria-label="Settings" icon="{IbmCloud}" />
+		<HeaderAction icon="{UserAvatarFilledAlt}" closeIcon="{UserAvatar}">
 			<HeaderPanelLinks>
-				<HeaderPanelDivider>Profile settings</HeaderPanelDivider>
+				<HeaderPanelDivider>Signed in as {data.salesRep?.name}</HeaderPanelDivider>
 				<HeaderPanelLink>Table page size</HeaderPanelLink>
 				<HeaderPanelLink>Auto Approval</HeaderPanelLink>
 				<HeaderPanelDivider>Access Control</HeaderPanelDivider>

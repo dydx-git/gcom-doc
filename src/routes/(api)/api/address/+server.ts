@@ -7,7 +7,8 @@ export const GET: RequestHandler = async (req) => {
 	if (!inputAddress) throw error(400, { message: 'Missing parameter: address' });
 
 	try {
-		const result = Address.getParsedAddress(inputAddress);
+		const result = await Address.getParsedAddress(inputAddress);
+		if (result.length === 0) throw error(404, { message: 'Address not found' });
 		return json(result);
 	} catch (err) {
 		const { message } = err as App.Error;
