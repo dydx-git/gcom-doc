@@ -36,4 +36,6 @@ export class Clients {
             where
         });
     }
-}
+
+    public async create(user: User, data: any) {
+    }
