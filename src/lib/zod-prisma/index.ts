@@ -29,7 +29,7 @@ export const isValidDecimalInput =
 // ENUMS
 /////////////////////////////////////////
 
-export const ClientAddressScalarFieldEnumSchema = z.enum(['clientId','address','city','state','country','zip','updatedAt']);
+export const ClientAddressScalarFieldEnumSchema = z.enum(['clientId','address','state','city','country','zip','updatedAt']);
 
 export const ClientEmailScalarFieldEnumSchema = z.enum(['email','clientId','description','type','updatedAt']);
 
@@ -37,7 +37,7 @@ export const ClientPhoneScalarFieldEnumSchema = z.enum(['phone','clientId','desc
 
 export const ClientSalesRepCompanyScalarFieldEnumSchema = z.enum(['clientId','salesRepUsername','companyId','fromDate','toDate']);
 
-export const ClientScalarFieldEnumSchema = z.enum(['id','name','companyName','createdAt','addTransactionCharges','updatedAt','payMethod','currency','status','salesRepUsername','companyId']);
+export const ClientScalarFieldEnumSchema = z.enum(['id','name','companyName','createdAt','addTransactionCharges','updatedAt','payMethod','currency','status','notes','salesRepUsername','companyId']);
 
 export const CompanyScalarFieldEnumSchema = z.enum(['id','name','address','city','state','country','zip','phone','email','website']);
 
@@ -120,13 +120,14 @@ export const ClientSchema = z.object({
   currency: CurrencySchema,
   status: ClientStatusSchema,
   id: z.string(),
-  name: z.string().min(1).max(100),
-  companyName: z.string(),
+  name: z.string().min(1).max(60),
+  companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date(),
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date(),
-  salesRepUsername: z.string(),
-  companyId: z.number().int(),
+  notes: z.string().nullish(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
 })
 
 export type Client = z.infer<typeof ClientSchema>
@@ -370,7 +371,7 @@ export const PurchaseOrderOptionalDefaultsWithRelationsSchema: z.ZodType<Purchas
 
 export const SalesRepSchema = z.object({
   id: z.number().int(),
-  username: z.string(),
+  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
@@ -427,7 +428,7 @@ export const SalesRepOptionalDefaultsWithRelationsSchema: z.ZodType<SalesRepOpti
 /////////////////////////////////////////
 
 export const SalesRepColorsSchema = z.object({
-  salesRepUsername: z.string(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
@@ -456,7 +457,7 @@ export const SalesRepColorsWithRelationsSchema: z.ZodType<SalesRepColorsWithRela
 export const ClientSalesRepCompanySchema = z.object({
   clientId: z.string(),
   salesRepUsername: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date(),
   toDate: z.coerce.date(),
 })
@@ -507,9 +508,9 @@ export const ClientSalesRepCompanyOptionalDefaultsWithRelationsSchema: z.ZodType
 export const ClientAddressSchema = z.object({
   clientId: z.string(),
   address: z.string(),
+  state: z.string(),
   city: z.string(),
-  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
-  country: z.string(),
+  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date(),
 })
@@ -819,6 +820,7 @@ export const ClientSelectSchema: z.ZodType<Prisma.ClientSelect> = z.object({
   payMethod: z.boolean().optional(),
   currency: z.boolean().optional(),
   status: z.boolean().optional(),
+  notes: z.boolean().optional(),
   salesRepUsername: z.boolean().optional(),
   companyId: z.boolean().optional(),
   emails: z.union([z.boolean(),z.lazy(() => ClientEmailFindManyArgsSchema)]).optional(),
@@ -1061,8 +1063,8 @@ export const ClientAddressArgsSchema: z.ZodType<Prisma.ClientAddressArgs> = z.ob
 export const ClientAddressSelectSchema: z.ZodType<Prisma.ClientAddressSelect> = z.object({
   clientId: z.boolean().optional(),
   address: z.boolean().optional(),
-  city: z.boolean().optional(),
   state: z.boolean().optional(),
+  city: z.boolean().optional(),
   country: z.boolean().optional(),
   zip: z.boolean().optional(),
   updatedAt: z.boolean().optional(),
@@ -1246,6 +1248,7 @@ export const ClientWhereInputSchema: z.ZodType<Prisma.ClientWhereInput> = z.obje
   payMethod: z.union([ z.lazy(() => EnumPayMethodFilterSchema),z.lazy(() => PayMethodSchema) ]).optional(),
   currency: z.union([ z.lazy(() => EnumCurrencyFilterSchema),z.lazy(() => CurrencySchema) ]).optional(),
   status: z.union([ z.lazy(() => EnumClientStatusFilterSchema),z.lazy(() => ClientStatusSchema) ]).optional(),
+  notes: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
   salesRepUsername: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   companyId: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
   emails: z.lazy(() => ClientEmailListRelationFilterSchema).optional(),
@@ -1267,6 +1270,7 @@ export const ClientOrderByWithRelationInputSchema: z.ZodType<Prisma.ClientOrderB
   payMethod: z.lazy(() => SortOrderSchema).optional(),
   currency: z.lazy(() => SortOrderSchema).optional(),
   status: z.lazy(() => SortOrderSchema).optional(),
+  notes: z.lazy(() => SortOrderSchema).optional(),
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional(),
   emails: z.lazy(() => ClientEmailOrderByRelationAggregateInputSchema).optional(),
@@ -1292,6 +1296,7 @@ export const ClientOrderByWithAggregationInputSchema: z.ZodType<Prisma.ClientOrd
   payMethod: z.lazy(() => SortOrderSchema).optional(),
   currency: z.lazy(() => SortOrderSchema).optional(),
   status: z.lazy(() => SortOrderSchema).optional(),
+  notes: z.lazy(() => SortOrderSchema).optional(),
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => ClientCountOrderByAggregateInputSchema).optional(),
@@ -1314,6 +1319,7 @@ export const ClientScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Client
   payMethod: z.union([ z.lazy(() => EnumPayMethodWithAggregatesFilterSchema),z.lazy(() => PayMethodSchema) ]).optional(),
   currency: z.union([ z.lazy(() => EnumCurrencyWithAggregatesFilterSchema),z.lazy(() => CurrencySchema) ]).optional(),
   status: z.union([ z.lazy(() => EnumClientStatusWithAggregatesFilterSchema),z.lazy(() => ClientStatusSchema) ]).optional(),
+  notes: z.union([ z.lazy(() => StringNullableWithAggregatesFilterSchema),z.string() ]).optional().nullable(),
   salesRepUsername: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   companyId: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
 }).strict();
@@ -1568,7 +1574,7 @@ export const SalesRepOrderByWithRelationInputSchema: z.ZodType<Prisma.SalesRepOr
 
 export const SalesRepWhereUniqueInputSchema: z.ZodType<Prisma.SalesRepWhereUniqueInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string().optional()
+  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }).optional()
 }).strict();
 
 export const SalesRepOrderByWithAggregationInputSchema: z.ZodType<Prisma.SalesRepOrderByWithAggregationInput> = z.object({
@@ -1619,7 +1625,7 @@ export const SalesRepColorsOrderByWithRelationInputSchema: z.ZodType<Prisma.Sale
 }).strict();
 
 export const SalesRepColorsWhereUniqueInputSchema: z.ZodType<Prisma.SalesRepColorsWhereUniqueInput> = z.object({
-  salesRepUsername: z.string().optional()
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }).optional()
 }).strict();
 
 export const SalesRepColorsOrderByWithAggregationInputSchema: z.ZodType<Prisma.SalesRepColorsOrderByWithAggregationInput> = z.object({
@@ -1703,8 +1709,8 @@ export const ClientAddressWhereInputSchema: z.ZodType<Prisma.ClientAddressWhereI
   NOT: z.union([ z.lazy(() => ClientAddressWhereInputSchema),z.lazy(() => ClientAddressWhereInputSchema).array() ]).optional(),
   clientId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   address: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  city: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   state: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  city: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   country: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   zip: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
@@ -1714,8 +1720,8 @@ export const ClientAddressWhereInputSchema: z.ZodType<Prisma.ClientAddressWhereI
 export const ClientAddressOrderByWithRelationInputSchema: z.ZodType<Prisma.ClientAddressOrderByWithRelationInput> = z.object({
   clientId: z.lazy(() => SortOrderSchema).optional(),
   address: z.lazy(() => SortOrderSchema).optional(),
-  city: z.lazy(() => SortOrderSchema).optional(),
   state: z.lazy(() => SortOrderSchema).optional(),
+  city: z.lazy(() => SortOrderSchema).optional(),
   country: z.lazy(() => SortOrderSchema).optional(),
   zip: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
@@ -1729,8 +1735,8 @@ export const ClientAddressWhereUniqueInputSchema: z.ZodType<Prisma.ClientAddress
 export const ClientAddressOrderByWithAggregationInputSchema: z.ZodType<Prisma.ClientAddressOrderByWithAggregationInput> = z.object({
   clientId: z.lazy(() => SortOrderSchema).optional(),
   address: z.lazy(() => SortOrderSchema).optional(),
-  city: z.lazy(() => SortOrderSchema).optional(),
   state: z.lazy(() => SortOrderSchema).optional(),
+  city: z.lazy(() => SortOrderSchema).optional(),
   country: z.lazy(() => SortOrderSchema).optional(),
   zip: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
@@ -1745,8 +1751,8 @@ export const ClientAddressScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma
   NOT: z.union([ z.lazy(() => ClientAddressScalarWhereWithAggregatesInputSchema),z.lazy(() => ClientAddressScalarWhereWithAggregatesInputSchema).array() ]).optional(),
   clientId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   address: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  city: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   state: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  city: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   country: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   zip: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
@@ -2059,14 +2065,15 @@ export const KeyScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.KeyScalar
 
 export const ClientCreateInputSchema: z.ZodType<Prisma.ClientCreateInput> = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
-  companyName: z.string(),
+  name: z.string().min(1).max(60),
+  companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date().optional(),
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
@@ -2078,16 +2085,17 @@ export const ClientCreateInputSchema: z.ZodType<Prisma.ClientCreateInput> = z.ob
 
 export const ClientUncheckedCreateInputSchema: z.ZodType<Prisma.ClientUncheckedCreateInput> = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
-  companyName: z.string(),
+  name: z.string().min(1).max(60),
+  companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date().optional(),
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
-  salesRepUsername: z.string(),
-  companyId: z.number().int(),
+  notes: z.string().optional().nullable(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -2097,14 +2105,15 @@ export const ClientUncheckedCreateInputSchema: z.ZodType<Prisma.ClientUncheckedC
 
 export const ClientUpdateInputSchema: z.ZodType<Prisma.ClientUpdateInput> = z.object({
   id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyName: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   addTransactionCharges: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -2116,16 +2125,17 @@ export const ClientUpdateInputSchema: z.ZodType<Prisma.ClientUpdateInput> = z.ob
 
 export const ClientUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientUncheckedUpdateInput> = z.object({
   id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyName: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   addTransactionCharges: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
-  salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -2135,42 +2145,45 @@ export const ClientUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientUncheckedU
 
 export const ClientCreateManyInputSchema: z.ZodType<Prisma.ClientCreateManyInput> = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
-  companyName: z.string(),
+  name: z.string().min(1).max(60),
+  companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date().optional(),
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
-  salesRepUsername: z.string(),
-  companyId: z.number().int()
+  notes: z.string().optional().nullable(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
 }).strict();
 
 export const ClientUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientUpdateManyMutationInput> = z.object({
   id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyName: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   addTransactionCharges: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const ClientUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientUncheckedUpdateManyInput> = z.object({
   id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyName: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   addTransactionCharges: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
-  salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const VendorCreateInputSchema: z.ZodType<Prisma.VendorCreateInput> = z.object({
@@ -2436,7 +2449,7 @@ export const SalesRepCreateInputSchema: z.ZodType<Prisma.SalesRepCreateInput> = 
 
 export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string(),
+  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
@@ -2459,7 +2472,7 @@ export const SalesRepUpdateInputSchema: z.ZodType<Prisma.SalesRepUpdateInput> = 
 
 export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2471,7 +2484,7 @@ export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUnchec
 
 export const SalesRepCreateManyInputSchema: z.ZodType<Prisma.SalesRepCreateManyInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string(),
+  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),
@@ -2486,7 +2499,7 @@ export const SalesRepUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepUpd
 
 export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2502,7 +2515,7 @@ export const SalesRepColorsCreateInputSchema: z.ZodType<Prisma.SalesRepColorsCre
 }).strict();
 
 export const SalesRepColorsUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedCreateInput> = z.object({
-  salesRepUsername: z.string(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
@@ -2518,7 +2531,7 @@ export const SalesRepColorsUpdateInputSchema: z.ZodType<Prisma.SalesRepColorsUpd
 }).strict();
 
 export const SalesRepColorsUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateInput> = z.object({
-  salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2526,7 +2539,7 @@ export const SalesRepColorsUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRep
 }).strict();
 
 export const SalesRepColorsCreateManyInputSchema: z.ZodType<Prisma.SalesRepColorsCreateManyInput> = z.object({
-  salesRepUsername: z.string(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
@@ -2541,7 +2554,7 @@ export const SalesRepColorsUpdateManyMutationInputSchema: z.ZodType<Prisma.Sales
 }).strict();
 
 export const SalesRepColorsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateManyInput> = z.object({
-  salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2559,7 +2572,7 @@ export const ClientSalesRepCompanyCreateInputSchema: z.ZodType<Prisma.ClientSale
 export const ClientSalesRepCompanyUncheckedCreateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedCreateInput> = z.object({
   clientId: z.string(),
   salesRepUsername: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
   toDate: z.coerce.date()
 }).strict();
@@ -2575,7 +2588,7 @@ export const ClientSalesRepCompanyUpdateInputSchema: z.ZodType<Prisma.ClientSale
 export const ClientSalesRepCompanyUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedUpdateInput> = z.object({
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
@@ -2583,7 +2596,7 @@ export const ClientSalesRepCompanyUncheckedUpdateInputSchema: z.ZodType<Prisma.C
 export const ClientSalesRepCompanyCreateManyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateManyInput> = z.object({
   clientId: z.string(),
   salesRepUsername: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
   toDate: z.coerce.date()
 }).strict();
@@ -2596,16 +2609,16 @@ export const ClientSalesRepCompanyUpdateManyMutationInputSchema: z.ZodType<Prism
 export const ClientSalesRepCompanyUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedUpdateManyInput> = z.object({
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientAddressCreateInputSchema: z.ZodType<Prisma.ClientAddressCreateInput> = z.object({
   address: z.string(),
+  state: z.string(),
   city: z.string(),
-  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
-  country: z.string(),
+  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date().optional(),
   Client: z.lazy(() => ClientCreateNestedOneWithoutClientAddressInputSchema).optional()
@@ -2614,18 +2627,18 @@ export const ClientAddressCreateInputSchema: z.ZodType<Prisma.ClientAddressCreat
 export const ClientAddressUncheckedCreateInputSchema: z.ZodType<Prisma.ClientAddressUncheckedCreateInput> = z.object({
   clientId: z.string(),
   address: z.string(),
+  state: z.string(),
   city: z.string(),
-  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
-  country: z.string(),
+  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const ClientAddressUpdateInputSchema: z.ZodType<Prisma.ClientAddressUpdateInput> = z.object({
   address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   Client: z.lazy(() => ClientUpdateOneWithoutClientAddressNestedInputSchema).optional()
@@ -2634,9 +2647,9 @@ export const ClientAddressUpdateInputSchema: z.ZodType<Prisma.ClientAddressUpdat
 export const ClientAddressUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientAddressUncheckedUpdateInput> = z.object({
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
@@ -2644,18 +2657,18 @@ export const ClientAddressUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientAdd
 export const ClientAddressCreateManyInputSchema: z.ZodType<Prisma.ClientAddressCreateManyInput> = z.object({
   clientId: z.string(),
   address: z.string(),
+  state: z.string(),
   city: z.string(),
-  state: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
-  country: z.string(),
+  country: z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),
   zip: z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),
   updatedAt: z.coerce.date().optional()
 }).strict();
 
 export const ClientAddressUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientAddressUpdateManyMutationInput> = z.object({
   address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
@@ -2663,9 +2676,9 @@ export const ClientAddressUpdateManyMutationInputSchema: z.ZodType<Prisma.Client
 export const ClientAddressUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientAddressUncheckedUpdateManyInput> = z.object({
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  state: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  country: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  country: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlpha(v), { message: 'Invalid state' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string().refine((v) => validator.isPostalCode(v, 'US'), { message: 'Invalid zip' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
@@ -3088,6 +3101,20 @@ export const EnumClientStatusFilterSchema: z.ZodType<Prisma.EnumClientStatusFilt
   not: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => NestedEnumClientStatusFilterSchema) ]).optional(),
 }).strict();
 
+export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
 export const IntFilterSchema: z.ZodType<Prisma.IntFilter> = z.object({
   equals: z.number().optional(),
   in: z.number().array().optional(),
@@ -3164,6 +3191,7 @@ export const ClientCountOrderByAggregateInputSchema: z.ZodType<Prisma.ClientCoun
   payMethod: z.lazy(() => SortOrderSchema).optional(),
   currency: z.lazy(() => SortOrderSchema).optional(),
   status: z.lazy(() => SortOrderSchema).optional(),
+  notes: z.lazy(() => SortOrderSchema).optional(),
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -3182,6 +3210,7 @@ export const ClientMaxOrderByAggregateInputSchema: z.ZodType<Prisma.ClientMaxOrd
   payMethod: z.lazy(() => SortOrderSchema).optional(),
   currency: z.lazy(() => SortOrderSchema).optional(),
   status: z.lazy(() => SortOrderSchema).optional(),
+  notes: z.lazy(() => SortOrderSchema).optional(),
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -3196,6 +3225,7 @@ export const ClientMinOrderByAggregateInputSchema: z.ZodType<Prisma.ClientMinOrd
   payMethod: z.lazy(() => SortOrderSchema).optional(),
   currency: z.lazy(() => SortOrderSchema).optional(),
   status: z.lazy(() => SortOrderSchema).optional(),
+  notes: z.lazy(() => SortOrderSchema).optional(),
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional()
 }).strict();
@@ -3271,6 +3301,23 @@ export const EnumClientStatusWithAggregatesFilterSchema: z.ZodType<Prisma.EnumCl
   _count: z.lazy(() => NestedIntFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumClientStatusFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumClientStatusFilterSchema).optional()
+}).strict();
+
+export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNullableWithAggregatesFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
 }).strict();
 
 export const IntWithAggregatesFilterSchema: z.ZodType<Prisma.IntWithAggregatesFilter> = z.object({
@@ -3549,20 +3596,6 @@ export const EnumJobStatusWithAggregatesFilterSchema: z.ZodType<Prisma.EnumJobSt
   _max: z.lazy(() => NestedEnumJobStatusFilterSchema).optional()
 }).strict();
 
-export const StringNullableFilterSchema: z.ZodType<Prisma.StringNullableFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
 export const ClientRelationFilterSchema: z.ZodType<Prisma.ClientRelationFilter> = z.object({
   is: z.lazy(() => ClientWhereInputSchema).optional(),
   isNot: z.lazy(() => ClientWhereInputSchema).optional()
@@ -3592,23 +3625,6 @@ export const PurchaseOrderMinOrderByAggregateInputSchema: z.ZodType<Prisma.Purch
 
 export const PurchaseOrderSumOrderByAggregateInputSchema: z.ZodType<Prisma.PurchaseOrderSumOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const StringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.StringNullableWithAggregatesFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
 }).strict();
 
 export const UserRelationFilterSchema: z.ZodType<Prisma.UserRelationFilter> = z.object({
@@ -3737,8 +3753,8 @@ export const ClientSalesRepCompanySumOrderByAggregateInputSchema: z.ZodType<Pris
 export const ClientAddressCountOrderByAggregateInputSchema: z.ZodType<Prisma.ClientAddressCountOrderByAggregateInput> = z.object({
   clientId: z.lazy(() => SortOrderSchema).optional(),
   address: z.lazy(() => SortOrderSchema).optional(),
-  city: z.lazy(() => SortOrderSchema).optional(),
   state: z.lazy(() => SortOrderSchema).optional(),
+  city: z.lazy(() => SortOrderSchema).optional(),
   country: z.lazy(() => SortOrderSchema).optional(),
   zip: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
@@ -3747,8 +3763,8 @@ export const ClientAddressCountOrderByAggregateInputSchema: z.ZodType<Prisma.Cli
 export const ClientAddressMaxOrderByAggregateInputSchema: z.ZodType<Prisma.ClientAddressMaxOrderByAggregateInput> = z.object({
   clientId: z.lazy(() => SortOrderSchema).optional(),
   address: z.lazy(() => SortOrderSchema).optional(),
-  city: z.lazy(() => SortOrderSchema).optional(),
   state: z.lazy(() => SortOrderSchema).optional(),
+  city: z.lazy(() => SortOrderSchema).optional(),
   country: z.lazy(() => SortOrderSchema).optional(),
   zip: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
@@ -3757,8 +3773,8 @@ export const ClientAddressMaxOrderByAggregateInputSchema: z.ZodType<Prisma.Clien
 export const ClientAddressMinOrderByAggregateInputSchema: z.ZodType<Prisma.ClientAddressMinOrderByAggregateInput> = z.object({
   clientId: z.lazy(() => SortOrderSchema).optional(),
   address: z.lazy(() => SortOrderSchema).optional(),
-  city: z.lazy(() => SortOrderSchema).optional(),
   state: z.lazy(() => SortOrderSchema).optional(),
+  city: z.lazy(() => SortOrderSchema).optional(),
   country: z.lazy(() => SortOrderSchema).optional(),
   zip: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional()
@@ -4189,6 +4205,10 @@ export const EnumClientStatusFieldUpdateOperationsInputSchema: z.ZodType<Prisma.
   set: z.lazy(() => ClientStatusSchema).optional()
 }).strict();
 
+export const NullableStringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableStringFieldUpdateOperationsInput> = z.object({
+  set: z.string().optional().nullable()
+}).strict();
+
 export const ClientEmailUpdateManyWithoutClientNestedInputSchema: z.ZodType<Prisma.ClientEmailUpdateManyWithoutClientNestedInput> = z.object({
   create: z.union([ z.lazy(() => ClientEmailCreateWithoutClientInputSchema),z.lazy(() => ClientEmailCreateWithoutClientInputSchema).array(),z.lazy(() => ClientEmailUncheckedCreateWithoutClientInputSchema),z.lazy(() => ClientEmailUncheckedCreateWithoutClientInputSchema).array() ]).optional(),
   connectOrCreate: z.union([ z.lazy(() => ClientEmailCreateOrConnectWithoutClientInputSchema),z.lazy(() => ClientEmailCreateOrConnectWithoutClientInputSchema).array() ]).optional(),
@@ -4587,10 +4607,6 @@ export const JobUpdateOneWithoutPurchaseOrderNestedInputSchema: z.ZodType<Prisma
   delete: z.boolean().optional(),
   connect: z.lazy(() => JobWhereUniqueInputSchema).optional(),
   update: z.union([ z.lazy(() => JobUpdateWithoutPurchaseOrderInputSchema),z.lazy(() => JobUncheckedUpdateWithoutPurchaseOrderInputSchema) ]).optional(),
-}).strict();
-
-export const NullableStringFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableStringFieldUpdateOperationsInput> = z.object({
-  set: z.string().optional().nullable()
 }).strict();
 
 export const JobUncheckedUpdateManyWithoutPurchaseOrderNestedInputSchema: z.ZodType<Prisma.JobUncheckedUpdateManyWithoutPurchaseOrderNestedInput> = z.object({
@@ -5210,6 +5226,20 @@ export const NestedEnumClientStatusFilterSchema: z.ZodType<Prisma.NestedEnumClie
   not: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => NestedEnumClientStatusFilterSchema) ]).optional(),
 }).strict();
 
+export const NestedStringNullableFilterSchema: z.ZodType<Prisma.NestedStringNullableFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
 export const NestedIntFilterSchema: z.ZodType<Prisma.NestedIntFilter> = z.object({
   equals: z.number().optional(),
   in: z.number().array().optional(),
@@ -5288,6 +5318,34 @@ export const NestedEnumClientStatusWithAggregatesFilterSchema: z.ZodType<Prisma.
   _count: z.lazy(() => NestedIntFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumClientStatusFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumClientStatusFilterSchema).optional()
+}).strict();
+
+export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedStringNullableWithAggregatesFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  contains: z.string().optional(),
+  startsWith: z.string().optional(),
+  endsWith: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedStringNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
+}).strict();
+
+export const NestedIntNullableFilterSchema: z.ZodType<Prisma.NestedIntNullableFilter> = z.object({
+  equals: z.number().optional().nullable(),
+  in: z.number().array().optional().nullable(),
+  notIn: z.number().array().optional().nullable(),
+  lt: z.number().optional(),
+  lte: z.number().optional(),
+  gt: z.number().optional(),
+  gte: z.number().optional(),
+  not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
 export const NestedIntWithAggregatesFilterSchema: z.ZodType<Prisma.NestedIntWithAggregatesFilter> = z.object({
@@ -5427,48 +5485,6 @@ export const NestedEnumJobStatusWithAggregatesFilterSchema: z.ZodType<Prisma.Nes
   _count: z.lazy(() => NestedIntFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumJobStatusFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumJobStatusFilterSchema).optional()
-}).strict();
-
-export const NestedStringNullableFilterSchema: z.ZodType<Prisma.NestedStringNullableFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
-export const NestedStringNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedStringNullableWithAggregatesFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  contains: z.string().optional(),
-  startsWith: z.string().optional(),
-  endsWith: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedStringNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
-}).strict();
-
-export const NestedIntNullableFilterSchema: z.ZodType<Prisma.NestedIntNullableFilter> = z.object({
-  equals: z.number().optional().nullable(),
-  in: z.number().array().optional().nullable(),
-  notIn: z.number().array().optional().nullable(),
-  lt: z.number().optional(),
-  lte: z.number().optional(),
-  gt: z.number().optional(),
-  gte: z.number().optional(),
-  not: z.union([ z.number(),z.lazy(() => NestedIntNullableFilterSchema) ]).optional().nullable(),
 }).strict();
 
 export const NestedEnumEmailTypeFilterSchema: z.ZodType<Prisma.NestedEnumEmailTypeFilter> = z.object({
@@ -5742,8 +5758,8 @@ export const CompanyCreateOrConnectWithoutClientInputSchema: z.ZodType<Prisma.Co
 
 export const ClientAddressCreateWithoutClientInputSchema: z.ZodType<Prisma.ClientAddressCreateWithoutClientInput> = z.object({
   address: z.string(),
-  city: z.string(),
   state: z.string(),
+  city: z.string(),
   country: z.string(),
   zip: z.string(),
   updatedAt: z.coerce.date().optional()
@@ -5751,8 +5767,8 @@ export const ClientAddressCreateWithoutClientInputSchema: z.ZodType<Prisma.Clien
 
 export const ClientAddressUncheckedCreateWithoutClientInputSchema: z.ZodType<Prisma.ClientAddressUncheckedCreateWithoutClientInput> = z.object({
   address: z.string(),
-  city: z.string(),
   state: z.string(),
+  city: z.string(),
   country: z.string(),
   zip: z.string(),
   updatedAt: z.coerce.date().optional()
@@ -5936,8 +5952,8 @@ export const ClientAddressUpsertWithoutClientInputSchema: z.ZodType<Prisma.Clien
 
 export const ClientAddressUpdateWithoutClientInputSchema: z.ZodType<Prisma.ClientAddressUpdateWithoutClientInput> = z.object({
   address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   country: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -5945,8 +5961,8 @@ export const ClientAddressUpdateWithoutClientInputSchema: z.ZodType<Prisma.Clien
 
 export const ClientAddressUncheckedUpdateWithoutClientInputSchema: z.ZodType<Prisma.ClientAddressUncheckedUpdateWithoutClientInput> = z.object({
   address: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   state: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  city: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   country: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   zip: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -6287,6 +6303,7 @@ export const ClientCreateWithoutOrdersInputSchema: z.ZodType<Prisma.ClientCreate
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6305,6 +6322,7 @@ export const ClientUncheckedCreateWithoutOrdersInputSchema: z.ZodType<Prisma.Cli
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   salesRepUsername: z.string(),
   companyId: z.number(),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6349,6 +6367,7 @@ export const ClientUpdateWithoutOrdersInputSchema: z.ZodType<Prisma.ClientUpdate
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -6367,6 +6386,7 @@ export const ClientUncheckedUpdateWithoutOrdersInputSchema: z.ZodType<Prisma.Cli
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -6495,6 +6515,7 @@ export const ClientCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientCrea
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6513,6 +6534,7 @@ export const ClientUncheckedCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.C
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   companyId: z.number(),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6655,6 +6677,7 @@ export const ClientScalarWhereInputSchema: z.ZodType<Prisma.ClientScalarWhereInp
   payMethod: z.union([ z.lazy(() => EnumPayMethodFilterSchema),z.lazy(() => PayMethodSchema) ]).optional(),
   currency: z.union([ z.lazy(() => EnumCurrencyFilterSchema),z.lazy(() => CurrencySchema) ]).optional(),
   status: z.union([ z.lazy(() => EnumClientStatusFilterSchema),z.lazy(() => ClientStatusSchema) ]).optional(),
+  notes: z.union([ z.lazy(() => StringNullableFilterSchema),z.string() ]).optional().nullable(),
   salesRepUsername: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   companyId: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
 }).strict();
@@ -6748,6 +6771,7 @@ export const ClientCreateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Pris
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6766,6 +6790,7 @@ export const ClientUncheckedCreateWithoutClientSalesRepCompanyInputSchema: z.Zod
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   salesRepUsername: z.string(),
   companyId: z.number(),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6854,6 +6879,7 @@ export const ClientUpdateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Pris
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -6872,6 +6898,7 @@ export const ClientUncheckedUpdateWithoutClientSalesRepCompanyInputSchema: z.Zod
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -6950,6 +6977,7 @@ export const ClientCreateWithoutClientAddressInputSchema: z.ZodType<Prisma.Clien
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6968,6 +6996,7 @@ export const ClientUncheckedCreateWithoutClientAddressInputSchema: z.ZodType<Pri
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   salesRepUsername: z.string(),
   companyId: z.number(),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -6996,6 +7025,7 @@ export const ClientUpdateWithoutClientAddressInputSchema: z.ZodType<Prisma.Clien
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7014,6 +7044,7 @@ export const ClientUncheckedUpdateWithoutClientAddressInputSchema: z.ZodType<Pri
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7032,6 +7063,7 @@ export const ClientCreateWithoutEmailsInputSchema: z.ZodType<Prisma.ClientCreate
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutClientInputSchema).optional(),
@@ -7050,6 +7082,7 @@ export const ClientUncheckedCreateWithoutEmailsInputSchema: z.ZodType<Prisma.Cli
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   salesRepUsername: z.string(),
   companyId: z.number(),
   phones: z.lazy(() => ClientPhoneUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -7078,6 +7111,7 @@ export const ClientUpdateWithoutEmailsInputSchema: z.ZodType<Prisma.ClientUpdate
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7096,6 +7130,7 @@ export const ClientUncheckedUpdateWithoutEmailsInputSchema: z.ZodType<Prisma.Cli
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7114,6 +7149,7 @@ export const ClientCreateWithoutPhonesInputSchema: z.ZodType<Prisma.ClientCreate
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutClientInputSchema).optional(),
@@ -7132,6 +7168,7 @@ export const ClientUncheckedCreateWithoutPhonesInputSchema: z.ZodType<Prisma.Cli
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   salesRepUsername: z.string(),
   companyId: z.number(),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -7160,6 +7197,7 @@ export const ClientUpdateWithoutPhonesInputSchema: z.ZodType<Prisma.ClientUpdate
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7178,6 +7216,7 @@ export const ClientUncheckedUpdateWithoutPhonesInputSchema: z.ZodType<Prisma.Cli
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7251,6 +7290,7 @@ export const ClientCreateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientCreat
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   emails: z.lazy(() => ClientEmailCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneCreateNestedManyWithoutClientInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderCreateNestedManyWithoutClientInputSchema).optional(),
@@ -7269,6 +7309,7 @@ export const ClientUncheckedCreateWithoutCompanyInputSchema: z.ZodType<Prisma.Cl
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
+  notes: z.string().optional().nullable(),
   salesRepUsername: z.string(),
   emails: z.lazy(() => ClientEmailUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedCreateNestedManyWithoutClientInputSchema).optional(),
@@ -7603,7 +7644,7 @@ export const PurchaseOrderCreateManyClientInputSchema: z.ZodType<Prisma.Purchase
 
 export const ClientSalesRepCompanyCreateManyClientInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateManyClientInput> = z.object({
   salesRepUsername: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
   toDate: z.coerce.date()
 }).strict();
@@ -7682,7 +7723,7 @@ export const ClientSalesRepCompanyUncheckedUpdateWithoutClientInputSchema: z.Zod
 
 export const ClientSalesRepCompanyUncheckedUpdateManyWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedUpdateManyWithoutClientSalesRepCompanyInput> = z.object({
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
@@ -7783,22 +7824,23 @@ export const JobUncheckedUpdateManyWithoutJobsInputSchema: z.ZodType<Prisma.JobU
 
 export const ClientSalesRepCompanyCreateManySalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateManySalesRepInput> = z.object({
   clientId: z.string(),
-  companyId: z.number().int(),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
   toDate: z.coerce.date()
 }).strict();
 
 export const ClientCreateManySalesRepInputSchema: z.ZodType<Prisma.ClientCreateManySalesRepInput> = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
-  companyName: z.string(),
+  name: z.string().min(1).max(60),
+  companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date().optional(),
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
-  companyId: z.number().int()
+  notes: z.string().optional().nullable(),
+  companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
 }).strict();
 
 export const SalesRepColorsCreateManySalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsCreateManySalesRepInput> = z.object({
@@ -7832,6 +7874,7 @@ export const ClientUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientUpda
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7850,6 +7893,7 @@ export const ClientUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.C
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7860,15 +7904,16 @@ export const ClientUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.C
 
 export const ClientUncheckedUpdateManyWithoutClientInputSchema: z.ZodType<Prisma.ClientUncheckedUpdateManyWithoutClientInput> = z.object({
   id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  name: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  companyName: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   addTransactionCharges: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
-  companyId: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepColorsUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateWithoutSalesRepInput> = z.object({
@@ -7894,7 +7939,7 @@ export const SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInputSchema: 
 
 export const SalesRepCreateManyCompanyInputSchema: z.ZodType<Prisma.SalesRepCreateManyCompanyInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string(),
+  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' })
@@ -7909,15 +7954,16 @@ export const ClientSalesRepCompanyCreateManyCompanyInputSchema: z.ZodType<Prisma
 
 export const ClientCreateManyCompanyInputSchema: z.ZodType<Prisma.ClientCreateManyCompanyInput> = z.object({
   id: z.string(),
-  name: z.string().min(1).max(100),
-  companyName: z.string(),
+  name: z.string().min(1).max(60),
+  companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
   addTransactionCharges: z.boolean(),
   updatedAt: z.coerce.date().optional(),
   payMethod: z.lazy(() => PayMethodSchema),
   currency: z.lazy(() => CurrencySchema),
   status: z.lazy(() => ClientStatusSchema),
-  salesRepUsername: z.string()
+  notes: z.string().optional().nullable(),
+  salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' })
 }).strict();
 
 export const SalesRepUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepUpdateWithoutCompanyInput> = z.object({
@@ -7943,7 +7989,7 @@ export const SalesRepUncheckedUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.
 
 export const SalesRepUncheckedUpdateManyWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyWithoutSalesRepInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -7973,6 +8019,7 @@ export const ClientUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientUpdat
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   emails: z.lazy(() => ClientEmailUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUpdateManyWithoutClientNestedInputSchema).optional(),
   orders: z.lazy(() => PurchaseOrderUpdateManyWithoutClientNestedInputSchema).optional(),
@@ -7991,6 +8038,7 @@ export const ClientUncheckedUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.Cl
   payMethod: z.union([ z.lazy(() => PayMethodSchema),z.lazy(() => EnumPayMethodFieldUpdateOperationsInputSchema) ]).optional(),
   currency: z.union([ z.lazy(() => CurrencySchema),z.lazy(() => EnumCurrencyFieldUpdateOperationsInputSchema) ]).optional(),
   status: z.union([ z.lazy(() => ClientStatusSchema),z.lazy(() => EnumClientStatusFieldUpdateOperationsInputSchema) ]).optional(),
+  notes: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   emails: z.lazy(() => ClientEmailUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),
   phones: z.lazy(() => ClientPhoneUncheckedUpdateManyWithoutClientNestedInputSchema).optional(),

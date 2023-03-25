@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { debounce } from 'debounce';
 	import { Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
-	import get from 'lodash.get';
-	import set from 'lodash.set';
 	import { superForm } from 'sveltekit-superforms/client';
 	import {
 		Button,
@@ -17,8 +15,6 @@
 		ModalFooter,
 		ModalHeader,
 		Row,
-		Select,
-		SelectItem,
 		TextInput,
 		Toggle
 	} from 'carbon-components-svelte';
@@ -26,7 +22,6 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
 	import { CompanyLabel, type Address } from '../../../lib/modules/client/meta';
-	import type { ValidatedInput } from '../../../lib/modules/common/interfaces/form';
 	import { FormSubmitType, schema } from './meta';
 	import type { PageData } from './$types';
 
@@ -48,6 +43,7 @@
 			submissionError = result?.data?.error;
 		}
 	});
+	const salesReps = data.salesRep;
 
 	const addressSuggestionProps = {
 		selectedItemId: null,
@@ -99,11 +95,11 @@
 		const address = addressSuggestionProps.items.find(
 			(item) => item.id === addressSuggestionProps.selectedItemId
 		);
-		client.address = address?.addressLine || client.address;
-		client.city = address?.city || client.city;
-		client.state = address?.state || client.state;
-		client.zip = address?.zip || client.zip;
-		client.country = address?.country || client.country;
+		$form.address.address = address?.addressLine || $form.address.address;
+		$form.address.city = address?.city || $form.address.city;
+		$form.address.state = address?.state || $form.address.state;
+		$form.address.zip = address?.zip || $form.address.zip;
+		$form.address.country = address?.country || $form.address.country;
 	};
 
 	onMount(() => {});
@@ -154,6 +150,28 @@
 					/>
 				</Column>
 			</Row>
+			<Row class="default-gap">
+				<Column sm="{2}" md="{2}" lg="{4}">
+					<Dropdown
+						titleText="Company*"
+						label="Company*"
+						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
+						invalid="{($errors?.client?.companyId?.length ?? 0) > 0}"
+						itemToString="{(item) => item?.text ?? ''}"
+						bind:selectedId="{$form.client.companyId}"
+					/>
+				</Column>
+				<Column sm="{2}" md="{2}" lg="{4}">
+					<ComboBox
+						placeholder="Select a sales rep"
+						titleText="Sales Rep*"
+						label="Sales Rep*"
+						items="{salesReps.map((rep) => ({ id: rep.username, text: rep.name }))}"
+						itemToString="{(item) => item?.text ?? ''}"
+						bind:selectedId="{$form.client.salesRepUsername}"
+					/>
+				</Column>
+			</Row>
 			<FormGroup class="default-gap">
 				{#each $form.phones as phone, i}
 					<Row>
@@ -171,11 +189,13 @@
 							/>
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
-							<Select labelText="Type*" name="{`phones[${i}].type`}" bind:selected="{phone.type}">
-								{#each Object.values(PhoneType) as type}
-									<SelectItem value="{type}" text="{type}" />
-								{/each}
-							</Select>
+							<Dropdown
+								titleText="Type*"
+								label="Type*"
+								items="{Object.entries(PhoneType).map((key) => ({ id: key[0], text: key[1] }))}"
+								itemToString="{(item) => item?.text ?? ''}"
+								bind:selectedId="{$form.phones[i].type}"
+							/>
 						</Column>
 						<Column sm="{0}" md="{2}" lg="{6}">
 							<TextInput
@@ -220,7 +240,6 @@
 						<Column sm="{2}" md="{3}" lg="{4}">
 							<TextInput
 								labelText="Email*"
-								required
 								type="email"
 								id="email"
 								name="{`emails[${i}].email`}"
@@ -231,11 +250,13 @@
 							/>
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
-							<Select labelText="Type*" name="{`emails[${i}].type`}" bind:selected="{email.type}">
-								{#each Object.values(EmailType) as type}
-									<SelectItem value="{type}" text="{type}" />
-								{/each}
-							</Select>
+							<Dropdown
+								titleText="Type*"
+								label="Type*"
+								items="{Object.entries(EmailType).map((key) => ({ id: key[0], text: key[1] }))}"
+								itemToString="{(item) => item?.text ?? ''}"
+								bind:selectedId="{$form.emails[i].type}"
+							/>
 						</Column>
 						<Column sm="{0}" md="{2}" lg="{6}">
 							<TextInput
@@ -255,7 +276,7 @@
 								on:click="{() => {
 									$form.emails = [
 										...$form.emails,
-										{ email: '', type: EmailType.PRIMARY, description: '' }
+										{ email: '', type: EmailType.JOB, description: '' }
 									];
 								}}"
 							/>
@@ -274,104 +295,81 @@
 					</Row>
 				{/each}
 			</FormGroup>
+
 			<Row>
 				<Column sm="{2}" md="{2}" lg="{4}">
-					<Select required labelText="Company*" bind:selected="{$form.client.companyId}">
-						{#each Object.entries(CompanyLabel) as [key, value]}
-							<SelectItem value="{key}" text="{value}" />
-						{/each}
-					</Select>
+					<Dropdown
+						titleText="Payment Method*"
+						label="Payment Method*"
+						items="{Object.entries(PayMethod).map((key) => ({ id: key[0], text: key[1] }))}"
+						itemToString="{(item) => item?.text ?? ''}"
+						bind:selectedId="{$form.client.payMethod}"
+					/>
 				</Column>
 				<Column sm="{2}" md="{2}" lg="{4}">
-					<!-- <Dropdown
-						labelText="Sales Person*"
-						items={salesReps}
-						itemToString={(item) => item?.name ?? ''}
-						bind:selected={client.salesRep}
-						required
-					/> -->
-				</Column>
-			</Row>
-			<Row class="default-gap">
-				<Column sm="{2}" md="{2}" lg="{4}">
-					<Select labelText="Invoice Currency*" bind:selected="{client.currency}" required>
-						{#each Object.keys(Currency) as currency}
-							<SelectItem value="{currency}" text="{currency}" />
-						{/each}
-					</Select>
-				</Column>
-				<Column sm="{2}" md="{2}" lg="{4}">
-					<Select labelText="Payment Method*" bind:selected="{client.paymentMethod}" required>
-						{#each Object.values(PayMethod) as pay}
-							<SelectItem value="{pay}" text="{pay}" />
-						{/each}
-					</Select>
+					<Dropdown
+						titleText="Currency*"
+						label="Currency*"
+						items="{Object.entries(Currency).map((key) => ({ id: key[0], text: key[1] }))}"
+						itemToString="{(item) => item?.text ?? ''}"
+						bind:selectedId="{$form.client.currency}"
+					/>
 				</Column>
 				<Column sm="{2}" md="{2}" lg="{4}">
 					<Toggle
 						labelText="Add transaction charges"
-						bind:toggled="{client.addTransactionCharge}"
-					/>
-				</Column>
-			</Row>
-			<Row class="default-gap">
-				<Column sm="{4}" md="{8}" lg="{15}">
-					<TextInput
-						labelText="Notes"
-						bind:value="{client.notes}"
-						placeholder="Add notes"
-						type="multi"
+						bind:toggled="{$form.client.addTransactionCharges}"
 					/>
 				</Column>
 			</Row>
 			<FormGroup class="default-gap">
 				<Row>
-					<Column sm="{2}" md="{4}" lg="{4}">
+					<Column sm="{2}" md="{5}" lg="{5}">
 						<TextInput
 							labelText="Address*"
-							required
 							name="address"
 							placeholder="123 Main St."
-							bind:value="{client.address}"
-							invalid="{formElements.address.invalid}"
-							invalidText="{formElements.address.invalidText}"
+							bind:value="{$form.address.address}"
+							invalid="{($errors?.address?.address?.length ?? 0) > 0}"
+							invalidText="{($errors?.address?.address ?? [''])[0]}"
 							on:keyup="{debounce(parseAddress, userPreferences.inputToProcessDelay)}"
 						/>
 					</Column>
 					<Column sm="{1}" md="{2}" lg="{3}">
 						<TextInput
 							labelText="City*"
-							required
 							name="city"
 							placeholder="Los Angeles"
-							invalid="{formElements.city.invalid}"
-							invalidText="{formElements.city.invalidText}"
-							bind:value="{client.city}"
+							invalid="{($errors?.address?.city?.length ?? 0) > 0}"
+							invalidText="{($errors?.address?.city ?? [''])[0]}"
 						/>
 					</Column>
 					<Column sm="{1}" md="{2}" lg="{2}">
 						<TextInput
 							labelText="State*"
-							required
 							name="state"
 							placeholder="Code: CA, NY etc"
-							invalid="{formElements.state.invalid}"
-							invalidText="{formElements.state.invalidText}"
-							bind:value="{client.state}"
+							bind:value="{$form.address.state}"
+							invalid="{($errors?.address?.state?.length ?? 0) > 0}"
+							invalidText="{($errors?.address?.state ?? [''])[0]}"
 						/>
 					</Column>
-					<Column sm="{2}" md="{3}" lg="{3}">
-						<TextInput labelText="Zip*" name="zip" placeholder="12345" bind:value="{client.zip}" />
+					<Column sm="{2}" md="{2}" lg="{2}">
+						<TextInput
+							labelText="Zip*"
+							name="zip"
+							placeholder="12345"
+							bind:value="{$form.address.zip}"
+						/>
 					</Column>
 					<Column sm="{2}" md="{3}" lg="{3}">
 						<TextInput
 							labelText="Country*"
-							required
 							name="country"
 							placeholder="USA, UK etc"
-							invalid="{formElements.country.invalid}"
-							invalidText="{formElements.country.invalidText}"
-							bind:value="{client.country}"
+							bind:value="{$form.address.country}"
+							invalid="{($errors?.address?.country?.length ?? 0) > 0}"
+							invalidText="{($errors?.address?.country ?? [''])[0]}"
 						/>
 					</Column>
 				</Row>
@@ -417,13 +415,21 @@
 						</Column>
 					{/if}
 				</Row>
+				<Row class="default-gap">
+					<Column sm="{4}" md="{8}" lg="{15}">
+						<TextInput
+							labelText="Notes"
+							bind:value="{$form.client.notes}"
+							placeholder="Add notes"
+							type="multi"
+						/>
+					</Column>
+				</Row>
 			</FormGroup>
 		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click="{onClose}" icon="{Close}">Cancel</Button>
-			<Button kind="primary" type="submit" disabled="{!isValid}" icon="{formSubmitIcon}"
-				>{formTitle}</Button
-			>
+			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>
 		</ModalFooter>
 	</form>
 </ComposedModal>

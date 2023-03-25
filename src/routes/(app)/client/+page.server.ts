@@ -6,7 +6,7 @@ import { schema } from './meta';
 
 export const load: PageServerLoad = async (event) => {
 	const form = superValidate(event, schema);
-	const salesRep = prisma.salesRep.findMany();
+	const salesRep = await prisma.salesRep.findMany({ select: { username: true, name: true } });
 
 	return { form, salesRep };
 };

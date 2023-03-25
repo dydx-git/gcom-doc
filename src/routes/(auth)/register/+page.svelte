@@ -26,7 +26,6 @@
 	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { schema } from './meta';
-	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 
 	export let data: PageServerData;
 	let submissionError: Error | null = null;
@@ -86,8 +85,6 @@
 		}
 	};
 </script>
-
-<SuperDebug data="{$form}" />
 
 <Grid>
 	<h1>Register</h1>
