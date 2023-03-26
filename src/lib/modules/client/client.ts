@@ -1,7 +1,8 @@
 import prisma from '$db/client';
-import type { ClientOptionalDefaults } from '$lib/zod-prisma';
-import { UserRoles, Prisma } from '@prisma/client';
+import hash from 'object-hash';
+import { UserRoles } from '@prisma/client';
 import type { User } from 'lucia-auth';
+import type { addressSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, schema } from './meta';
 
 export class Clients {
 	public async read(user: User) {
@@ -36,9 +37,12 @@ export class Clients {
 		});
 	}
 
-	public async create(client: ClientOptionalDefaults, address: Prisma.ClientAddressCreateWithoutClientInput, emails: Prisma.Enumerable<Prisma.ClientEmailCreateManyClientInput>, phones: Prisma.Enumerable<Prisma.ClientPhoneCreateManyClientInput>) {
+	public async create(client: ClientSchemaWithoutId, address: addressSchema, emails: Array<emailSchema>, phones: Array<phoneSchema>) {
+		const id = this.hash({ client, emails, phones, address });
+
 		const addedClient = await prisma.client.create({
 			data: {
+				id,
 				...client,
 				clientAddress: {
 					create: address
@@ -73,5 +77,18 @@ export class Clients {
 		});
 
 		return addedClient;
+	}
+
+	// TODO: Write a test for this
+	private hash(obj: schema): string {
+		const { client, emails, phones } = obj;
+
+		return hash({
+			name: client.name,
+			companyId: client.companyId,
+			username: client.salesRepUsername,
+			emails: emails.map((e) => e.email),
+			phones: phones.map((p) => p.phone)
+		}, { algorithm: 'md5' });
 	}
 }

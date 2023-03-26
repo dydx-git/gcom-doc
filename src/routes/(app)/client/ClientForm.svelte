@@ -21,13 +21,13 @@
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
-	import { FormSubmitType, schema } from './meta';
+	import { FormSubmitType } from '../meta';
 	import type { PageData } from './$types';
 	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import type { Snapshot } from './$types';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
-	import type { Address } from '$lib/modules/client/meta';
+	import { schema, type Address } from '$lib/modules/client/meta';
 
 	export let open = false;
 	export let submitType: FormSubmitType;

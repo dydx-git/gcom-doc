@@ -1,7 +1,7 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import clientColumns from './columns';
-	import { FormSubmitType } from './meta';
+	import { FormSubmitType } from '../meta';
 	import type { Client } from '@prisma/client';
 	import {
 		Grid,
@@ -82,10 +82,5 @@
 </Grid>
 
 {#if isAddNewModalOpen}
-	<ClientForm
-		bind:open="{isAddNewModalOpen}"
-		bind:submitType="{submitType}"
-		data="{data}"
-		bind:snapshot="{snapshot}"
-	/>
+	<ClientForm bind:open="{isAddNewModalOpen}" bind:submitType="{submitType}" data="{data}" />
 {/if}

@@ -5,5 +5,6 @@
 	"explorer.sortOrder": "filesFirst",
 	"explorer.compactFolders": false,
 	"workbench.tree.indent": 12,
-	"editor.foldingImportsByDefault": true
+	"editor.foldingImportsByDefault": true,
+	"better-comments.highlightPlainText": true
 }
