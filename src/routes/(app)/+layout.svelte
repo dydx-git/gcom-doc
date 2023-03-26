@@ -55,7 +55,6 @@
 				}
 			]
 		});
-		console.log(eventSource);
 
 		return () => {
 			eventSource.close();

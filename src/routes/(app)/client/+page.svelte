@@ -1,8 +1,7 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
-	import clientColumns from './columns';
+	import { clientColumns, clientDatatableColumnKeys } from './columns';
 	import { FormSubmitType } from '../meta';
-	import type { Client } from '@prisma/client';
 	import {
 		Grid,
 		Column,
@@ -11,20 +10,21 @@
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
-		Button
+		Button,
+		OverflowMenu,
+		OverflowMenuItem,
+		Truncate
 	} from 'carbon-components-svelte';
-	import { UserFollow } from 'carbon-icons-svelte';
+	import { Renew, UserFollow } from 'carbon-icons-svelte';
 	import ClientForm from './ClientForm.svelte';
 	import type { PageData, Snapshot } from './$types';
 
 	export let data: PageData;
 	export let snapshot: Snapshot;
 
-	$: console.log(snapshot);
-
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
-	export let tableData: Client[] = [];
+	export let tableData = data.client;
 
 	let isSearchExpanded = true;
 	let searchText = '';
@@ -57,20 +57,32 @@
 	</Row>
 	<Row class="default-gap">
 		<Column>
-			<DataTable sortable headers="{clientColumns}" rows="{tableData}" stickyHeader>
+			<DataTable sortable headers="{clientColumns}" rows="{tableData}">
 				<strong slot="title">{title}</strong>
 				<span slot="description" style="font-size: 1rem">
 					{description}
 				</span>
-				<svelte:fragment slot="cell" let:row let:cell />
+				<svelte:fragment slot="cell" let:row let:cell>
+					{#if cell.key == clientDatatableColumnKeys.actions}
+						<OverflowMenu flipped width="1px">
+							<OverflowMenuItem text="Restart" />
+							<OverflowMenuItem
+								href="https://cloud.ibm.com/docs/loadbalancer-service"
+								text="API documentation"
+							/>
+							<OverflowMenuItem danger text="Stop" />
+						</OverflowMenu>
+					{:else}
+						<Truncate>
+							{(cell.display && cell.display(cell.value)) || cell.value}
+						</Truncate>
+					{/if}
+				</svelte:fragment>
 
 				<Toolbar>
 					<ToolbarContent>
-						<ToolbarSearch
-							bind:expanded="{isSearchExpanded}"
-							accesskey="/"
-							bind:value="{searchText}"
-						/>
+						<ToolbarSearch />
+						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
 						<Button icon="{UserFollow}" accesskey="n" on:click="{openNewOrderModal}"
 							>Create New</Button
 						>
@@ -81,6 +93,4 @@
 	</Row>
 </Grid>
 
-{#if isAddNewModalOpen}
-	<ClientForm bind:open="{isAddNewModalOpen}" bind:submitType="{submitType}" data="{data}" />
-{/if}
+<ClientForm bind:open="{isAddNewModalOpen}" bind:submitType="{submitType}" data="{data}" />

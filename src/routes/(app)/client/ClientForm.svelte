@@ -41,7 +41,10 @@
 		defaultValidator: 'clear',
 		validators: schema,
 		onResult: ({ result }) => {
-			if (result.type !== 'failure') return;
+			if (result.type !== 'failure') {
+				open = false;
+				return;
+			}
 
 			submissionError = result?.data?.error;
 		}

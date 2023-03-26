@@ -66,14 +66,14 @@ const addressSchema = ClientAddressOptionalDefaultsSchema.omit({ clientId: true 
 export type addressSchema = z.infer<typeof addressSchema>;
 
 export const schema = z.object({
-	client: withDefaults(ClientSchemaWithoutId, { status: ClientStatus.ACTIVE }),
+	client: withDefaults(ClientSchemaWithoutId, { status: ClientStatus.ACTIVE, salesRepUsername: undefined }),
 	emails: z
 		.array(emailSchema)
 		.default(() => [
-			{ email: '', type: EmailType.JOB }
+			{ email: '', type: EmailType.JOB, description: '' }
 		]),
 	phones: z.array(phoneSchema).default(() => [
-		{ phone: '', type: PhoneType.PRIMARY }
+		{ phone: '', type: PhoneType.PRIMARY, description: '' }
 	]),
 	address: addressSchema
 });

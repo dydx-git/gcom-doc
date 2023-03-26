@@ -6,6 +6,8 @@ import type { addressSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, sc
 
 export class Clients {
 	public async read(user: User) {
+		console.log(user);
+
 		const where =
 			user.role == UserRoles.USER
 				? {
@@ -15,7 +17,7 @@ export class Clients {
 				}
 				: {};
 
-		return await prisma.client.findMany({
+		const data = await prisma.client.findMany({
 			include: {
 				emails: true,
 				phones: true,
@@ -35,6 +37,8 @@ export class Clients {
 			},
 			where
 		});
+
+		return data;
 	}
 
 	public async create(client: ClientSchemaWithoutId, address: addressSchema, emails: Array<emailSchema>, phones: Array<phoneSchema>) {

@@ -15,7 +15,6 @@
 		Tag,
 		OverflowMenu,
 		OverflowMenuItem,
-		Breakpoint,
 		Tooltip,
 		TooltipDefinition
 	} from 'carbon-components-svelte';
