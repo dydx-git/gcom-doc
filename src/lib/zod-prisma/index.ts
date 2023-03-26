@@ -35,7 +35,7 @@ export const ClientEmailScalarFieldEnumSchema = z.enum(['email','clientId','desc
 
 export const ClientPhoneScalarFieldEnumSchema = z.enum(['phone','clientId','description','updatedAt','type']);
 
-export const ClientSalesRepCompanyScalarFieldEnumSchema = z.enum(['clientId','salesRepUsername','companyId','fromDate','toDate']);
+export const ClientSalesRepCompanyScalarFieldEnumSchema = z.enum(['clientId','salesRepUsername','companyId','fromDate','toDate','isActive']);
 
 export const ClientScalarFieldEnumSchema = z.enum(['id','name','companyName','createdAt','addTransactionCharges','updatedAt','payMethod','currency','status','notes','salesRepUsername','companyId']);
 
@@ -459,7 +459,8 @@ export const ClientSalesRepCompanySchema = z.object({
   salesRepUsername: z.string(),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date(),
-  toDate: z.coerce.date(),
+  toDate: z.coerce.date().nullish(),
+  isActive: z.boolean(),
 })
 
 export type ClientSalesRepCompany = z.infer<typeof ClientSalesRepCompanySchema>
@@ -469,6 +470,7 @@ export type ClientSalesRepCompany = z.infer<typeof ClientSalesRepCompanySchema>
 
 export const ClientSalesRepCompanyOptionalDefaultsSchema = ClientSalesRepCompanySchema.merge(z.object({
   fromDate: z.coerce.date().optional(),
+  isActive: z.boolean().optional(),
 }))
 
 export type ClientSalesRepCompanyOptionalDefaults = z.infer<typeof ClientSalesRepCompanyOptionalDefaultsSchema>
@@ -1043,6 +1045,7 @@ export const ClientSalesRepCompanySelectSchema: z.ZodType<Prisma.ClientSalesRepC
   companyId: z.boolean().optional(),
   fromDate: z.boolean().optional(),
   toDate: z.boolean().optional(),
+  isActive: z.boolean().optional(),
   client: z.union([z.boolean(),z.lazy(() => ClientArgsSchema)]).optional(),
   salesRep: z.union([z.boolean(),z.lazy(() => SalesRepArgsSchema)]).optional(),
   company: z.union([z.boolean(),z.lazy(() => CompanyArgsSchema)]).optional(),
@@ -1658,7 +1661,8 @@ export const ClientSalesRepCompanyWhereInputSchema: z.ZodType<Prisma.ClientSales
   salesRepUsername: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   companyId: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
   fromDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  toDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  toDate: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  isActive: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
   client: z.union([ z.lazy(() => ClientRelationFilterSchema),z.lazy(() => ClientWhereInputSchema) ]).optional(),
   salesRep: z.union([ z.lazy(() => SalesRepRelationFilterSchema),z.lazy(() => SalesRepWhereInputSchema) ]).optional(),
   company: z.union([ z.lazy(() => CompanyRelationFilterSchema),z.lazy(() => CompanyWhereInputSchema) ]).optional(),
@@ -1670,6 +1674,7 @@ export const ClientSalesRepCompanyOrderByWithRelationInputSchema: z.ZodType<Pris
   companyId: z.lazy(() => SortOrderSchema).optional(),
   fromDate: z.lazy(() => SortOrderSchema).optional(),
   toDate: z.lazy(() => SortOrderSchema).optional(),
+  isActive: z.lazy(() => SortOrderSchema).optional(),
   client: z.lazy(() => ClientOrderByWithRelationInputSchema).optional(),
   salesRep: z.lazy(() => SalesRepOrderByWithRelationInputSchema).optional(),
   company: z.lazy(() => CompanyOrderByWithRelationInputSchema).optional()
@@ -1685,6 +1690,7 @@ export const ClientSalesRepCompanyOrderByWithAggregationInputSchema: z.ZodType<P
   companyId: z.lazy(() => SortOrderSchema).optional(),
   fromDate: z.lazy(() => SortOrderSchema).optional(),
   toDate: z.lazy(() => SortOrderSchema).optional(),
+  isActive: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => ClientSalesRepCompanyCountOrderByAggregateInputSchema).optional(),
   _avg: z.lazy(() => ClientSalesRepCompanyAvgOrderByAggregateInputSchema).optional(),
   _max: z.lazy(() => ClientSalesRepCompanyMaxOrderByAggregateInputSchema).optional(),
@@ -1700,7 +1706,8 @@ export const ClientSalesRepCompanyScalarWhereWithAggregatesInputSchema: z.ZodTyp
   salesRepUsername: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   companyId: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
   fromDate: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
-  toDate: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  toDate: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
+  isActive: z.union([ z.lazy(() => BoolWithAggregatesFilterSchema),z.boolean() ]).optional(),
 }).strict();
 
 export const ClientAddressWhereInputSchema: z.ZodType<Prisma.ClientAddressWhereInput> = z.object({
@@ -2563,7 +2570,8 @@ export const SalesRepColorsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.Sale
 
 export const ClientSalesRepCompanyCreateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateInput> = z.object({
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date(),
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional(),
   client: z.lazy(() => ClientCreateNestedOneWithoutClientSalesRepCompanyInputSchema),
   salesRep: z.lazy(() => SalesRepCreateNestedOneWithoutClientSalesRepCompanyInputSchema),
   company: z.lazy(() => CompanyCreateNestedOneWithoutClientSalesRepCompanyInputSchema)
@@ -2574,12 +2582,14 @@ export const ClientSalesRepCompanyUncheckedCreateInputSchema: z.ZodType<Prisma.C
   salesRepUsername: z.string(),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientSalesRepCompanyUpdateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateInput> = z.object({
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   client: z.lazy(() => ClientUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional(),
   salesRep: z.lazy(() => SalesRepUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional(),
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional()
@@ -2590,7 +2600,8 @@ export const ClientSalesRepCompanyUncheckedUpdateInputSchema: z.ZodType<Prisma.C
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyCreateManyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateManyInput> = z.object({
@@ -2598,12 +2609,14 @@ export const ClientSalesRepCompanyCreateManyInputSchema: z.ZodType<Prisma.Client
   salesRepUsername: z.string(),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientSalesRepCompanyUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateManyMutationInput> = z.object({
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedUpdateManyInput> = z.object({
@@ -2611,7 +2624,8 @@ export const ClientSalesRepCompanyUncheckedUpdateManyInputSchema: z.ZodType<Pris
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientAddressCreateInputSchema: z.ZodType<Prisma.ClientAddressCreateInput> = z.object({
@@ -3713,6 +3727,17 @@ export const SalesRepColorsMinOrderByAggregateInputSchema: z.ZodType<Prisma.Sale
   auxiliaryColor: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
+export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
 export const ClientSalesRepCompanyClientIdSalesRepUsernameCompoundUniqueInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyClientIdSalesRepUsernameCompoundUniqueInput> = z.object({
   clientId: z.string(),
   salesRepUsername: z.string()
@@ -3723,7 +3748,8 @@ export const ClientSalesRepCompanyCountOrderByAggregateInputSchema: z.ZodType<Pr
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional(),
   fromDate: z.lazy(() => SortOrderSchema).optional(),
-  toDate: z.lazy(() => SortOrderSchema).optional()
+  toDate: z.lazy(() => SortOrderSchema).optional(),
+  isActive: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const ClientSalesRepCompanyAvgOrderByAggregateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyAvgOrderByAggregateInput> = z.object({
@@ -3735,7 +3761,8 @@ export const ClientSalesRepCompanyMaxOrderByAggregateInputSchema: z.ZodType<Pris
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional(),
   fromDate: z.lazy(() => SortOrderSchema).optional(),
-  toDate: z.lazy(() => SortOrderSchema).optional()
+  toDate: z.lazy(() => SortOrderSchema).optional(),
+  isActive: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const ClientSalesRepCompanyMinOrderByAggregateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyMinOrderByAggregateInput> = z.object({
@@ -3743,11 +3770,26 @@ export const ClientSalesRepCompanyMinOrderByAggregateInputSchema: z.ZodType<Pris
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   companyId: z.lazy(() => SortOrderSchema).optional(),
   fromDate: z.lazy(() => SortOrderSchema).optional(),
-  toDate: z.lazy(() => SortOrderSchema).optional()
+  toDate: z.lazy(() => SortOrderSchema).optional(),
+  isActive: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const ClientSalesRepCompanySumOrderByAggregateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanySumOrderByAggregateInput> = z.object({
   companyId: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const DateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeNullableWithAggregatesFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
 }).strict();
 
 export const ClientAddressCountOrderByAggregateInputSchema: z.ZodType<Prisma.ClientAddressCountOrderByAggregateInput> = z.object({
@@ -4809,6 +4851,10 @@ export const CompanyCreateNestedOneWithoutClientSalesRepCompanyInputSchema: z.Zo
   connect: z.lazy(() => CompanyWhereUniqueInputSchema).optional()
 }).strict();
 
+export const NullableDateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableDateTimeFieldUpdateOperationsInput> = z.object({
+  set: z.coerce.date().optional().nullable()
+}).strict();
+
 export const ClientUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema: z.ZodType<Prisma.ClientUpdateOneRequiredWithoutClientSalesRepCompanyNestedInput> = z.object({
   create: z.union([ z.lazy(() => ClientCreateWithoutClientSalesRepCompanyInputSchema),z.lazy(() => ClientUncheckedCreateWithoutClientSalesRepCompanyInputSchema) ]).optional(),
   connectOrCreate: z.lazy(() => ClientCreateOrConnectWithoutClientSalesRepCompanyInputSchema).optional(),
@@ -5487,6 +5533,31 @@ export const NestedEnumJobStatusWithAggregatesFilterSchema: z.ZodType<Prisma.Nes
   _max: z.lazy(() => NestedEnumJobStatusFilterSchema).optional()
 }).strict();
 
+export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
+export const NestedDateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableWithAggregatesFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
+}).strict();
+
 export const NestedEnumEmailTypeFilterSchema: z.ZodType<Prisma.NestedEnumEmailTypeFilter> = z.object({
   equals: z.lazy(() => EmailTypeSchema).optional(),
   in: z.lazy(() => EmailTypeSchema).array().optional(),
@@ -5674,7 +5745,8 @@ export const PurchaseOrderCreateManyClientInputEnvelopeSchema: z.ZodType<Prisma.
 
 export const ClientSalesRepCompanyCreateWithoutClientInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateWithoutClientInput> = z.object({
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date(),
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional(),
   salesRep: z.lazy(() => SalesRepCreateNestedOneWithoutClientSalesRepCompanyInputSchema),
   company: z.lazy(() => CompanyCreateNestedOneWithoutClientSalesRepCompanyInputSchema)
 }).strict();
@@ -5683,7 +5755,8 @@ export const ClientSalesRepCompanyUncheckedCreateWithoutClientInputSchema: z.Zod
   salesRepUsername: z.string(),
   companyId: z.number(),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientSalesRepCompanyCreateOrConnectWithoutClientInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateOrConnectWithoutClientInput> = z.object({
@@ -5882,7 +5955,8 @@ export const ClientSalesRepCompanyScalarWhereInputSchema: z.ZodType<Prisma.Clien
   salesRepUsername: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   companyId: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
   fromDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
-  toDate: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  toDate: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  isActive: z.union([ z.lazy(() => BoolFilterSchema),z.boolean() ]).optional(),
 }).strict();
 
 export const SalesRepUpsertWithoutClientInputSchema: z.ZodType<Prisma.SalesRepUpsertWithoutClientInput> = z.object({
@@ -6483,7 +6557,8 @@ export const UserCreateOrConnectWithoutSalesRepInputSchema: z.ZodType<Prisma.Use
 
 export const ClientSalesRepCompanyCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateWithoutSalesRepInput> = z.object({
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date(),
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional(),
   client: z.lazy(() => ClientCreateNestedOneWithoutClientSalesRepCompanyInputSchema),
   company: z.lazy(() => CompanyCreateNestedOneWithoutClientSalesRepCompanyInputSchema)
 }).strict();
@@ -6492,7 +6567,8 @@ export const ClientSalesRepCompanyUncheckedCreateWithoutSalesRepInputSchema: z.Z
   clientId: z.string(),
   companyId: z.number(),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientSalesRepCompanyCreateOrConnectWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateOrConnectWithoutSalesRepInput> = z.object({
@@ -7258,7 +7334,8 @@ export const SalesRepCreateManyCompanyInputEnvelopeSchema: z.ZodType<Prisma.Sale
 
 export const ClientSalesRepCompanyCreateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateWithoutCompanyInput> = z.object({
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date(),
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional(),
   client: z.lazy(() => ClientCreateNestedOneWithoutClientSalesRepCompanyInputSchema),
   salesRep: z.lazy(() => SalesRepCreateNestedOneWithoutClientSalesRepCompanyInputSchema)
 }).strict();
@@ -7267,7 +7344,8 @@ export const ClientSalesRepCompanyUncheckedCreateWithoutCompanyInputSchema: z.Zo
   clientId: z.string(),
   salesRepUsername: z.string(),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientSalesRepCompanyCreateOrConnectWithoutCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateOrConnectWithoutCompanyInput> = z.object({
@@ -7646,7 +7724,8 @@ export const ClientSalesRepCompanyCreateManyClientInputSchema: z.ZodType<Prisma.
   salesRepUsername: z.string(),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientEmailUpdateWithoutClientInputSchema: z.ZodType<Prisma.ClientEmailUpdateWithoutClientInput> = z.object({
@@ -7709,7 +7788,8 @@ export const PurchaseOrderUncheckedUpdateManyWithoutOrdersInputSchema: z.ZodType
 
 export const ClientSalesRepCompanyUpdateWithoutClientInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutClientInput> = z.object({
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   salesRep: z.lazy(() => SalesRepUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional(),
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional()
 }).strict();
@@ -7718,14 +7798,16 @@ export const ClientSalesRepCompanyUncheckedUpdateWithoutClientInputSchema: z.Zod
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyUncheckedUpdateManyWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedUpdateManyWithoutClientSalesRepCompanyInput> = z.object({
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const JobCreateManyVendorInputSchema: z.ZodType<Prisma.JobCreateManyVendorInput> = z.object({
@@ -7826,7 +7908,8 @@ export const ClientSalesRepCompanyCreateManySalesRepInputSchema: z.ZodType<Prism
   clientId: z.string(),
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientCreateManySalesRepInputSchema: z.ZodType<Prisma.ClientCreateManySalesRepInput> = z.object({
@@ -7852,7 +7935,8 @@ export const SalesRepColorsCreateManySalesRepInputSchema: z.ZodType<Prisma.Sales
 
 export const ClientSalesRepCompanyUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutSalesRepInput> = z.object({
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   client: z.lazy(() => ClientUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional(),
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional()
 }).strict();
@@ -7861,7 +7945,8 @@ export const ClientSalesRepCompanyUncheckedUpdateWithoutSalesRepInputSchema: z.Z
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientUpdateWithoutSalesRepInput> = z.object({
@@ -7949,7 +8034,8 @@ export const ClientSalesRepCompanyCreateManyCompanyInputSchema: z.ZodType<Prisma
   clientId: z.string(),
   salesRepUsername: z.string(),
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date()
+  toDate: z.coerce.date().optional().nullable(),
+  isActive: z.boolean().optional()
 }).strict();
 
 export const ClientCreateManyCompanyInputSchema: z.ZodType<Prisma.ClientCreateManyCompanyInput> = z.object({
@@ -7997,7 +8083,8 @@ export const SalesRepUncheckedUpdateManyWithoutSalesRepInputSchema: z.ZodType<Pr
 
 export const ClientSalesRepCompanyUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutCompanyInput> = z.object({
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   client: z.lazy(() => ClientUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional(),
   salesRep: z.lazy(() => SalesRepUpdateOneRequiredWithoutClientSalesRepCompanyNestedInputSchema).optional()
 }).strict();
@@ -8006,7 +8093,8 @@ export const ClientSalesRepCompanyUncheckedUpdateWithoutCompanyInputSchema: z.Zo
   clientId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   salesRepUsername: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   fromDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
-  toDate: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  toDate: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  isActive: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.ClientUpdateWithoutCompanyInput> = z.object({

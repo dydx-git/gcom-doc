@@ -16,6 +16,7 @@ datasource db {
 }
 
 model Client {
+  /// @zod.string.min(1).max(32)
   id                    String                  @id @db.VarChar(32)
   /// @zod.string.min(1).max(60)
   name                  String                  @db.VarChar(100)
@@ -139,15 +140,16 @@ model SalesRepColors {
 }
 
 model ClientSalesRepCompany {
-  clientId         String   @map("client_id") @db.VarChar(32)
-  salesRepUsername String   @map("sales_rep_username") @db.VarChar(100)
+  clientId         String    @map("client_id") @db.VarChar(32)
+  salesRepUsername String    @map("sales_rep_username") @db.VarChar(100)
   /// @zod.custom.use(z.coerce.number().gte(1, { message: 'Please select a valid company' }))
-  companyId        Int      @map("company_id")
-  fromDate         DateTime @default(now()) @db.DateTime(0)
-  toDate           DateTime @db.DateTime(0)
-  client           Client   @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_sales_rep_client")
-  salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "client_sales_rep_sales_rep")
-  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade, map: "client_sales_rep_company")
+  companyId        Int       @map("company_id")
+  fromDate         DateTime  @default(now()) @db.DateTime(0)
+  toDate           DateTime? @db.DateTime(0)
+  isActive         Boolean   @default(true)
+  client           Client    @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_sales_rep_client")
+  salesRep         SalesRep  @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "client_sales_rep_sales_rep")
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade, map: "client_sales_rep_company")
 
   @@id([clientId, salesRepUsername])
   @@index([salesRepUsername, fromDate(sort: Desc), toDate(sort: Desc)], map: "client_sales_rep_sales_rep_index")

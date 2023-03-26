@@ -10,9 +10,11 @@ export enum FormSubmitType {
 
 const emailSchema = ClientEmailOptionalDefaultsSchema.omit({ clientId: true });
 const phoneSchema = ClientPhoneOptionalDefaultsSchema.omit({ clientId: true });
+const addressSchema = ClientAddressOptionalDefaultsSchema.omit({ clientId: true });
+const clientSchema = ClientOptionalDefaultsSchema.omit({ id: true });
 
 export const schema = z.object({
-    client: withDefaults(ClientOptionalDefaultsSchema, { status: ClientStatus.ACTIVE }),
+    client: withDefaults(clientSchema, { status: ClientStatus.ACTIVE }),
     emails: z
         .array(emailSchema)
         .default(() => [
@@ -21,5 +23,5 @@ export const schema = z.object({
     phones: z.array(phoneSchema).default(() => [
         { phone: '', type: PhoneType.PRIMARY }
     ]),
-    address: ClientAddressOptionalDefaultsSchema.omit({ clientId: true })
+    address: addressSchema
 });

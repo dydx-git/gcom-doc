@@ -1,44 +1,3 @@
-import type {
-	EmailType,
-	PhoneType,
-	PayMethod,
-	ClientEmail,
-	Client,
-	ClientAddress,
-	ClientPhone
-} from '@prisma/client';
-
-
-export type FormSubmitResult = {
-	success: boolean;
-	errors: string[];
-};
-
-export type PhoneFormData = {
-	phone: string;
-	type: PhoneType;
-	description: string | null;
-};
-
-export type EmailFormData = {
-	email: string;
-	type: EmailType;
-	description: string | null;
-};
-
-// TODO: take company out of here
-export enum Company {
-	BuffaloWebWork = 2,
-	ItecDesigns = 1,
-	ThreadTapes = 3
-}
-
-export const CompanyLabel: { [key in Company]: string } = {
-	[Company.BuffaloWebWork]: 'Buffalo Web Work',
-	[Company.ItecDesigns]: 'Itec Designs',
-	[Company.ThreadTapes]: 'Thread Tapes'
-};
-
 export type Address = {
 	formattedAddress: string;
 	addressLine: string | null;
@@ -47,3 +6,46 @@ export type Address = {
 	zip: string | null;
 	country: string | null;
 };
+export interface BingAddressResponse {
+	authenticationResultCode: string;
+	brandLogoUri: string;
+	copyright: string;
+	resourceSets?: ResourceSetsEntity[] | null;
+	statusCode: number;
+	statusDescription: string;
+	traceId: string;
+}
+export interface ResourceSetsEntity {
+	estimatedTotal: number;
+	resources?: ResourcesEntity[] | null;
+}
+export interface ResourcesEntity {
+	__type: string;
+	bbox?: number[] | null;
+	name: string;
+	point: Point;
+	address: BingAddress;
+	confidence: string;
+	entityType: string;
+	geocodePoints?: GeocodePointsEntity[] | null;
+	matchCodes?: string[] | null;
+}
+export interface Point {
+	type: string;
+	coordinates?: number[] | null;
+}
+export interface BingAddress {
+	addressLine: string;
+	adminDistrict: string;
+	adminDistrict2: string;
+	countryRegion: string;
+	formattedAddress: string;
+	locality: string;
+	postalCode: string;
+}
+export interface GeocodePointsEntity {
+	type: string;
+	coordinates?: number[] | null;
+	calculationMethod: string;
+	usageTypes?: string[] | null;
+}

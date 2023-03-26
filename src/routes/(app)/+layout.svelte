@@ -90,13 +90,13 @@
 	</HeaderUtilities>
 </Header>
 
-<PageTransition pathname="{data.pathname}">
-	<Content id="main-content">
-		<Grid>
+<Content id="main-content">
+	<Grid>
+		<PageTransition pathname="{data.pathname}">
 			<slot />
-		</Grid>
-	</Content>
-</PageTransition>
+		</PageTransition>
+	</Grid>
+</Content>
 
 <style>
 	:global(.bx--data-table--sticky-header) {

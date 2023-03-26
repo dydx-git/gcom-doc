@@ -15,9 +15,12 @@
 	} from 'carbon-components-svelte';
 	import { UserFollow } from 'carbon-icons-svelte';
 	import ClientForm from './ClientForm.svelte';
-	import type { PageData } from './$types';
+	import type { PageData, Snapshot } from './$types';
 
 	export let data: PageData;
+	export let snapshot: Snapshot;
+
+	$: console.log(snapshot);
 
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
@@ -79,5 +82,10 @@
 </Grid>
 
 {#if isAddNewModalOpen}
-	<ClientForm bind:open="{isAddNewModalOpen}" bind:submitType="{submitType}" data="{data}" />
+	<ClientForm
+		bind:open="{isAddNewModalOpen}"
+		bind:submitType="{submitType}"
+		data="{data}"
+		bind:snapshot="{snapshot}"
+	/>
 {/if}

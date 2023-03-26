@@ -2,7 +2,6 @@
 	import ColorButton from '$lib/components/ColorButton.svelte';
 	import ColorGrid from '$lib/components/ColorGrid.svelte';
 	import type { PageServerData } from './$types';
-	import { CompanyLabel } from '$lib/modules/client/meta';
 	import {
 		TextInput,
 		PasswordInput,
@@ -19,13 +18,14 @@
 		StructuredListCell,
 		StructuredListHead,
 		StructuredListInput,
-		InlineNotification,
 		InlineLoading
 	} from 'carbon-components-svelte';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
 	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { schema } from './meta';
+	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
+	import { CompanyLabel } from '$lib/modules/company/meta';
 
 	export let data: PageServerData;
 	let submissionError: Error | null = null;
@@ -87,13 +87,7 @@
 
 <Grid>
 	<h1>Register</h1>
-	{#if submissionError}
-		<InlineNotification
-			lowContrast
-			title="{submissionError.name}"
-			subtitle="{submissionError.message}"
-		/>
-	{/if}
+	<FormSubmissionError error="{submissionError}" />
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
 			<form method="POST" class="default-gap" use:enhance>

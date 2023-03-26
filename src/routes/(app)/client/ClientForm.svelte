@@ -21,10 +21,13 @@
 	import { Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
-	import { CompanyLabel, type Address } from '../../../lib/modules/client/meta';
 	import { FormSubmitType, schema } from './meta';
 	import type { PageData } from './$types';
 	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
+	import type { Snapshot } from './$types';
+	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
+	import { CompanyLabel } from '$lib/modules/company/meta';
+	import type { Address } from '$lib/modules/client/meta';
 
 	export let open = false;
 	export let submitType: FormSubmitType;
@@ -32,7 +35,7 @@
 	export let data: PageData;
 	let submissionError: Error | null = null;
 
-	const { form, errors, enhance, delayed } = superForm(data.form, {
+	const { form, errors, enhance, capture, restore } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
@@ -43,6 +46,7 @@
 			submissionError = result?.data?.error;
 		}
 	});
+
 	const salesReps = data.salesRep;
 
 	const addressSuggestionProps = {
@@ -127,6 +131,7 @@
 			</Row>
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
+			<FormSubmissionError bind:error="{submissionError}" />
 			<Row>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
