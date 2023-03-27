@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { superValidate } from "sveltekit-superforms/server";
+import { superValidate } from 'sveltekit-superforms/server';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import client from '$lib/services/db/client';
 import { User } from '$lib/modules/auth/user';
@@ -29,7 +29,7 @@ export const actions = {
 					...data.colors,
 					salesRep: {
 						create: {
-							...data.salesRep,
+							...data.salesRep
 						}
 					}
 				}
@@ -42,4 +42,3 @@ export const actions = {
 		throw redirect(302, '/login');
 	}
 } satisfies Actions;
-

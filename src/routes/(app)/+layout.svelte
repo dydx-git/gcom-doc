@@ -29,6 +29,7 @@
 	import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 	import { IbmCloud, UserAvatar } from 'carbon-icons-svelte';
 	import PageTransition from '$lib/components/PageTransition.svelte';
+	import { invalidate } from '$app/navigation';
 
 	export let data: LayoutData;
 
@@ -49,7 +50,7 @@
 				{
 					channel: PUBLIC_SSE_CHANNEL,
 					listener: ({ data }) => {
-						console.log(data);
+						invalidate(data.path);
 					},
 					parseJson: true
 				}

@@ -40,7 +40,7 @@
 
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
-	export let tableData = data.client;
+	$: tableData = data.client;
 
 	let isSearchExpanded = true;
 	let searchText = '';

@@ -5,22 +5,26 @@ import prisma from '$db/client';
 import { Clients } from '$lib/modules/client/client';
 import { Prisma } from '@prisma/client';
 import { schema } from '$lib/modules/client/meta';
+import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 
 export const load: PageServerLoad = async (event) => {
 	const form = superValidate(event, schema);
 	const salesRep = prisma.salesRep.findMany({ select: { username: true, name: true } });
-	const { locals } = event;
-	const { user } = await locals.validateUser();
-	if (!user)
-		return fail(401, { message: 'You must be logged in to access this page' });
+	const { locals, depends, url } = event;
 
-	const client = new Clients().read(user);
+	const { user } = await locals.validateUser();
+	if (!user) return fail(401, { message: 'You must be logged in to access this page' });
+
+	const client = await new Clients().read(user);
+
+	depends(url.pathname);
 
 	return { form, salesRep, client };
 };
 
 export const actions: Actions = {
 	create: async (event) => {
+		const { locals, url } = event;
 		const form = await superValidate(event, schema);
 
 		if (!form.valid) {
@@ -39,8 +43,9 @@ export const actions: Actions = {
 				if (e.code === 'P2002')
 					message = `Cannot create a new client. ${client.name} already exists on ${client.salesRepUsername}'s account.`;
 
-			return fail(400, { form, error: { name: err.name, message } });
+			throw fail(400, { form, error: { name: err.name, message } });
 		}
+		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
 
 		return { form, error: null };
 	}
