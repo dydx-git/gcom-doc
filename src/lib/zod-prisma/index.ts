@@ -119,7 +119,7 @@ export const ClientSchema = z.object({
   payMethod: PayMethodSchema,
   currency: CurrencySchema,
   status: ClientStatusSchema,
-  id: z.string(),
+  id: z.string().min(1).max(32),
   name: z.string().min(1).max(60),
   companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date(),
@@ -371,7 +371,7 @@ export const PurchaseOrderOptionalDefaultsWithRelationsSchema: z.ZodType<Purchas
 
 export const SalesRepSchema = z.object({
   id: z.number().int(),
-  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  username: z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
@@ -1286,7 +1286,7 @@ export const ClientOrderByWithRelationInputSchema: z.ZodType<Prisma.ClientOrderB
 }).strict();
 
 export const ClientWhereUniqueInputSchema: z.ZodType<Prisma.ClientWhereUniqueInput> = z.object({
-  id: z.string().optional()
+  id: z.string().min(1).max(32).optional()
 }).strict();
 
 export const ClientOrderByWithAggregationInputSchema: z.ZodType<Prisma.ClientOrderByWithAggregationInput> = z.object({
@@ -1577,7 +1577,7 @@ export const SalesRepOrderByWithRelationInputSchema: z.ZodType<Prisma.SalesRepOr
 
 export const SalesRepWhereUniqueInputSchema: z.ZodType<Prisma.SalesRepWhereUniqueInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }).optional()
+  username: z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }).optional()
 }).strict();
 
 export const SalesRepOrderByWithAggregationInputSchema: z.ZodType<Prisma.SalesRepOrderByWithAggregationInput> = z.object({
@@ -2071,7 +2071,7 @@ export const KeyScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.KeyScalar
 }).strict();
 
 export const ClientCreateInputSchema: z.ZodType<Prisma.ClientCreateInput> = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(32),
   name: z.string().min(1).max(60),
   companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
@@ -2091,7 +2091,7 @@ export const ClientCreateInputSchema: z.ZodType<Prisma.ClientCreateInput> = z.ob
 }).strict();
 
 export const ClientUncheckedCreateInputSchema: z.ZodType<Prisma.ClientUncheckedCreateInput> = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(32),
   name: z.string().min(1).max(60),
   companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
@@ -2111,7 +2111,7 @@ export const ClientUncheckedCreateInputSchema: z.ZodType<Prisma.ClientUncheckedC
 }).strict();
 
 export const ClientUpdateInputSchema: z.ZodType<Prisma.ClientUpdateInput> = z.object({
-  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  id: z.union([ z.string().min(1).max(32),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2131,7 +2131,7 @@ export const ClientUpdateInputSchema: z.ZodType<Prisma.ClientUpdateInput> = z.ob
 }).strict();
 
 export const ClientUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientUncheckedUpdateInput> = z.object({
-  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  id: z.union([ z.string().min(1).max(32),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2151,7 +2151,7 @@ export const ClientUncheckedUpdateInputSchema: z.ZodType<Prisma.ClientUncheckedU
 }).strict();
 
 export const ClientCreateManyInputSchema: z.ZodType<Prisma.ClientCreateManyInput> = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(32),
   name: z.string().min(1).max(60),
   companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
@@ -2166,7 +2166,7 @@ export const ClientCreateManyInputSchema: z.ZodType<Prisma.ClientCreateManyInput
 }).strict();
 
 export const ClientUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientUpdateManyMutationInput> = z.object({
-  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  id: z.union([ z.string().min(1).max(32),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2179,7 +2179,7 @@ export const ClientUpdateManyMutationInputSchema: z.ZodType<Prisma.ClientUpdateM
 }).strict();
 
 export const ClientUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ClientUncheckedUpdateManyInput> = z.object({
-  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  id: z.union([ z.string().min(1).max(32),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2456,7 +2456,7 @@ export const SalesRepCreateInputSchema: z.ZodType<Prisma.SalesRepCreateInput> = 
 
 export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  username: z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
@@ -2479,7 +2479,7 @@ export const SalesRepUpdateInputSchema: z.ZodType<Prisma.SalesRepUpdateInput> = 
 
 export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -2491,7 +2491,7 @@ export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUnchec
 
 export const SalesRepCreateManyInputSchema: z.ZodType<Prisma.SalesRepCreateManyInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  username: z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),
@@ -2506,7 +2506,7 @@ export const SalesRepUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepUpd
 
 export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
@@ -7913,7 +7913,7 @@ export const ClientSalesRepCompanyCreateManySalesRepInputSchema: z.ZodType<Prism
 }).strict();
 
 export const ClientCreateManySalesRepInputSchema: z.ZodType<Prisma.ClientCreateManySalesRepInput> = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(32),
   name: z.string().min(1).max(60),
   companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
@@ -7988,7 +7988,7 @@ export const ClientUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.C
 }).strict();
 
 export const ClientUncheckedUpdateManyWithoutClientInputSchema: z.ZodType<Prisma.ClientUncheckedUpdateManyWithoutClientInput> = z.object({
-  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  id: z.union([ z.string().min(1).max(32),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string().min(1).max(60),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyName: z.union([ z.string().min(1).max(100),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
@@ -8024,7 +8024,7 @@ export const SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInputSchema: 
 
 export const SalesRepCreateManyCompanyInputSchema: z.ZodType<Prisma.SalesRepCreateManyCompanyInput> = z.object({
   id: z.number().int().optional(),
-  username: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
+  username: z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   name: z.string(),
   email: z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),
   phone: z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' })
@@ -8039,7 +8039,7 @@ export const ClientSalesRepCompanyCreateManyCompanyInputSchema: z.ZodType<Prisma
 }).strict();
 
 export const ClientCreateManyCompanyInputSchema: z.ZodType<Prisma.ClientCreateManyCompanyInput> = z.object({
-  id: z.string(),
+  id: z.string().min(1).max(32),
   name: z.string().min(1).max(60),
   companyName: z.string().min(1).max(100),
   createdAt: z.coerce.date().optional(),
@@ -8075,7 +8075,7 @@ export const SalesRepUncheckedUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.
 
 export const SalesRepUncheckedUpdateManyWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyWithoutSalesRepInput> = z.object({
   id: z.union([ z.number().int(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
-  username: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string().min(2).max(10).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   name: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   email: z.union([ z.string().refine((v) => validator.isEmail(v), { message: 'Invalid email' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   phone: z.union([ z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
