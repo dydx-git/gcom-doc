@@ -43,7 +43,7 @@ export const actions: Actions = {
 				if (e.code === 'P2002')
 					message = `Cannot create a new client. ${client.name} already exists on ${client.salesRepUsername}'s account.`;
 
-			throw fail(400, { form, error: { name: err.name, message } });
+			return fail(400, { form, error: { name: err.name, message } });
 		}
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
 

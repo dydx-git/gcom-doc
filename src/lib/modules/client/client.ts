@@ -6,8 +6,6 @@ import type { addressSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, sc
 
 export class Clients {
 	public async read(user: User) {
-		console.log(user);
-
 		const where =
 			user.role == UserRoles.USER
 				? {

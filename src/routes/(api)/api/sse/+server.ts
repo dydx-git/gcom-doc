@@ -7,7 +7,7 @@ export const GET: RequestHandler = (event) => {
 	const { locals } = event;
 	const { room, validateUser } = locals;
 
-	if (!validateUser) throw fail(401, { message: 'You must be logged in to access this page' });
+	if (!validateUser) return fail(401, { message: 'You must be logged in to access this page' });
 
 	return room.server(event.getClientAddress(), {
 		connect: ({ user }) => {
