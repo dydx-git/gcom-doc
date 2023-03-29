@@ -1,9 +1,8 @@
 import type { Company } from "@prisma/client";
 import { Inbox } from "gmail-inbox";
-import { GMAIL_CREDENTIALS_PATH } from "$env/static/private";
-
 
 export class Gmailer {
+    private readonly GMAIL_CREDENTIALS_PATH = "includes/gmail_credentials.json";
     private static _instances: { [id: number]: Gmailer } = {} as any;
     private _company: Company;
     public inbox: Inbox;
@@ -19,6 +18,8 @@ export class Gmailer {
     private constructor(private company: Company) {
         this._company = company;
         const id = company.id;
-        this.inbox = new Inbox(GMAIL_CREDENTIALS_PATH, `${id}.json`);
+        this.inbox = new Inbox(this.GMAIL_CREDENTIALS_PATH, `${id}.json`);
+
+        this.inbox.authenticateAccount();
     }
 }
