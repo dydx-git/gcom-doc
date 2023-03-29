@@ -8,7 +8,7 @@
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
-	import { schema, type Address } from '$lib/modules/client/meta';
+	import { schema } from '$lib/modules/client/meta';
 	import {
 		Grid,
 		Column,
@@ -35,6 +35,7 @@
 	} from 'carbon-components-svelte';
 	import { Renew, UserFollow, Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import type { PageData, Snapshot } from './$types';
+	import type { Address } from '$lib/address/meta';
 
 	export let data: PageData;
 

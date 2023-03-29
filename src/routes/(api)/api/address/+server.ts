@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { AddressParser } from '$lib/modules/client/address';
+import { AddressParser } from '$lib/address/address';
 
 export const GET: RequestHandler = async (req) => {
 	const inputAddress = req.url.searchParams.get('address');
