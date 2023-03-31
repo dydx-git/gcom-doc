@@ -1,5 +1,4 @@
 import type { Company } from "@prisma/client";
-import { Inbox } from "gmail-inbox";
 
 export class Gmailer {
     private readonly BASE_PATH = "includes";
