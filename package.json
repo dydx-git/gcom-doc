@@ -47,7 +47,6 @@
 		"typescript": "^4.9.5",
 		"vite": "^4.1.4",
 		"gmail-api-parse-message-ts": "^2.2.32",
-		"gmail-inbox": "^1.5.0",
 		"gmail-query-builder": "^1.1.1"
 	},
 	"type": "module",

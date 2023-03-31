@@ -9,7 +9,8 @@ export const GET: RequestHandler = async () => {
 
     try {
         const gmailer = Gmailer.getInstance(company);
-        return json({ gmailer });
+        const emails = await gmailer.inbox.getLatestMessages();
+        return json(gmailer);
     } catch (error) {
         return new Response("Error");
     }
