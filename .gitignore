@@ -11,3 +11,4 @@ vite.config.ts.timestamp-*
 /prisma/migrations
 /pnpm-lock.yaml
 includes/*
+*token.json

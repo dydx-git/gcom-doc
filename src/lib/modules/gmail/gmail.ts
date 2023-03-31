@@ -1,11 +1,9 @@
 import type { Company } from "@prisma/client";
+import { GmailAuth } from "./oauth";
 
 export class Gmailer {
-    private readonly BASE_PATH = "includes";
-    private readonly GMAIL_CREDENTIALS_PATH = `${this.BASE_PATH}/gmail_credentials.json`;
     private static _instances: { [id: number]: Gmailer } = {} as any;
     private _company: Company;
-    public inbox: Inbox;
 
     public static getInstance(company: Company) {
         const id = company.id;
@@ -15,11 +13,12 @@ export class Gmailer {
         return this._instances[id];
     }
 
-    private constructor(private company: Company) {
+    private constructor(company: Company) {
         this._company = company;
         const id = company.id;
-        this.inbox = new Inbox(this.GMAIL_CREDENTIALS_PATH, `${this.BASE_PATH}/${id}.json`);
-
-        this.inbox.authenticateAccount();
+        const gmailAuth = new GmailAuth(id);
+        const authenticated = async () => await gmailAuth.authorize();
+        if (!authenticated())
+            throw new Error("Gmail account not authenticated");
     }
 }
