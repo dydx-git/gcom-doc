@@ -39,6 +39,8 @@ export const ClientSalesRepCompanyScalarFieldEnumSchema = z.enum(['clientId','sa
 
 export const ClientScalarFieldEnumSchema = z.enum(['id','name','companyName','createdAt','addTransactionCharges','updatedAt','payMethod','currency','status','notes','salesRepUsername','companyId']);
 
+export const ColorSettingsScalarFieldEnumSchema = z.enum(['salesRepUsername','accentColor','primaryColor','secondaryColor','auxiliaryColor','theme']);
+
 export const CompanyScalarFieldEnumSchema = z.enum(['id','name','address','city','state','country','zip','phone','email','website']);
 
 export const GmailMsgScalarFieldEnumSchema = z.enum(['threadId','inboxMsgId','jobId','direction']);
@@ -49,8 +51,6 @@ export const KeyScalarFieldEnumSchema = z.enum(['id','hashed_password','user_id'
 
 export const PurchaseOrderScalarFieldEnumSchema = z.enum(['id','clientId','primaryJobId']);
 
-export const SalesRepColorsScalarFieldEnumSchema = z.enum(['salesRepUsername','accentColor','primaryColor','secondaryColor','auxiliaryColor']);
-
 export const SalesRepScalarFieldEnumSchema = z.enum(['id','username','name','email','phone','companyId']);
 
 export const SessionScalarFieldEnumSchema = z.enum(['id','user_id','active_expires','idle_expires']);
@@ -60,6 +60,8 @@ export const SortOrderSchema = z.enum(['asc','desc']);
 export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
 export const UserScalarFieldEnumSchema = z.enum(['id','username','role']);
+
+export const UserSettingsScalarFieldEnumSchema = z.enum(['username','settings']);
 
 export const VendorScalarFieldEnumSchema = z.enum(['id','updatedAt','createdAt','email','name','department','status']);
 
@@ -106,6 +108,10 @@ export type EmailDirectionType = `${z.infer<typeof EmailDirectionSchema>}`
 export const UserRolesSchema = z.enum(['ADMIN','USER','MANAGER']);
 
 export type UserRolesType = `${z.infer<typeof UserRolesSchema>}`
+
+export const ThemeSchema = z.enum(['white','g10','g80','g90','g100']);
+
+export type ThemeType = `${z.infer<typeof ThemeSchema>}`
 
 /////////////////////////////////////////
 // MODELS
@@ -397,7 +403,7 @@ export type SalesRepRelations = {
   user: UserWithRelations;
   clientSalesRepCompany: ClientSalesRepCompanyWithRelations[];
   client: ClientWithRelations[];
-  SalesRepColors: SalesRepColorsWithRelations[];
+  SalesRepColors: ColorSettingsWithRelations[];
 };
 
 export type SalesRepWithRelations = z.infer<typeof SalesRepSchema> & SalesRepRelations
@@ -407,7 +413,7 @@ export const SalesRepWithRelationsSchema: z.ZodType<SalesRepWithRelations> = Sal
   user: z.lazy(() => UserWithRelationsSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
   client: z.lazy(() => ClientWithRelationsSchema).array(),
-  SalesRepColors: z.lazy(() => SalesRepColorsWithRelationsSchema).array(),
+  SalesRepColors: z.lazy(() => ColorSettingsWithRelationsSchema).array(),
 }))
 
 // SALES REP OPTIONAL DEFAULTS RELATION SCHEMA
@@ -420,14 +426,15 @@ export const SalesRepOptionalDefaultsWithRelationsSchema: z.ZodType<SalesRepOpti
   user: z.lazy(() => UserWithRelationsSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyWithRelationsSchema).array(),
   client: z.lazy(() => ClientWithRelationsSchema).array(),
-  SalesRepColors: z.lazy(() => SalesRepColorsWithRelationsSchema).array(),
+  SalesRepColors: z.lazy(() => ColorSettingsWithRelationsSchema).array(),
 }))
 
 /////////////////////////////////////////
-// SALES REP COLORS SCHEMA
+// COLOR SETTINGS SCHEMA
 /////////////////////////////////////////
 
-export const SalesRepColorsSchema = z.object({
+export const ColorSettingsSchema = z.object({
+  theme: ThemeSchema,
   salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
@@ -435,19 +442,43 @@ export const SalesRepColorsSchema = z.object({
   auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
 })
 
-export type SalesRepColors = z.infer<typeof SalesRepColorsSchema>
+export type ColorSettings = z.infer<typeof ColorSettingsSchema>
 
-// SALES REP COLORS RELATION SCHEMA
+// COLOR SETTINGS RELATION SCHEMA
 //------------------------------------------------------
 
-export type SalesRepColorsRelations = {
+export type ColorSettingsRelations = {
   salesRep: SalesRepWithRelations;
 };
 
-export type SalesRepColorsWithRelations = z.infer<typeof SalesRepColorsSchema> & SalesRepColorsRelations
+export type ColorSettingsWithRelations = z.infer<typeof ColorSettingsSchema> & ColorSettingsRelations
 
-export const SalesRepColorsWithRelationsSchema: z.ZodType<SalesRepColorsWithRelations> = SalesRepColorsSchema.merge(z.object({
+export const ColorSettingsWithRelationsSchema: z.ZodType<ColorSettingsWithRelations> = ColorSettingsSchema.merge(z.object({
   salesRep: z.lazy(() => SalesRepWithRelationsSchema),
+}))
+
+/////////////////////////////////////////
+// USER SETTINGS SCHEMA
+/////////////////////////////////////////
+
+export const UserSettingsSchema = z.object({
+  username: z.string(),
+  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),
+})
+
+export type UserSettings = z.infer<typeof UserSettingsSchema>
+
+// USER SETTINGS RELATION SCHEMA
+//------------------------------------------------------
+
+export type UserSettingsRelations = {
+  User: UserWithRelations;
+};
+
+export type UserSettingsWithRelations = z.infer<typeof UserSettingsSchema> & UserSettingsRelations
+
+export const UserSettingsWithRelationsSchema: z.ZodType<UserSettingsWithRelations> = UserSettingsSchema.merge(z.object({
+  User: z.lazy(() => UserWithRelationsSchema),
 }))
 
 /////////////////////////////////////////
@@ -715,6 +746,7 @@ export type UserRelations = {
   session: SessionWithRelations[];
   Key: KeyWithRelations[];
   SalesRep?: SalesRepWithRelations | null;
+  UserSettings: UserSettingsWithRelations[];
 };
 
 export type UserWithRelations = z.infer<typeof UserSchema> & UserRelations
@@ -723,6 +755,7 @@ export const UserWithRelationsSchema: z.ZodType<UserWithRelations> = UserSchema.
   session: z.lazy(() => SessionWithRelationsSchema).array(),
   Key: z.lazy(() => KeyWithRelationsSchema).array(),
   SalesRep: z.lazy(() => SalesRepWithRelationsSchema).nullish(),
+  UserSettings: z.lazy(() => UserSettingsWithRelationsSchema).array(),
 }))
 
 /////////////////////////////////////////
@@ -970,7 +1003,7 @@ export const SalesRepIncludeSchema: z.ZodType<Prisma.SalesRepInclude> = z.object
   user: z.union([z.boolean(),z.lazy(() => UserArgsSchema)]).optional(),
   clientSalesRepCompany: z.union([z.boolean(),z.lazy(() => ClientSalesRepCompanyFindManyArgsSchema)]).optional(),
   client: z.union([z.boolean(),z.lazy(() => ClientFindManyArgsSchema)]).optional(),
-  SalesRepColors: z.union([z.boolean(),z.lazy(() => SalesRepColorsFindManyArgsSchema)]).optional(),
+  SalesRepColors: z.union([z.boolean(),z.lazy(() => ColorSettingsFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(),z.lazy(() => SalesRepCountOutputTypeArgsSchema)]).optional(),
 }).strict()
 
@@ -1000,29 +1033,48 @@ export const SalesRepSelectSchema: z.ZodType<Prisma.SalesRepSelect> = z.object({
   user: z.union([z.boolean(),z.lazy(() => UserArgsSchema)]).optional(),
   clientSalesRepCompany: z.union([z.boolean(),z.lazy(() => ClientSalesRepCompanyFindManyArgsSchema)]).optional(),
   client: z.union([z.boolean(),z.lazy(() => ClientFindManyArgsSchema)]).optional(),
-  SalesRepColors: z.union([z.boolean(),z.lazy(() => SalesRepColorsFindManyArgsSchema)]).optional(),
+  SalesRepColors: z.union([z.boolean(),z.lazy(() => ColorSettingsFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(),z.lazy(() => SalesRepCountOutputTypeArgsSchema)]).optional(),
 }).strict()
 
-// SALES REP COLORS
+// COLOR SETTINGS
 //------------------------------------------------------
 
-export const SalesRepColorsIncludeSchema: z.ZodType<Prisma.SalesRepColorsInclude> = z.object({
+export const ColorSettingsIncludeSchema: z.ZodType<Prisma.ColorSettingsInclude> = z.object({
   salesRep: z.union([z.boolean(),z.lazy(() => SalesRepArgsSchema)]).optional(),
 }).strict()
 
-export const SalesRepColorsArgsSchema: z.ZodType<Prisma.SalesRepColorsArgs> = z.object({
-  select: z.lazy(() => SalesRepColorsSelectSchema).optional(),
-  include: z.lazy(() => SalesRepColorsIncludeSchema).optional(),
+export const ColorSettingsArgsSchema: z.ZodType<Prisma.ColorSettingsArgs> = z.object({
+  select: z.lazy(() => ColorSettingsSelectSchema).optional(),
+  include: z.lazy(() => ColorSettingsIncludeSchema).optional(),
 }).strict();
 
-export const SalesRepColorsSelectSchema: z.ZodType<Prisma.SalesRepColorsSelect> = z.object({
+export const ColorSettingsSelectSchema: z.ZodType<Prisma.ColorSettingsSelect> = z.object({
   salesRepUsername: z.boolean().optional(),
   accentColor: z.boolean().optional(),
   primaryColor: z.boolean().optional(),
   secondaryColor: z.boolean().optional(),
   auxiliaryColor: z.boolean().optional(),
+  theme: z.boolean().optional(),
   salesRep: z.union([z.boolean(),z.lazy(() => SalesRepArgsSchema)]).optional(),
+}).strict()
+
+// USER SETTINGS
+//------------------------------------------------------
+
+export const UserSettingsIncludeSchema: z.ZodType<Prisma.UserSettingsInclude> = z.object({
+  User: z.union([z.boolean(),z.lazy(() => UserArgsSchema)]).optional(),
+}).strict()
+
+export const UserSettingsArgsSchema: z.ZodType<Prisma.UserSettingsArgs> = z.object({
+  select: z.lazy(() => UserSettingsSelectSchema).optional(),
+  include: z.lazy(() => UserSettingsIncludeSchema).optional(),
+}).strict();
+
+export const UserSettingsSelectSchema: z.ZodType<Prisma.UserSettingsSelect> = z.object({
+  username: z.boolean().optional(),
+  settings: z.boolean().optional(),
+  User: z.union([z.boolean(),z.lazy(() => UserArgsSchema)]).optional(),
 }).strict()
 
 // CLIENT SALES REP COMPANY
@@ -1165,6 +1217,7 @@ export const UserIncludeSchema: z.ZodType<Prisma.UserInclude> = z.object({
   session: z.union([z.boolean(),z.lazy(() => SessionFindManyArgsSchema)]).optional(),
   Key: z.union([z.boolean(),z.lazy(() => KeyFindManyArgsSchema)]).optional(),
   SalesRep: z.union([z.boolean(),z.lazy(() => SalesRepArgsSchema)]).optional(),
+  UserSettings: z.union([z.boolean(),z.lazy(() => UserSettingsFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(),z.lazy(() => UserCountOutputTypeArgsSchema)]).optional(),
 }).strict()
 
@@ -1180,6 +1233,7 @@ export const UserCountOutputTypeArgsSchema: z.ZodType<Prisma.UserCountOutputType
 export const UserCountOutputTypeSelectSchema: z.ZodType<Prisma.UserCountOutputTypeSelect> = z.object({
   session: z.boolean().optional(),
   Key: z.boolean().optional(),
+  UserSettings: z.boolean().optional(),
 }).strict();
 
 export const UserSelectSchema: z.ZodType<Prisma.UserSelect> = z.object({
@@ -1189,6 +1243,7 @@ export const UserSelectSchema: z.ZodType<Prisma.UserSelect> = z.object({
   session: z.union([z.boolean(),z.lazy(() => SessionFindManyArgsSchema)]).optional(),
   Key: z.union([z.boolean(),z.lazy(() => KeyFindManyArgsSchema)]).optional(),
   SalesRep: z.union([z.boolean(),z.lazy(() => SalesRepArgsSchema)]).optional(),
+  UserSettings: z.union([z.boolean(),z.lazy(() => UserSettingsFindManyArgsSchema)]).optional(),
   _count: z.union([z.boolean(),z.lazy(() => UserCountOutputTypeArgsSchema)]).optional(),
 }).strict()
 
@@ -1558,7 +1613,7 @@ export const SalesRepWhereInputSchema: z.ZodType<Prisma.SalesRepWhereInput> = z.
   user: z.union([ z.lazy(() => UserRelationFilterSchema),z.lazy(() => UserWhereInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyListRelationFilterSchema).optional(),
   client: z.lazy(() => ClientListRelationFilterSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsListRelationFilterSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsListRelationFilterSchema).optional()
 }).strict();
 
 export const SalesRepOrderByWithRelationInputSchema: z.ZodType<Prisma.SalesRepOrderByWithRelationInput> = z.object({
@@ -1572,7 +1627,7 @@ export const SalesRepOrderByWithRelationInputSchema: z.ZodType<Prisma.SalesRepOr
   user: z.lazy(() => UserOrderByWithRelationInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyOrderByRelationAggregateInputSchema).optional(),
   client: z.lazy(() => ClientOrderByRelationAggregateInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsOrderByRelationAggregateInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsOrderByRelationAggregateInputSchema).optional()
 }).strict();
 
 export const SalesRepWhereUniqueInputSchema: z.ZodType<Prisma.SalesRepWhereUniqueInput> = z.object({
@@ -1606,51 +1661,90 @@ export const SalesRepScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Sale
   companyId: z.union([ z.lazy(() => IntWithAggregatesFilterSchema),z.number() ]).optional(),
 }).strict();
 
-export const SalesRepColorsWhereInputSchema: z.ZodType<Prisma.SalesRepColorsWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => SalesRepColorsWhereInputSchema),z.lazy(() => SalesRepColorsWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => SalesRepColorsWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => SalesRepColorsWhereInputSchema),z.lazy(() => SalesRepColorsWhereInputSchema).array() ]).optional(),
+export const ColorSettingsWhereInputSchema: z.ZodType<Prisma.ColorSettingsWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => ColorSettingsWhereInputSchema),z.lazy(() => ColorSettingsWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => ColorSettingsWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => ColorSettingsWhereInputSchema),z.lazy(() => ColorSettingsWhereInputSchema).array() ]).optional(),
   salesRepUsername: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   accentColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   primaryColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   secondaryColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   auxiliaryColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  theme: z.union([ z.lazy(() => EnumThemeFilterSchema),z.lazy(() => ThemeSchema) ]).optional(),
   salesRep: z.union([ z.lazy(() => SalesRepRelationFilterSchema),z.lazy(() => SalesRepWhereInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsOrderByWithRelationInputSchema: z.ZodType<Prisma.SalesRepColorsOrderByWithRelationInput> = z.object({
+export const ColorSettingsOrderByWithRelationInputSchema: z.ZodType<Prisma.ColorSettingsOrderByWithRelationInput> = z.object({
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   accentColor: z.lazy(() => SortOrderSchema).optional(),
   primaryColor: z.lazy(() => SortOrderSchema).optional(),
   secondaryColor: z.lazy(() => SortOrderSchema).optional(),
   auxiliaryColor: z.lazy(() => SortOrderSchema).optional(),
+  theme: z.lazy(() => SortOrderSchema).optional(),
   salesRep: z.lazy(() => SalesRepOrderByWithRelationInputSchema).optional()
 }).strict();
 
-export const SalesRepColorsWhereUniqueInputSchema: z.ZodType<Prisma.SalesRepColorsWhereUniqueInput> = z.object({
+export const ColorSettingsWhereUniqueInputSchema: z.ZodType<Prisma.ColorSettingsWhereUniqueInput> = z.object({
   salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }).optional()
 }).strict();
 
-export const SalesRepColorsOrderByWithAggregationInputSchema: z.ZodType<Prisma.SalesRepColorsOrderByWithAggregationInput> = z.object({
+export const ColorSettingsOrderByWithAggregationInputSchema: z.ZodType<Prisma.ColorSettingsOrderByWithAggregationInput> = z.object({
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   accentColor: z.lazy(() => SortOrderSchema).optional(),
   primaryColor: z.lazy(() => SortOrderSchema).optional(),
   secondaryColor: z.lazy(() => SortOrderSchema).optional(),
   auxiliaryColor: z.lazy(() => SortOrderSchema).optional(),
-  _count: z.lazy(() => SalesRepColorsCountOrderByAggregateInputSchema).optional(),
-  _max: z.lazy(() => SalesRepColorsMaxOrderByAggregateInputSchema).optional(),
-  _min: z.lazy(() => SalesRepColorsMinOrderByAggregateInputSchema).optional()
+  theme: z.lazy(() => SortOrderSchema).optional(),
+  _count: z.lazy(() => ColorSettingsCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => ColorSettingsMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => ColorSettingsMinOrderByAggregateInputSchema).optional()
 }).strict();
 
-export const SalesRepColorsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.SalesRepColorsScalarWhereWithAggregatesInput> = z.object({
-  AND: z.union([ z.lazy(() => SalesRepColorsScalarWhereWithAggregatesInputSchema),z.lazy(() => SalesRepColorsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
-  OR: z.lazy(() => SalesRepColorsScalarWhereWithAggregatesInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => SalesRepColorsScalarWhereWithAggregatesInputSchema),z.lazy(() => SalesRepColorsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+export const ColorSettingsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.ColorSettingsScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => ColorSettingsScalarWhereWithAggregatesInputSchema),z.lazy(() => ColorSettingsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => ColorSettingsScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => ColorSettingsScalarWhereWithAggregatesInputSchema),z.lazy(() => ColorSettingsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
   salesRepUsername: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   accentColor: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   primaryColor: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   secondaryColor: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   auxiliaryColor: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  theme: z.union([ z.lazy(() => EnumThemeWithAggregatesFilterSchema),z.lazy(() => ThemeSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsWhereInputSchema: z.ZodType<Prisma.UserSettingsWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => UserSettingsWhereInputSchema),z.lazy(() => UserSettingsWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => UserSettingsWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => UserSettingsWhereInputSchema),z.lazy(() => UserSettingsWhereInputSchema).array() ]).optional(),
+  username: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  settings: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  User: z.union([ z.lazy(() => UserRelationFilterSchema),z.lazy(() => UserWhereInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsOrderByWithRelationInputSchema: z.ZodType<Prisma.UserSettingsOrderByWithRelationInput> = z.object({
+  username: z.lazy(() => SortOrderSchema).optional(),
+  settings: z.lazy(() => SortOrderSchema).optional(),
+  User: z.lazy(() => UserOrderByWithRelationInputSchema).optional()
+}).strict();
+
+export const UserSettingsWhereUniqueInputSchema: z.ZodType<Prisma.UserSettingsWhereUniqueInput> = z.object({
+  username: z.string().optional()
+}).strict();
+
+export const UserSettingsOrderByWithAggregationInputSchema: z.ZodType<Prisma.UserSettingsOrderByWithAggregationInput> = z.object({
+  username: z.lazy(() => SortOrderSchema).optional(),
+  settings: z.lazy(() => SortOrderSchema).optional(),
+  _count: z.lazy(() => UserSettingsCountOrderByAggregateInputSchema).optional(),
+  _max: z.lazy(() => UserSettingsMaxOrderByAggregateInputSchema).optional(),
+  _min: z.lazy(() => UserSettingsMinOrderByAggregateInputSchema).optional()
+}).strict();
+
+export const UserSettingsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.UserSettingsScalarWhereWithAggregatesInput> = z.object({
+  AND: z.union([ z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema),z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  OR: z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema),z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
+  username: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  settings: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyWhereInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyWhereInput> = z.object({
@@ -1942,6 +2036,7 @@ export const UserWhereInputSchema: z.ZodType<Prisma.UserWhereInput> = z.object({
   session: z.lazy(() => SessionListRelationFilterSchema).optional(),
   Key: z.lazy(() => KeyListRelationFilterSchema).optional(),
   SalesRep: z.union([ z.lazy(() => SalesRepRelationFilterSchema),z.lazy(() => SalesRepWhereInputSchema) ]).optional().nullable(),
+  UserSettings: z.lazy(() => UserSettingsListRelationFilterSchema).optional()
 }).strict();
 
 export const UserOrderByWithRelationInputSchema: z.ZodType<Prisma.UserOrderByWithRelationInput> = z.object({
@@ -1950,7 +2045,8 @@ export const UserOrderByWithRelationInputSchema: z.ZodType<Prisma.UserOrderByWit
   role: z.lazy(() => SortOrderSchema).optional(),
   session: z.lazy(() => SessionOrderByRelationAggregateInputSchema).optional(),
   Key: z.lazy(() => KeyOrderByRelationAggregateInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepOrderByWithRelationInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepOrderByWithRelationInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsOrderByRelationAggregateInputSchema).optional()
 }).strict();
 
 export const UserWhereUniqueInputSchema: z.ZodType<Prisma.UserWhereUniqueInput> = z.object({
@@ -2451,7 +2547,7 @@ export const SalesRepCreateInputSchema: z.ZodType<Prisma.SalesRepCreateInput> = 
   user: z.lazy(() => UserCreateNestedOneWithoutSalesRepInputSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateInput> = z.object({
@@ -2463,7 +2559,7 @@ export const SalesRepUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' }),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepUpdateInputSchema: z.ZodType<Prisma.SalesRepUpdateInput> = z.object({
@@ -2474,7 +2570,7 @@ export const SalesRepUpdateInputSchema: z.ZodType<Prisma.SalesRepUpdateInput> = 
   user: z.lazy(() => UserUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateInput> = z.object({
@@ -2486,7 +2582,7 @@ export const SalesRepUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepUnchec
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepCreateManyInputSchema: z.ZodType<Prisma.SalesRepCreateManyInput> = z.object({
@@ -2513,59 +2609,100 @@ export const SalesRepUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepUn
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsCreateInputSchema: z.ZodType<Prisma.SalesRepColorsCreateInput> = z.object({
+export const ColorSettingsCreateInputSchema: z.ZodType<Prisma.ColorSettingsCreateInput> = z.object({
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  theme: z.lazy(() => ThemeSchema),
   salesRep: z.lazy(() => SalesRepCreateNestedOneWithoutSalesRepColorsInputSchema)
 }).strict();
 
-export const SalesRepColorsUncheckedCreateInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedCreateInput> = z.object({
+export const ColorSettingsUncheckedCreateInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedCreateInput> = z.object({
   salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
-  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' })
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  theme: z.lazy(() => ThemeSchema)
 }).strict();
 
-export const SalesRepColorsUpdateInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateInput> = z.object({
+export const ColorSettingsUpdateInputSchema: z.ZodType<Prisma.ColorSettingsUpdateInput> = z.object({
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
   salesRep: z.lazy(() => SalesRepUpdateOneRequiredWithoutSalesRepColorsNestedInputSchema).optional()
 }).strict();
 
-export const SalesRepColorsUncheckedUpdateInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateInput> = z.object({
+export const ColorSettingsUncheckedUpdateInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedUpdateInput> = z.object({
   salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsCreateManyInputSchema: z.ZodType<Prisma.SalesRepColorsCreateManyInput> = z.object({
+export const ColorSettingsCreateManyInputSchema: z.ZodType<Prisma.ColorSettingsCreateManyInput> = z.object({
   salesRepUsername: z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
-  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' })
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  theme: z.lazy(() => ThemeSchema)
 }).strict();
 
-export const SalesRepColorsUpdateManyMutationInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateManyMutationInput> = z.object({
+export const ColorSettingsUpdateManyMutationInputSchema: z.ZodType<Prisma.ColorSettingsUpdateManyMutationInput> = z.object({
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateManyInput> = z.object({
+export const ColorSettingsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedUpdateManyInput> = z.object({
   salesRepUsername: z.union([ z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsCreateInputSchema: z.ZodType<Prisma.UserSettingsCreateInput> = z.object({
+  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),
+  User: z.lazy(() => UserCreateNestedOneWithoutUserSettingsInputSchema)
+}).strict();
+
+export const UserSettingsUncheckedCreateInputSchema: z.ZodType<Prisma.UserSettingsUncheckedCreateInput> = z.object({
+  username: z.string(),
+  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' })
+}).strict();
+
+export const UserSettingsUpdateInputSchema: z.ZodType<Prisma.UserSettingsUpdateInput> = z.object({
+  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  User: z.lazy(() => UserUpdateOneRequiredWithoutUserSettingsNestedInputSchema).optional()
+}).strict();
+
+export const UserSettingsUncheckedUpdateInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateInput> = z.object({
+  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsCreateManyInputSchema: z.ZodType<Prisma.UserSettingsCreateManyInput> = z.object({
+  username: z.string(),
+  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' })
+}).strict();
+
+export const UserSettingsUpdateManyMutationInputSchema: z.ZodType<Prisma.UserSettingsUpdateManyMutationInput> = z.object({
+  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateManyInput> = z.object({
+  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyCreateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateInput> = z.object({
@@ -2913,7 +3050,8 @@ export const UserCreateInputSchema: z.ZodType<Prisma.UserCreateInput> = z.object
   role: z.lazy(() => UserRolesSchema),
   session: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
   Key: z.lazy(() => KeyCreateNestedManyWithoutUserInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserUncheckedCreateInputSchema: z.ZodType<Prisma.UserUncheckedCreateInput> = z.object({
@@ -2922,7 +3060,8 @@ export const UserUncheckedCreateInputSchema: z.ZodType<Prisma.UserUncheckedCreat
   role: z.lazy(() => UserRolesSchema),
   session: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
   Key: z.lazy(() => KeyUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserUpdateInputSchema: z.ZodType<Prisma.UserUpdateInput> = z.object({
@@ -2931,7 +3070,8 @@ export const UserUpdateInputSchema: z.ZodType<Prisma.UserUpdateInput> = z.object
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   session: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
   Key: z.lazy(() => KeyUpdateManyWithoutUserNestedInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const UserUncheckedUpdateInputSchema: z.ZodType<Prisma.UserUncheckedUpdateInput> = z.object({
@@ -2940,7 +3080,8 @@ export const UserUncheckedUpdateInputSchema: z.ZodType<Prisma.UserUncheckedUpdat
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   session: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
   Key: z.lazy(() => KeyUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const UserCreateManyInputSchema: z.ZodType<Prisma.UserCreateManyInput> = z.object({
@@ -3652,17 +3793,17 @@ export const ClientListRelationFilterSchema: z.ZodType<Prisma.ClientListRelation
   none: z.lazy(() => ClientWhereInputSchema).optional()
 }).strict();
 
-export const SalesRepColorsListRelationFilterSchema: z.ZodType<Prisma.SalesRepColorsListRelationFilter> = z.object({
-  every: z.lazy(() => SalesRepColorsWhereInputSchema).optional(),
-  some: z.lazy(() => SalesRepColorsWhereInputSchema).optional(),
-  none: z.lazy(() => SalesRepColorsWhereInputSchema).optional()
+export const ColorSettingsListRelationFilterSchema: z.ZodType<Prisma.ColorSettingsListRelationFilter> = z.object({
+  every: z.lazy(() => ColorSettingsWhereInputSchema).optional(),
+  some: z.lazy(() => ColorSettingsWhereInputSchema).optional(),
+  none: z.lazy(() => ColorSettingsWhereInputSchema).optional()
 }).strict();
 
 export const ClientOrderByRelationAggregateInputSchema: z.ZodType<Prisma.ClientOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const SalesRepColorsOrderByRelationAggregateInputSchema: z.ZodType<Prisma.SalesRepColorsOrderByRelationAggregateInput> = z.object({
+export const ColorSettingsOrderByRelationAggregateInputSchema: z.ZodType<Prisma.ColorSettingsOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
@@ -3703,28 +3844,63 @@ export const SalesRepSumOrderByAggregateInputSchema: z.ZodType<Prisma.SalesRepSu
   companyId: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const SalesRepColorsCountOrderByAggregateInputSchema: z.ZodType<Prisma.SalesRepColorsCountOrderByAggregateInput> = z.object({
-  salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
-  accentColor: z.lazy(() => SortOrderSchema).optional(),
-  primaryColor: z.lazy(() => SortOrderSchema).optional(),
-  secondaryColor: z.lazy(() => SortOrderSchema).optional(),
-  auxiliaryColor: z.lazy(() => SortOrderSchema).optional()
+export const EnumThemeFilterSchema: z.ZodType<Prisma.EnumThemeFilter> = z.object({
+  equals: z.lazy(() => ThemeSchema).optional(),
+  in: z.lazy(() => ThemeSchema).array().optional(),
+  notIn: z.lazy(() => ThemeSchema).array().optional(),
+  not: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => NestedEnumThemeFilterSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.SalesRepColorsMaxOrderByAggregateInput> = z.object({
+export const ColorSettingsCountOrderByAggregateInputSchema: z.ZodType<Prisma.ColorSettingsCountOrderByAggregateInput> = z.object({
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   accentColor: z.lazy(() => SortOrderSchema).optional(),
   primaryColor: z.lazy(() => SortOrderSchema).optional(),
   secondaryColor: z.lazy(() => SortOrderSchema).optional(),
-  auxiliaryColor: z.lazy(() => SortOrderSchema).optional()
+  auxiliaryColor: z.lazy(() => SortOrderSchema).optional(),
+  theme: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
-export const SalesRepColorsMinOrderByAggregateInputSchema: z.ZodType<Prisma.SalesRepColorsMinOrderByAggregateInput> = z.object({
+export const ColorSettingsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.ColorSettingsMaxOrderByAggregateInput> = z.object({
   salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
   accentColor: z.lazy(() => SortOrderSchema).optional(),
   primaryColor: z.lazy(() => SortOrderSchema).optional(),
   secondaryColor: z.lazy(() => SortOrderSchema).optional(),
-  auxiliaryColor: z.lazy(() => SortOrderSchema).optional()
+  auxiliaryColor: z.lazy(() => SortOrderSchema).optional(),
+  theme: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const ColorSettingsMinOrderByAggregateInputSchema: z.ZodType<Prisma.ColorSettingsMinOrderByAggregateInput> = z.object({
+  salesRepUsername: z.lazy(() => SortOrderSchema).optional(),
+  accentColor: z.lazy(() => SortOrderSchema).optional(),
+  primaryColor: z.lazy(() => SortOrderSchema).optional(),
+  secondaryColor: z.lazy(() => SortOrderSchema).optional(),
+  auxiliaryColor: z.lazy(() => SortOrderSchema).optional(),
+  theme: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const EnumThemeWithAggregatesFilterSchema: z.ZodType<Prisma.EnumThemeWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => ThemeSchema).optional(),
+  in: z.lazy(() => ThemeSchema).array().optional(),
+  notIn: z.lazy(() => ThemeSchema).array().optional(),
+  not: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => NestedEnumThemeWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumThemeFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumThemeFilterSchema).optional()
+}).strict();
+
+export const UserSettingsCountOrderByAggregateInputSchema: z.ZodType<Prisma.UserSettingsCountOrderByAggregateInput> = z.object({
+  username: z.lazy(() => SortOrderSchema).optional(),
+  settings: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const UserSettingsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.UserSettingsMaxOrderByAggregateInput> = z.object({
+  username: z.lazy(() => SortOrderSchema).optional(),
+  settings: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const UserSettingsMinOrderByAggregateInputSchema: z.ZodType<Prisma.UserSettingsMinOrderByAggregateInput> = z.object({
+  username: z.lazy(() => SortOrderSchema).optional(),
+  settings: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilter> = z.object({
@@ -3990,11 +4166,21 @@ export const KeyListRelationFilterSchema: z.ZodType<Prisma.KeyListRelationFilter
   none: z.lazy(() => KeyWhereInputSchema).optional()
 }).strict();
 
+export const UserSettingsListRelationFilterSchema: z.ZodType<Prisma.UserSettingsListRelationFilter> = z.object({
+  every: z.lazy(() => UserSettingsWhereInputSchema).optional(),
+  some: z.lazy(() => UserSettingsWhereInputSchema).optional(),
+  none: z.lazy(() => UserSettingsWhereInputSchema).optional()
+}).strict();
+
 export const SessionOrderByRelationAggregateInputSchema: z.ZodType<Prisma.SessionOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const KeyOrderByRelationAggregateInputSchema: z.ZodType<Prisma.KeyOrderByRelationAggregateInput> = z.object({
+  _count: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const UserSettingsOrderByRelationAggregateInputSchema: z.ZodType<Prisma.UserSettingsOrderByRelationAggregateInput> = z.object({
   _count: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
@@ -4691,11 +4877,11 @@ export const ClientCreateNestedManyWithoutSalesRepInputSchema: z.ZodType<Prisma.
   connect: z.union([ z.lazy(() => ClientWhereUniqueInputSchema),z.lazy(() => ClientWhereUniqueInputSchema).array() ]).optional(),
 }).strict();
 
-export const SalesRepColorsCreateNestedManyWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsCreateNestedManyWithoutSalesRepInput> = z.object({
-  create: z.union([ z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => SalesRepColorsCreateManySalesRepInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
+export const ColorSettingsCreateNestedManyWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsCreateNestedManyWithoutSalesRepInput> = z.object({
+  create: z.union([ z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ColorSettingsCreateManySalesRepInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInput> = z.object({
@@ -4712,11 +4898,11 @@ export const ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema: z.ZodTyp
   connect: z.union([ z.lazy(() => ClientWhereUniqueInputSchema),z.lazy(() => ClientWhereUniqueInputSchema).array() ]).optional(),
 }).strict();
 
-export const SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInput> = z.object({
-  create: z.union([ z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => SalesRepColorsCreateManySalesRepInputEnvelopeSchema).optional(),
-  connect: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
+export const ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInput> = z.object({
+  create: z.union([ z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ColorSettingsCreateManySalesRepInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
 }).strict();
 
 export const CompanyUpdateOneRequiredWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.CompanyUpdateOneRequiredWithoutSalesRepNestedInput> = z.object({
@@ -4763,18 +4949,18 @@ export const ClientUpdateManyWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.
   deleteMany: z.union([ z.lazy(() => ClientScalarWhereInputSchema),z.lazy(() => ClientScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
-export const SalesRepColorsUpdateManyWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateManyWithoutSalesRepNestedInput> = z.object({
-  create: z.union([ z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => SalesRepColorsUpsertWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUpsertWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => SalesRepColorsCreateManySalesRepInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => SalesRepColorsUpdateWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUpdateWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => SalesRepColorsUpdateManyWithWhereWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUpdateManyWithWhereWithoutSalesRepInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => SalesRepColorsScalarWhereInputSchema),z.lazy(() => SalesRepColorsScalarWhereInputSchema).array() ]).optional(),
+export const ColorSettingsUpdateManyWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.ColorSettingsUpdateManyWithoutSalesRepNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ColorSettingsUpsertWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUpsertWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ColorSettingsCreateManySalesRepInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ColorSettingsUpdateWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUpdateWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ColorSettingsUpdateManyWithWhereWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUpdateManyWithWhereWithoutSalesRepInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ColorSettingsScalarWhereInputSchema),z.lazy(() => ColorSettingsScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInput> = z.object({
@@ -4805,18 +4991,18 @@ export const ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema: z.ZodTyp
   deleteMany: z.union([ z.lazy(() => ClientScalarWhereInputSchema),z.lazy(() => ClientScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
-export const SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInput> = z.object({
-  create: z.union([ z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
-  connectOrCreate: z.union([ z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
-  upsert: z.union([ z.lazy(() => SalesRepColorsUpsertWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUpsertWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
-  createMany: z.lazy(() => SalesRepColorsCreateManySalesRepInputEnvelopeSchema).optional(),
-  set: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  disconnect: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  delete: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  connect: z.union([ z.lazy(() => SalesRepColorsWhereUniqueInputSchema),z.lazy(() => SalesRepColorsWhereUniqueInputSchema).array() ]).optional(),
-  update: z.union([ z.lazy(() => SalesRepColorsUpdateWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUpdateWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
-  updateMany: z.union([ z.lazy(() => SalesRepColorsUpdateManyWithWhereWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUpdateManyWithWhereWithoutSalesRepInputSchema).array() ]).optional(),
-  deleteMany: z.union([ z.lazy(() => SalesRepColorsScalarWhereInputSchema),z.lazy(() => SalesRepColorsScalarWhereInputSchema).array() ]).optional(),
+export const ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInput> = z.object({
+  create: z.union([ z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema).array(),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsCreateOrConnectWithoutSalesRepInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => ColorSettingsUpsertWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUpsertWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => ColorSettingsCreateManySalesRepInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => ColorSettingsWhereUniqueInputSchema),z.lazy(() => ColorSettingsWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => ColorSettingsUpdateWithWhereUniqueWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUpdateWithWhereUniqueWithoutSalesRepInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => ColorSettingsUpdateManyWithWhereWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUpdateManyWithWhereWithoutSalesRepInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => ColorSettingsScalarWhereInputSchema),z.lazy(() => ColorSettingsScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
 export const SalesRepCreateNestedOneWithoutSalesRepColorsInputSchema: z.ZodType<Prisma.SalesRepCreateNestedOneWithoutSalesRepColorsInput> = z.object({
@@ -4825,12 +5011,30 @@ export const SalesRepCreateNestedOneWithoutSalesRepColorsInputSchema: z.ZodType<
   connect: z.lazy(() => SalesRepWhereUniqueInputSchema).optional()
 }).strict();
 
+export const EnumThemeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.EnumThemeFieldUpdateOperationsInput> = z.object({
+  set: z.lazy(() => ThemeSchema).optional()
+}).strict();
+
 export const SalesRepUpdateOneRequiredWithoutSalesRepColorsNestedInputSchema: z.ZodType<Prisma.SalesRepUpdateOneRequiredWithoutSalesRepColorsNestedInput> = z.object({
   create: z.union([ z.lazy(() => SalesRepCreateWithoutSalesRepColorsInputSchema),z.lazy(() => SalesRepUncheckedCreateWithoutSalesRepColorsInputSchema) ]).optional(),
   connectOrCreate: z.lazy(() => SalesRepCreateOrConnectWithoutSalesRepColorsInputSchema).optional(),
   upsert: z.lazy(() => SalesRepUpsertWithoutSalesRepColorsInputSchema).optional(),
   connect: z.lazy(() => SalesRepWhereUniqueInputSchema).optional(),
   update: z.union([ z.lazy(() => SalesRepUpdateWithoutSalesRepColorsInputSchema),z.lazy(() => SalesRepUncheckedUpdateWithoutSalesRepColorsInputSchema) ]).optional(),
+}).strict();
+
+export const UserCreateNestedOneWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserCreateNestedOneWithoutUserSettingsInput> = z.object({
+  create: z.union([ z.lazy(() => UserCreateWithoutUserSettingsInputSchema),z.lazy(() => UserUncheckedCreateWithoutUserSettingsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutUserSettingsInputSchema).optional(),
+  connect: z.lazy(() => UserWhereUniqueInputSchema).optional()
+}).strict();
+
+export const UserUpdateOneRequiredWithoutUserSettingsNestedInputSchema: z.ZodType<Prisma.UserUpdateOneRequiredWithoutUserSettingsNestedInput> = z.object({
+  create: z.union([ z.lazy(() => UserCreateWithoutUserSettingsInputSchema),z.lazy(() => UserUncheckedCreateWithoutUserSettingsInputSchema) ]).optional(),
+  connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutUserSettingsInputSchema).optional(),
+  upsert: z.lazy(() => UserUpsertWithoutUserSettingsInputSchema).optional(),
+  connect: z.lazy(() => UserWhereUniqueInputSchema).optional(),
+  update: z.union([ z.lazy(() => UserUpdateWithoutUserSettingsInputSchema),z.lazy(() => UserUncheckedUpdateWithoutUserSettingsInputSchema) ]).optional(),
 }).strict();
 
 export const ClientCreateNestedOneWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.ClientCreateNestedOneWithoutClientSalesRepCompanyInput> = z.object({
@@ -5077,6 +5281,13 @@ export const SalesRepCreateNestedOneWithoutUserInputSchema: z.ZodType<Prisma.Sal
   connect: z.lazy(() => SalesRepWhereUniqueInputSchema).optional()
 }).strict();
 
+export const UserSettingsCreateNestedManyWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsCreateNestedManyWithoutUserInput> = z.object({
+  create: z.union([ z.lazy(() => UserSettingsCreateWithoutUserInputSchema),z.lazy(() => UserSettingsCreateWithoutUserInputSchema).array(),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema),z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => UserSettingsCreateManyUserInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+}).strict();
+
 export const SessionUncheckedCreateNestedManyWithoutUserInputSchema: z.ZodType<Prisma.SessionUncheckedCreateNestedManyWithoutUserInput> = z.object({
   create: z.union([ z.lazy(() => SessionCreateWithoutUserInputSchema),z.lazy(() => SessionCreateWithoutUserInputSchema).array(),z.lazy(() => SessionUncheckedCreateWithoutUserInputSchema),z.lazy(() => SessionUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
   connectOrCreate: z.union([ z.lazy(() => SessionCreateOrConnectWithoutUserInputSchema),z.lazy(() => SessionCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
@@ -5095,6 +5306,13 @@ export const SalesRepUncheckedCreateNestedOneWithoutUserInputSchema: z.ZodType<P
   create: z.union([ z.lazy(() => SalesRepCreateWithoutUserInputSchema),z.lazy(() => SalesRepUncheckedCreateWithoutUserInputSchema) ]).optional(),
   connectOrCreate: z.lazy(() => SalesRepCreateOrConnectWithoutUserInputSchema).optional(),
   connect: z.lazy(() => SalesRepWhereUniqueInputSchema).optional()
+}).strict();
+
+export const UserSettingsUncheckedCreateNestedManyWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUncheckedCreateNestedManyWithoutUserInput> = z.object({
+  create: z.union([ z.lazy(() => UserSettingsCreateWithoutUserInputSchema),z.lazy(() => UserSettingsCreateWithoutUserInputSchema).array(),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema),z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => UserSettingsCreateManyUserInputEnvelopeSchema).optional(),
+  connect: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
 }).strict();
 
 export const EnumUserRolesFieldUpdateOperationsInputSchema: z.ZodType<Prisma.EnumUserRolesFieldUpdateOperationsInput> = z.object({
@@ -5139,6 +5357,20 @@ export const SalesRepUpdateOneWithoutUserNestedInputSchema: z.ZodType<Prisma.Sal
   update: z.union([ z.lazy(() => SalesRepUpdateWithoutUserInputSchema),z.lazy(() => SalesRepUncheckedUpdateWithoutUserInputSchema) ]).optional(),
 }).strict();
 
+export const UserSettingsUpdateManyWithoutUserNestedInputSchema: z.ZodType<Prisma.UserSettingsUpdateManyWithoutUserNestedInput> = z.object({
+  create: z.union([ z.lazy(() => UserSettingsCreateWithoutUserInputSchema),z.lazy(() => UserSettingsCreateWithoutUserInputSchema).array(),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema),z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => UserSettingsUpsertWithWhereUniqueWithoutUserInputSchema),z.lazy(() => UserSettingsUpsertWithWhereUniqueWithoutUserInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => UserSettingsCreateManyUserInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => UserSettingsUpdateWithWhereUniqueWithoutUserInputSchema),z.lazy(() => UserSettingsUpdateWithWhereUniqueWithoutUserInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => UserSettingsUpdateManyWithWhereWithoutUserInputSchema),z.lazy(() => UserSettingsUpdateManyWithWhereWithoutUserInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => UserSettingsScalarWhereInputSchema),z.lazy(() => UserSettingsScalarWhereInputSchema).array() ]).optional(),
+}).strict();
+
 export const SessionUncheckedUpdateManyWithoutUserNestedInputSchema: z.ZodType<Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput> = z.object({
   create: z.union([ z.lazy(() => SessionCreateWithoutUserInputSchema),z.lazy(() => SessionCreateWithoutUserInputSchema).array(),z.lazy(() => SessionUncheckedCreateWithoutUserInputSchema),z.lazy(() => SessionUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
   connectOrCreate: z.union([ z.lazy(() => SessionCreateOrConnectWithoutUserInputSchema),z.lazy(() => SessionCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
@@ -5175,6 +5407,20 @@ export const SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema: z.ZodType<P
   delete: z.boolean().optional(),
   connect: z.lazy(() => SalesRepWhereUniqueInputSchema).optional(),
   update: z.union([ z.lazy(() => SalesRepUpdateWithoutUserInputSchema),z.lazy(() => SalesRepUncheckedUpdateWithoutUserInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsUncheckedUpdateManyWithoutUserNestedInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateManyWithoutUserNestedInput> = z.object({
+  create: z.union([ z.lazy(() => UserSettingsCreateWithoutUserInputSchema),z.lazy(() => UserSettingsCreateWithoutUserInputSchema).array(),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema).array() ]).optional(),
+  connectOrCreate: z.union([ z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema),z.lazy(() => UserSettingsCreateOrConnectWithoutUserInputSchema).array() ]).optional(),
+  upsert: z.union([ z.lazy(() => UserSettingsUpsertWithWhereUniqueWithoutUserInputSchema),z.lazy(() => UserSettingsUpsertWithWhereUniqueWithoutUserInputSchema).array() ]).optional(),
+  createMany: z.lazy(() => UserSettingsCreateManyUserInputEnvelopeSchema).optional(),
+  set: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  disconnect: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  delete: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  connect: z.union([ z.lazy(() => UserSettingsWhereUniqueInputSchema),z.lazy(() => UserSettingsWhereUniqueInputSchema).array() ]).optional(),
+  update: z.union([ z.lazy(() => UserSettingsUpdateWithWhereUniqueWithoutUserInputSchema),z.lazy(() => UserSettingsUpdateWithWhereUniqueWithoutUserInputSchema).array() ]).optional(),
+  updateMany: z.union([ z.lazy(() => UserSettingsUpdateManyWithWhereWithoutUserInputSchema),z.lazy(() => UserSettingsUpdateManyWithWhereWithoutUserInputSchema).array() ]).optional(),
+  deleteMany: z.union([ z.lazy(() => UserSettingsScalarWhereInputSchema),z.lazy(() => UserSettingsScalarWhereInputSchema).array() ]).optional(),
 }).strict();
 
 export const UserCreateNestedOneWithoutSessionInputSchema: z.ZodType<Prisma.UserCreateNestedOneWithoutSessionInput> = z.object({
@@ -5533,6 +5779,23 @@ export const NestedEnumJobStatusWithAggregatesFilterSchema: z.ZodType<Prisma.Nes
   _max: z.lazy(() => NestedEnumJobStatusFilterSchema).optional()
 }).strict();
 
+export const NestedEnumThemeFilterSchema: z.ZodType<Prisma.NestedEnumThemeFilter> = z.object({
+  equals: z.lazy(() => ThemeSchema).optional(),
+  in: z.lazy(() => ThemeSchema).array().optional(),
+  notIn: z.lazy(() => ThemeSchema).array().optional(),
+  not: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => NestedEnumThemeFilterSchema) ]).optional(),
+}).strict();
+
+export const NestedEnumThemeWithAggregatesFilterSchema: z.ZodType<Prisma.NestedEnumThemeWithAggregatesFilter> = z.object({
+  equals: z.lazy(() => ThemeSchema).optional(),
+  in: z.lazy(() => ThemeSchema).array().optional(),
+  notIn: z.lazy(() => ThemeSchema).array().optional(),
+  not: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => NestedEnumThemeWithAggregatesFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedEnumThemeFilterSchema).optional(),
+  _max: z.lazy(() => NestedEnumThemeFilterSchema).optional()
+}).strict();
+
 export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.object({
   equals: z.coerce.date().optional().nullable(),
   in: z.coerce.date().array().optional().nullable(),
@@ -5776,7 +6039,7 @@ export const SalesRepCreateWithoutClientInputSchema: z.ZodType<Prisma.SalesRepCr
   company: z.lazy(() => CompanyCreateNestedOneWithoutSalesRepInputSchema),
   user: z.lazy(() => UserCreateNestedOneWithoutSalesRepInputSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedCreateWithoutClientInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateWithoutClientInput> = z.object({
@@ -5787,7 +6050,7 @@ export const SalesRepUncheckedCreateWithoutClientInputSchema: z.ZodType<Prisma.S
   phone: z.string(),
   companyId: z.number(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepCreateOrConnectWithoutClientInputSchema: z.ZodType<Prisma.SalesRepCreateOrConnectWithoutClientInput> = z.object({
@@ -5971,7 +6234,7 @@ export const SalesRepUpdateWithoutClientInputSchema: z.ZodType<Prisma.SalesRepUp
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedUpdateWithoutClientInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateWithoutClientInput> = z.object({
@@ -5982,7 +6245,7 @@ export const SalesRepUncheckedUpdateWithoutClientInputSchema: z.ZodType<Prisma.S
   phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const CompanyUpsertWithoutClientInputSchema: z.ZodType<Prisma.CompanyUpsertWithoutClientInput> = z.object({
@@ -6539,7 +6802,8 @@ export const UserCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.UserCreateWi
   username: z.string(),
   role: z.lazy(() => UserRolesSchema),
   session: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
-  Key: z.lazy(() => KeyCreateNestedManyWithoutUserInputSchema).optional()
+  Key: z.lazy(() => KeyCreateNestedManyWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserUncheckedCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.UserUncheckedCreateWithoutSalesRepInput> = z.object({
@@ -6547,7 +6811,8 @@ export const UserUncheckedCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.Use
   username: z.string(),
   role: z.lazy(() => UserRolesSchema),
   session: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
-  Key: z.lazy(() => KeyUncheckedCreateNestedManyWithoutUserInputSchema).optional()
+  Key: z.lazy(() => KeyUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserCreateOrConnectWithoutSalesRepInputSchema: z.ZodType<Prisma.UserCreateOrConnectWithoutSalesRepInput> = z.object({
@@ -6629,27 +6894,29 @@ export const ClientCreateManySalesRepInputEnvelopeSchema: z.ZodType<Prisma.Clien
   skipDuplicates: z.boolean().optional()
 }).strict();
 
-export const SalesRepColorsCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsCreateWithoutSalesRepInput> = z.object({
+export const ColorSettingsCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsCreateWithoutSalesRepInput> = z.object({
   accentColor: z.string(),
   primaryColor: z.string(),
   secondaryColor: z.string(),
-  auxiliaryColor: z.string()
+  auxiliaryColor: z.string(),
+  theme: z.lazy(() => ThemeSchema)
 }).strict();
 
-export const SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedCreateWithoutSalesRepInput> = z.object({
+export const ColorSettingsUncheckedCreateWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedCreateWithoutSalesRepInput> = z.object({
   accentColor: z.string(),
   primaryColor: z.string(),
   secondaryColor: z.string(),
-  auxiliaryColor: z.string()
+  auxiliaryColor: z.string(),
+  theme: z.lazy(() => ThemeSchema)
 }).strict();
 
-export const SalesRepColorsCreateOrConnectWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsCreateOrConnectWithoutSalesRepInput> = z.object({
-  where: z.lazy(() => SalesRepColorsWhereUniqueInputSchema),
-  create: z.union([ z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema) ]),
+export const ColorSettingsCreateOrConnectWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsCreateOrConnectWithoutSalesRepInput> = z.object({
+  where: z.lazy(() => ColorSettingsWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema) ]),
 }).strict();
 
-export const SalesRepColorsCreateManySalesRepInputEnvelopeSchema: z.ZodType<Prisma.SalesRepColorsCreateManySalesRepInputEnvelope> = z.object({
-  data: z.union([ z.lazy(() => SalesRepColorsCreateManySalesRepInputSchema),z.lazy(() => SalesRepColorsCreateManySalesRepInputSchema).array() ]),
+export const ColorSettingsCreateManySalesRepInputEnvelopeSchema: z.ZodType<Prisma.ColorSettingsCreateManySalesRepInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => ColorSettingsCreateManySalesRepInputSchema),z.lazy(() => ColorSettingsCreateManySalesRepInputSchema).array() ]),
   skipDuplicates: z.boolean().optional()
 }).strict();
 
@@ -6697,7 +6964,8 @@ export const UserUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.UserUpdateWi
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   session: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
-  Key: z.lazy(() => KeyUpdateManyWithoutUserNestedInputSchema).optional()
+  Key: z.lazy(() => KeyUpdateManyWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const UserUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.UserUncheckedUpdateWithoutSalesRepInput> = z.object({
@@ -6705,7 +6973,8 @@ export const UserUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.Use
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   session: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
-  Key: z.lazy(() => KeyUncheckedUpdateManyWithoutUserNestedInputSchema).optional()
+  Key: z.lazy(() => KeyUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const ClientSalesRepCompanyUpsertWithWhereUniqueWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpsertWithWhereUniqueWithoutSalesRepInput> = z.object({
@@ -6758,31 +7027,32 @@ export const ClientScalarWhereInputSchema: z.ZodType<Prisma.ClientScalarWhereInp
   companyId: z.union([ z.lazy(() => IntFilterSchema),z.number() ]).optional(),
 }).strict();
 
-export const SalesRepColorsUpsertWithWhereUniqueWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUpsertWithWhereUniqueWithoutSalesRepInput> = z.object({
-  where: z.lazy(() => SalesRepColorsWhereUniqueInputSchema),
-  update: z.union([ z.lazy(() => SalesRepColorsUpdateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedUpdateWithoutSalesRepInputSchema) ]),
-  create: z.union([ z.lazy(() => SalesRepColorsCreateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedCreateWithoutSalesRepInputSchema) ]),
+export const ColorSettingsUpsertWithWhereUniqueWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUpsertWithWhereUniqueWithoutSalesRepInput> = z.object({
+  where: z.lazy(() => ColorSettingsWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => ColorSettingsUpdateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedUpdateWithoutSalesRepInputSchema) ]),
+  create: z.union([ z.lazy(() => ColorSettingsCreateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedCreateWithoutSalesRepInputSchema) ]),
 }).strict();
 
-export const SalesRepColorsUpdateWithWhereUniqueWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateWithWhereUniqueWithoutSalesRepInput> = z.object({
-  where: z.lazy(() => SalesRepColorsWhereUniqueInputSchema),
-  data: z.union([ z.lazy(() => SalesRepColorsUpdateWithoutSalesRepInputSchema),z.lazy(() => SalesRepColorsUncheckedUpdateWithoutSalesRepInputSchema) ]),
+export const ColorSettingsUpdateWithWhereUniqueWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUpdateWithWhereUniqueWithoutSalesRepInput> = z.object({
+  where: z.lazy(() => ColorSettingsWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => ColorSettingsUpdateWithoutSalesRepInputSchema),z.lazy(() => ColorSettingsUncheckedUpdateWithoutSalesRepInputSchema) ]),
 }).strict();
 
-export const SalesRepColorsUpdateManyWithWhereWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateManyWithWhereWithoutSalesRepInput> = z.object({
-  where: z.lazy(() => SalesRepColorsScalarWhereInputSchema),
-  data: z.union([ z.lazy(() => SalesRepColorsUpdateManyMutationInputSchema),z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInputSchema) ]),
+export const ColorSettingsUpdateManyWithWhereWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUpdateManyWithWhereWithoutSalesRepInput> = z.object({
+  where: z.lazy(() => ColorSettingsScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => ColorSettingsUpdateManyMutationInputSchema),z.lazy(() => ColorSettingsUncheckedUpdateManyWithoutSalesRepColorsInputSchema) ]),
 }).strict();
 
-export const SalesRepColorsScalarWhereInputSchema: z.ZodType<Prisma.SalesRepColorsScalarWhereInput> = z.object({
-  AND: z.union([ z.lazy(() => SalesRepColorsScalarWhereInputSchema),z.lazy(() => SalesRepColorsScalarWhereInputSchema).array() ]).optional(),
-  OR: z.lazy(() => SalesRepColorsScalarWhereInputSchema).array().optional(),
-  NOT: z.union([ z.lazy(() => SalesRepColorsScalarWhereInputSchema),z.lazy(() => SalesRepColorsScalarWhereInputSchema).array() ]).optional(),
+export const ColorSettingsScalarWhereInputSchema: z.ZodType<Prisma.ColorSettingsScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => ColorSettingsScalarWhereInputSchema),z.lazy(() => ColorSettingsScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => ColorSettingsScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => ColorSettingsScalarWhereInputSchema),z.lazy(() => ColorSettingsScalarWhereInputSchema).array() ]).optional(),
   salesRepUsername: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   accentColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   primaryColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   secondaryColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   auxiliaryColor: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  theme: z.union([ z.lazy(() => EnumThemeFilterSchema),z.lazy(() => ThemeSchema) ]).optional(),
 }).strict();
 
 export const SalesRepCreateWithoutSalesRepColorsInputSchema: z.ZodType<Prisma.SalesRepCreateWithoutSalesRepColorsInput> = z.object({
@@ -6837,6 +7107,52 @@ export const SalesRepUncheckedUpdateWithoutSalesRepColorsInputSchema: z.ZodType<
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
+export const UserCreateWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserCreateWithoutUserSettingsInput> = z.object({
+  id: z.string(),
+  username: z.string(),
+  role: z.lazy(() => UserRolesSchema),
+  session: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
+  Key: z.lazy(() => KeyCreateNestedManyWithoutUserInputSchema).optional(),
+  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional()
+}).strict();
+
+export const UserUncheckedCreateWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserUncheckedCreateWithoutUserSettingsInput> = z.object({
+  id: z.string(),
+  username: z.string(),
+  role: z.lazy(() => UserRolesSchema),
+  session: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  Key: z.lazy(() => KeyUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
+  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional()
+}).strict();
+
+export const UserCreateOrConnectWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserCreateOrConnectWithoutUserSettingsInput> = z.object({
+  where: z.lazy(() => UserWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => UserCreateWithoutUserSettingsInputSchema),z.lazy(() => UserUncheckedCreateWithoutUserSettingsInputSchema) ]),
+}).strict();
+
+export const UserUpsertWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserUpsertWithoutUserSettingsInput> = z.object({
+  update: z.union([ z.lazy(() => UserUpdateWithoutUserSettingsInputSchema),z.lazy(() => UserUncheckedUpdateWithoutUserSettingsInputSchema) ]),
+  create: z.union([ z.lazy(() => UserCreateWithoutUserSettingsInputSchema),z.lazy(() => UserUncheckedCreateWithoutUserSettingsInputSchema) ]),
+}).strict();
+
+export const UserUpdateWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserUpdateWithoutUserSettingsInput> = z.object({
+  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
+  session: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
+  Key: z.lazy(() => KeyUpdateManyWithoutUserNestedInputSchema).optional(),
+  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional()
+}).strict();
+
+export const UserUncheckedUpdateWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserUncheckedUpdateWithoutUserSettingsInput> = z.object({
+  id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
+  session: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  Key: z.lazy(() => KeyUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
+  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional()
+}).strict();
+
 export const ClientCreateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.ClientCreateWithoutClientSalesRepCompanyInput> = z.object({
   id: z.string(),
   name: z.string(),
@@ -6887,7 +7203,7 @@ export const SalesRepCreateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Pr
   company: z.lazy(() => CompanyCreateNestedOneWithoutSalesRepInputSchema),
   user: z.lazy(() => UserCreateNestedOneWithoutSalesRepInputSchema),
   client: z.lazy(() => ClientCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedCreateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateWithoutClientSalesRepCompanyInput> = z.object({
@@ -6898,7 +7214,7 @@ export const SalesRepUncheckedCreateWithoutClientSalesRepCompanyInputSchema: z.Z
   phone: z.string(),
   companyId: z.number(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepCreateOrConnectWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.SalesRepCreateOrConnectWithoutClientSalesRepCompanyInput> = z.object({
@@ -6995,7 +7311,7 @@ export const SalesRepUpdateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Pr
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedUpdateWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateWithoutClientSalesRepCompanyInput> = z.object({
@@ -7006,7 +7322,7 @@ export const SalesRepUncheckedUpdateWithoutClientSalesRepCompanyInputSchema: z.Z
   phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const CompanyUpsertWithoutClientSalesRepCompanyInputSchema: z.ZodType<Prisma.CompanyUpsertWithoutClientSalesRepCompanyInput> = z.object({
@@ -7308,7 +7624,7 @@ export const SalesRepCreateWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepC
   user: z.lazy(() => UserCreateNestedOneWithoutSalesRepInputSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedCreateWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateWithoutCompanyInput> = z.object({
@@ -7319,7 +7635,7 @@ export const SalesRepUncheckedCreateWithoutCompanyInputSchema: z.ZodType<Prisma.
   phone: z.string(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepCreateOrConnectWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepCreateOrConnectWithoutCompanyInput> = z.object({
@@ -7519,7 +7835,7 @@ export const SalesRepCreateWithoutUserInputSchema: z.ZodType<Prisma.SalesRepCrea
   company: z.lazy(() => CompanyCreateNestedOneWithoutSalesRepInputSchema),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedCreateWithoutUserInputSchema: z.ZodType<Prisma.SalesRepUncheckedCreateWithoutUserInput> = z.object({
@@ -7530,12 +7846,30 @@ export const SalesRepUncheckedCreateWithoutUserInputSchema: z.ZodType<Prisma.Sal
   companyId: z.number(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedCreateNestedManyWithoutSalesRepInputSchema).optional()
 }).strict();
 
 export const SalesRepCreateOrConnectWithoutUserInputSchema: z.ZodType<Prisma.SalesRepCreateOrConnectWithoutUserInput> = z.object({
   where: z.lazy(() => SalesRepWhereUniqueInputSchema),
   create: z.union([ z.lazy(() => SalesRepCreateWithoutUserInputSchema),z.lazy(() => SalesRepUncheckedCreateWithoutUserInputSchema) ]),
+}).strict();
+
+export const UserSettingsCreateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsCreateWithoutUserInput> = z.object({
+  settings: z.string()
+}).strict();
+
+export const UserSettingsUncheckedCreateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUncheckedCreateWithoutUserInput> = z.object({
+  settings: z.string()
+}).strict();
+
+export const UserSettingsCreateOrConnectWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsCreateOrConnectWithoutUserInput> = z.object({
+  where: z.lazy(() => UserSettingsWhereUniqueInputSchema),
+  create: z.union([ z.lazy(() => UserSettingsCreateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema) ]),
+}).strict();
+
+export const UserSettingsCreateManyUserInputEnvelopeSchema: z.ZodType<Prisma.UserSettingsCreateManyUserInputEnvelope> = z.object({
+  data: z.union([ z.lazy(() => UserSettingsCreateManyUserInputSchema),z.lazy(() => UserSettingsCreateManyUserInputSchema).array() ]),
+  skipDuplicates: z.boolean().optional()
 }).strict();
 
 export const SessionUpsertWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.SessionUpsertWithWhereUniqueWithoutUserInput> = z.object({
@@ -7603,7 +7937,7 @@ export const SalesRepUpdateWithoutUserInputSchema: z.ZodType<Prisma.SalesRepUpda
   company: z.lazy(() => CompanyUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedUpdateWithoutUserInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateWithoutUserInput> = z.object({
@@ -7614,7 +7948,31 @@ export const SalesRepUncheckedUpdateWithoutUserInputSchema: z.ZodType<Prisma.Sal
   companyId: z.union([ z.number(),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
+}).strict();
+
+export const UserSettingsUpsertWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUpsertWithWhereUniqueWithoutUserInput> = z.object({
+  where: z.lazy(() => UserSettingsWhereUniqueInputSchema),
+  update: z.union([ z.lazy(() => UserSettingsUpdateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedUpdateWithoutUserInputSchema) ]),
+  create: z.union([ z.lazy(() => UserSettingsCreateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedCreateWithoutUserInputSchema) ]),
+}).strict();
+
+export const UserSettingsUpdateWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUpdateWithWhereUniqueWithoutUserInput> = z.object({
+  where: z.lazy(() => UserSettingsWhereUniqueInputSchema),
+  data: z.union([ z.lazy(() => UserSettingsUpdateWithoutUserInputSchema),z.lazy(() => UserSettingsUncheckedUpdateWithoutUserInputSchema) ]),
+}).strict();
+
+export const UserSettingsUpdateManyWithWhereWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUpdateManyWithWhereWithoutUserInput> = z.object({
+  where: z.lazy(() => UserSettingsScalarWhereInputSchema),
+  data: z.union([ z.lazy(() => UserSettingsUpdateManyMutationInputSchema),z.lazy(() => UserSettingsUncheckedUpdateManyWithoutUserSettingsInputSchema) ]),
+}).strict();
+
+export const UserSettingsScalarWhereInputSchema: z.ZodType<Prisma.UserSettingsScalarWhereInput> = z.object({
+  AND: z.union([ z.lazy(() => UserSettingsScalarWhereInputSchema),z.lazy(() => UserSettingsScalarWhereInputSchema).array() ]).optional(),
+  OR: z.lazy(() => UserSettingsScalarWhereInputSchema).array().optional(),
+  NOT: z.union([ z.lazy(() => UserSettingsScalarWhereInputSchema),z.lazy(() => UserSettingsScalarWhereInputSchema).array() ]).optional(),
+  username: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  settings: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
 }).strict();
 
 export const UserCreateWithoutSessionInputSchema: z.ZodType<Prisma.UserCreateWithoutSessionInput> = z.object({
@@ -7622,7 +7980,8 @@ export const UserCreateWithoutSessionInputSchema: z.ZodType<Prisma.UserCreateWit
   username: z.string(),
   role: z.lazy(() => UserRolesSchema),
   Key: z.lazy(() => KeyCreateNestedManyWithoutUserInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserUncheckedCreateWithoutSessionInputSchema: z.ZodType<Prisma.UserUncheckedCreateWithoutSessionInput> = z.object({
@@ -7630,7 +7989,8 @@ export const UserUncheckedCreateWithoutSessionInputSchema: z.ZodType<Prisma.User
   username: z.string(),
   role: z.lazy(() => UserRolesSchema),
   Key: z.lazy(() => KeyUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserCreateOrConnectWithoutSessionInputSchema: z.ZodType<Prisma.UserCreateOrConnectWithoutSessionInput> = z.object({
@@ -7648,7 +8008,8 @@ export const UserUpdateWithoutSessionInputSchema: z.ZodType<Prisma.UserUpdateWit
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   Key: z.lazy(() => KeyUpdateManyWithoutUserNestedInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const UserUncheckedUpdateWithoutSessionInputSchema: z.ZodType<Prisma.UserUncheckedUpdateWithoutSessionInput> = z.object({
@@ -7656,7 +8017,8 @@ export const UserUncheckedUpdateWithoutSessionInputSchema: z.ZodType<Prisma.User
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   Key: z.lazy(() => KeyUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const UserCreateWithoutKeyInputSchema: z.ZodType<Prisma.UserCreateWithoutKeyInput> = z.object({
@@ -7664,7 +8026,8 @@ export const UserCreateWithoutKeyInputSchema: z.ZodType<Prisma.UserCreateWithout
   username: z.string(),
   role: z.lazy(() => UserRolesSchema),
   session: z.lazy(() => SessionCreateNestedManyWithoutUserInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepCreateNestedOneWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserUncheckedCreateWithoutKeyInputSchema: z.ZodType<Prisma.UserUncheckedCreateWithoutKeyInput> = z.object({
@@ -7672,7 +8035,8 @@ export const UserUncheckedCreateWithoutKeyInputSchema: z.ZodType<Prisma.UserUnch
   username: z.string(),
   role: z.lazy(() => UserRolesSchema),
   session: z.lazy(() => SessionUncheckedCreateNestedManyWithoutUserInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUncheckedCreateNestedOneWithoutUserInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedCreateNestedManyWithoutUserInputSchema).optional()
 }).strict();
 
 export const UserCreateOrConnectWithoutKeyInputSchema: z.ZodType<Prisma.UserCreateOrConnectWithoutKeyInput> = z.object({
@@ -7690,7 +8054,8 @@ export const UserUpdateWithoutKeyInputSchema: z.ZodType<Prisma.UserUpdateWithout
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   session: z.lazy(() => SessionUpdateManyWithoutUserNestedInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUpdateOneWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const UserUncheckedUpdateWithoutKeyInputSchema: z.ZodType<Prisma.UserUncheckedUpdateWithoutKeyInput> = z.object({
@@ -7698,7 +8063,8 @@ export const UserUncheckedUpdateWithoutKeyInputSchema: z.ZodType<Prisma.UserUnch
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   role: z.union([ z.lazy(() => UserRolesSchema),z.lazy(() => EnumUserRolesFieldUpdateOperationsInputSchema) ]).optional(),
   session: z.lazy(() => SessionUncheckedUpdateManyWithoutUserNestedInputSchema).optional(),
-  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional()
+  SalesRep: z.lazy(() => SalesRepUncheckedUpdateOneWithoutUserNestedInputSchema).optional(),
+  UserSettings: z.lazy(() => UserSettingsUncheckedUpdateManyWithoutUserNestedInputSchema).optional()
 }).strict();
 
 export const ClientEmailCreateManyClientInputSchema: z.ZodType<Prisma.ClientEmailCreateManyClientInput> = z.object({
@@ -7926,11 +8292,12 @@ export const ClientCreateManySalesRepInputSchema: z.ZodType<Prisma.ClientCreateM
   companyId: z.coerce.number().gte(1, { message: 'Please select a valid company' })
 }).strict();
 
-export const SalesRepColorsCreateManySalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsCreateManySalesRepInput> = z.object({
+export const ColorSettingsCreateManySalesRepInputSchema: z.ZodType<Prisma.ColorSettingsCreateManySalesRepInput> = z.object({
   accentColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   primaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
   secondaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
-  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' })
+  auxiliaryColor: z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),
+  theme: z.lazy(() => ThemeSchema)
 }).strict();
 
 export const ClientSalesRepCompanyUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyUpdateWithoutSalesRepInput> = z.object({
@@ -8001,25 +8368,28 @@ export const ClientUncheckedUpdateManyWithoutClientInputSchema: z.ZodType<Prisma
   companyId: z.union([ z.coerce.number().gte(1, { message: 'Please select a valid company' }),z.lazy(() => IntFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUpdateWithoutSalesRepInput> = z.object({
+export const ColorSettingsUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUpdateWithoutSalesRepInput> = z.object({
   accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateWithoutSalesRepInput> = z.object({
+export const ColorSettingsUncheckedUpdateWithoutSalesRepInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedUpdateWithoutSalesRepInput> = z.object({
   accentColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
-export const SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInputSchema: z.ZodType<Prisma.SalesRepColorsUncheckedUpdateManyWithoutSalesRepColorsInput> = z.object({
+export const ColorSettingsUncheckedUpdateManyWithoutSalesRepColorsInputSchema: z.ZodType<Prisma.ColorSettingsUncheckedUpdateManyWithoutSalesRepColorsInput> = z.object({
   accentColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   primaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   secondaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   auxiliaryColor: z.union([ z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  theme: z.union([ z.lazy(() => ThemeSchema),z.lazy(() => EnumThemeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const SalesRepCreateManyCompanyInputSchema: z.ZodType<Prisma.SalesRepCreateManyCompanyInput> = z.object({
@@ -8059,7 +8429,7 @@ export const SalesRepUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepU
   user: z.lazy(() => UserUpdateOneRequiredWithoutSalesRepNestedInputSchema).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateWithoutCompanyInput> = z.object({
@@ -8070,7 +8440,7 @@ export const SalesRepUncheckedUpdateWithoutCompanyInputSchema: z.ZodType<Prisma.
   phone: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   clientSalesRepCompany: z.lazy(() => ClientSalesRepCompanyUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
   client: z.lazy(() => ClientUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional(),
-  SalesRepColors: z.lazy(() => SalesRepColorsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
+  SalesRepColors: z.lazy(() => ColorSettingsUncheckedUpdateManyWithoutSalesRepNestedInputSchema).optional()
 }).strict();
 
 export const SalesRepUncheckedUpdateManyWithoutSalesRepInputSchema: z.ZodType<Prisma.SalesRepUncheckedUpdateManyWithoutSalesRepInput> = z.object({
@@ -8148,6 +8518,10 @@ export const KeyCreateManyUserInputSchema: z.ZodType<Prisma.KeyCreateManyUserInp
   expires: z.bigint().optional().nullable()
 }).strict();
 
+export const UserSettingsCreateManyUserInputSchema: z.ZodType<Prisma.UserSettingsCreateManyUserInput> = z.object({
+  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' })
+}).strict();
+
 export const SessionUpdateWithoutUserInputSchema: z.ZodType<Prisma.SessionUpdateWithoutUserInput> = z.object({
   id: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   active_expires: z.union([ z.bigint(),z.lazy(() => BigIntFieldUpdateOperationsInputSchema) ]).optional(),
@@ -8185,6 +8559,18 @@ export const KeyUncheckedUpdateManyWithoutKeyInputSchema: z.ZodType<Prisma.KeyUn
   hashed_password: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   primary: z.union([ z.boolean(),z.lazy(() => BoolFieldUpdateOperationsInputSchema) ]).optional(),
   expires: z.union([ z.bigint(),z.lazy(() => NullableBigIntFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+}).strict();
+
+export const UserSettingsUpdateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUpdateWithoutUserInput> = z.object({
+  settings: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsUncheckedUpdateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateWithoutUserInput> = z.object({
+  settings: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+}).strict();
+
+export const UserSettingsUncheckedUpdateManyWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateManyWithoutUserSettingsInput> = z.object({
+  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 /////////////////////////////////////////
@@ -8563,66 +8949,128 @@ export const SalesRepFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.SalesRepFindU
   where: SalesRepWhereUniqueInputSchema,
 }).strict()
 
-export const SalesRepColorsFindFirstArgsSchema: z.ZodType<Prisma.SalesRepColorsFindFirstArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereInputSchema.optional(),
-  orderBy: z.union([ SalesRepColorsOrderByWithRelationInputSchema.array(),SalesRepColorsOrderByWithRelationInputSchema ]).optional(),
-  cursor: SalesRepColorsWhereUniqueInputSchema.optional(),
+export const ColorSettingsFindFirstArgsSchema: z.ZodType<Prisma.ColorSettingsFindFirstArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ ColorSettingsOrderByWithRelationInputSchema.array(),ColorSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: ColorSettingsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-  distinct: SalesRepColorsScalarFieldEnumSchema.array().optional(),
+  distinct: ColorSettingsScalarFieldEnumSchema.array().optional(),
 }).strict()
 
-export const SalesRepColorsFindFirstOrThrowArgsSchema: z.ZodType<Prisma.SalesRepColorsFindFirstOrThrowArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereInputSchema.optional(),
-  orderBy: z.union([ SalesRepColorsOrderByWithRelationInputSchema.array(),SalesRepColorsOrderByWithRelationInputSchema ]).optional(),
-  cursor: SalesRepColorsWhereUniqueInputSchema.optional(),
+export const ColorSettingsFindFirstOrThrowArgsSchema: z.ZodType<Prisma.ColorSettingsFindFirstOrThrowArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ ColorSettingsOrderByWithRelationInputSchema.array(),ColorSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: ColorSettingsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-  distinct: SalesRepColorsScalarFieldEnumSchema.array().optional(),
+  distinct: ColorSettingsScalarFieldEnumSchema.array().optional(),
 }).strict()
 
-export const SalesRepColorsFindManyArgsSchema: z.ZodType<Prisma.SalesRepColorsFindManyArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereInputSchema.optional(),
-  orderBy: z.union([ SalesRepColorsOrderByWithRelationInputSchema.array(),SalesRepColorsOrderByWithRelationInputSchema ]).optional(),
-  cursor: SalesRepColorsWhereUniqueInputSchema.optional(),
+export const ColorSettingsFindManyArgsSchema: z.ZodType<Prisma.ColorSettingsFindManyArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ ColorSettingsOrderByWithRelationInputSchema.array(),ColorSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: ColorSettingsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
-  distinct: SalesRepColorsScalarFieldEnumSchema.array().optional(),
+  distinct: ColorSettingsScalarFieldEnumSchema.array().optional(),
 }).strict()
 
-export const SalesRepColorsAggregateArgsSchema: z.ZodType<Prisma.SalesRepColorsAggregateArgs> = z.object({
-  where: SalesRepColorsWhereInputSchema.optional(),
-  orderBy: z.union([ SalesRepColorsOrderByWithRelationInputSchema.array(),SalesRepColorsOrderByWithRelationInputSchema ]).optional(),
-  cursor: SalesRepColorsWhereUniqueInputSchema.optional(),
-  take: z.number().optional(),
-  skip: z.number().optional(),
-}).strict()
-
-export const SalesRepColorsGroupByArgsSchema: z.ZodType<Prisma.SalesRepColorsGroupByArgs> = z.object({
-  where: SalesRepColorsWhereInputSchema.optional(),
-  orderBy: z.union([ SalesRepColorsOrderByWithAggregationInputSchema.array(),SalesRepColorsOrderByWithAggregationInputSchema ]).optional(),
-  by: SalesRepColorsScalarFieldEnumSchema.array(),
-  having: SalesRepColorsScalarWhereWithAggregatesInputSchema.optional(),
+export const ColorSettingsAggregateArgsSchema: z.ZodType<Prisma.ColorSettingsAggregateArgs> = z.object({
+  where: ColorSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ ColorSettingsOrderByWithRelationInputSchema.array(),ColorSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: ColorSettingsWhereUniqueInputSchema.optional(),
   take: z.number().optional(),
   skip: z.number().optional(),
 }).strict()
 
-export const SalesRepColorsFindUniqueArgsSchema: z.ZodType<Prisma.SalesRepColorsFindUniqueArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereUniqueInputSchema,
+export const ColorSettingsGroupByArgsSchema: z.ZodType<Prisma.ColorSettingsGroupByArgs> = z.object({
+  where: ColorSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ ColorSettingsOrderByWithAggregationInputSchema.array(),ColorSettingsOrderByWithAggregationInputSchema ]).optional(),
+  by: ColorSettingsScalarFieldEnumSchema.array(),
+  having: ColorSettingsScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
 }).strict()
 
-export const SalesRepColorsFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.SalesRepColorsFindUniqueOrThrowArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereUniqueInputSchema,
+export const ColorSettingsFindUniqueArgsSchema: z.ZodType<Prisma.ColorSettingsFindUniqueArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereUniqueInputSchema,
+}).strict()
+
+export const ColorSettingsFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.ColorSettingsFindUniqueOrThrowArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereUniqueInputSchema,
+}).strict()
+
+export const UserSettingsFindFirstArgsSchema: z.ZodType<Prisma.UserSettingsFindFirstArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ UserSettingsOrderByWithRelationInputSchema.array(),UserSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: UserSettingsWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: UserSettingsScalarFieldEnumSchema.array().optional(),
+}).strict()
+
+export const UserSettingsFindFirstOrThrowArgsSchema: z.ZodType<Prisma.UserSettingsFindFirstOrThrowArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ UserSettingsOrderByWithRelationInputSchema.array(),UserSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: UserSettingsWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: UserSettingsScalarFieldEnumSchema.array().optional(),
+}).strict()
+
+export const UserSettingsFindManyArgsSchema: z.ZodType<Prisma.UserSettingsFindManyArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ UserSettingsOrderByWithRelationInputSchema.array(),UserSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: UserSettingsWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+  distinct: UserSettingsScalarFieldEnumSchema.array().optional(),
+}).strict()
+
+export const UserSettingsAggregateArgsSchema: z.ZodType<Prisma.UserSettingsAggregateArgs> = z.object({
+  where: UserSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ UserSettingsOrderByWithRelationInputSchema.array(),UserSettingsOrderByWithRelationInputSchema ]).optional(),
+  cursor: UserSettingsWhereUniqueInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict()
+
+export const UserSettingsGroupByArgsSchema: z.ZodType<Prisma.UserSettingsGroupByArgs> = z.object({
+  where: UserSettingsWhereInputSchema.optional(),
+  orderBy: z.union([ UserSettingsOrderByWithAggregationInputSchema.array(),UserSettingsOrderByWithAggregationInputSchema ]).optional(),
+  by: UserSettingsScalarFieldEnumSchema.array(),
+  having: UserSettingsScalarWhereWithAggregatesInputSchema.optional(),
+  take: z.number().optional(),
+  skip: z.number().optional(),
+}).strict()
+
+export const UserSettingsFindUniqueArgsSchema: z.ZodType<Prisma.UserSettingsFindUniqueArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereUniqueInputSchema,
+}).strict()
+
+export const UserSettingsFindUniqueOrThrowArgsSchema: z.ZodType<Prisma.UserSettingsFindUniqueOrThrowArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereUniqueInputSchema,
 }).strict()
 
 export const ClientSalesRepCompanyFindFirstArgsSchema: z.ZodType<Prisma.ClientSalesRepCompanyFindFirstArgs> = z.object({
@@ -9367,45 +9815,86 @@ export const SalesRepDeleteManyArgsSchema: z.ZodType<Prisma.SalesRepDeleteManyAr
   where: SalesRepWhereInputSchema.optional(),
 }).strict()
 
-export const SalesRepColorsCreateArgsSchema: z.ZodType<Prisma.SalesRepColorsCreateArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  data: z.union([ SalesRepColorsCreateInputSchema,SalesRepColorsUncheckedCreateInputSchema ]),
+export const ColorSettingsCreateArgsSchema: z.ZodType<Prisma.ColorSettingsCreateArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  data: z.union([ ColorSettingsCreateInputSchema,ColorSettingsUncheckedCreateInputSchema ]),
 }).strict()
 
-export const SalesRepColorsUpsertArgsSchema: z.ZodType<Prisma.SalesRepColorsUpsertArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereUniqueInputSchema,
-  create: z.union([ SalesRepColorsCreateInputSchema,SalesRepColorsUncheckedCreateInputSchema ]),
-  update: z.union([ SalesRepColorsUpdateInputSchema,SalesRepColorsUncheckedUpdateInputSchema ]),
+export const ColorSettingsUpsertArgsSchema: z.ZodType<Prisma.ColorSettingsUpsertArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereUniqueInputSchema,
+  create: z.union([ ColorSettingsCreateInputSchema,ColorSettingsUncheckedCreateInputSchema ]),
+  update: z.union([ ColorSettingsUpdateInputSchema,ColorSettingsUncheckedUpdateInputSchema ]),
 }).strict()
 
-export const SalesRepColorsCreateManyArgsSchema: z.ZodType<Prisma.SalesRepColorsCreateManyArgs> = z.object({
-  data: z.union([ SalesRepColorsCreateManyInputSchema,SalesRepColorsCreateManyInputSchema.array() ]),
+export const ColorSettingsCreateManyArgsSchema: z.ZodType<Prisma.ColorSettingsCreateManyArgs> = z.object({
+  data: z.union([ ColorSettingsCreateManyInputSchema,ColorSettingsCreateManyInputSchema.array() ]),
   skipDuplicates: z.boolean().optional(),
 }).strict()
 
-export const SalesRepColorsDeleteArgsSchema: z.ZodType<Prisma.SalesRepColorsDeleteArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  where: SalesRepColorsWhereUniqueInputSchema,
+export const ColorSettingsDeleteArgsSchema: z.ZodType<Prisma.ColorSettingsDeleteArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  where: ColorSettingsWhereUniqueInputSchema,
 }).strict()
 
-export const SalesRepColorsUpdateArgsSchema: z.ZodType<Prisma.SalesRepColorsUpdateArgs> = z.object({
-  select: SalesRepColorsSelectSchema.optional(),
-  include: SalesRepColorsIncludeSchema.optional(),
-  data: z.union([ SalesRepColorsUpdateInputSchema,SalesRepColorsUncheckedUpdateInputSchema ]),
-  where: SalesRepColorsWhereUniqueInputSchema,
+export const ColorSettingsUpdateArgsSchema: z.ZodType<Prisma.ColorSettingsUpdateArgs> = z.object({
+  select: ColorSettingsSelectSchema.optional(),
+  include: ColorSettingsIncludeSchema.optional(),
+  data: z.union([ ColorSettingsUpdateInputSchema,ColorSettingsUncheckedUpdateInputSchema ]),
+  where: ColorSettingsWhereUniqueInputSchema,
 }).strict()
 
-export const SalesRepColorsUpdateManyArgsSchema: z.ZodType<Prisma.SalesRepColorsUpdateManyArgs> = z.object({
-  data: z.union([ SalesRepColorsUpdateManyMutationInputSchema,SalesRepColorsUncheckedUpdateManyInputSchema ]),
-  where: SalesRepColorsWhereInputSchema.optional(),
+export const ColorSettingsUpdateManyArgsSchema: z.ZodType<Prisma.ColorSettingsUpdateManyArgs> = z.object({
+  data: z.union([ ColorSettingsUpdateManyMutationInputSchema,ColorSettingsUncheckedUpdateManyInputSchema ]),
+  where: ColorSettingsWhereInputSchema.optional(),
 }).strict()
 
-export const SalesRepColorsDeleteManyArgsSchema: z.ZodType<Prisma.SalesRepColorsDeleteManyArgs> = z.object({
-  where: SalesRepColorsWhereInputSchema.optional(),
+export const ColorSettingsDeleteManyArgsSchema: z.ZodType<Prisma.ColorSettingsDeleteManyArgs> = z.object({
+  where: ColorSettingsWhereInputSchema.optional(),
+}).strict()
+
+export const UserSettingsCreateArgsSchema: z.ZodType<Prisma.UserSettingsCreateArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  data: z.union([ UserSettingsCreateInputSchema,UserSettingsUncheckedCreateInputSchema ]),
+}).strict()
+
+export const UserSettingsUpsertArgsSchema: z.ZodType<Prisma.UserSettingsUpsertArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereUniqueInputSchema,
+  create: z.union([ UserSettingsCreateInputSchema,UserSettingsUncheckedCreateInputSchema ]),
+  update: z.union([ UserSettingsUpdateInputSchema,UserSettingsUncheckedUpdateInputSchema ]),
+}).strict()
+
+export const UserSettingsCreateManyArgsSchema: z.ZodType<Prisma.UserSettingsCreateManyArgs> = z.object({
+  data: z.union([ UserSettingsCreateManyInputSchema,UserSettingsCreateManyInputSchema.array() ]),
+  skipDuplicates: z.boolean().optional(),
+}).strict()
+
+export const UserSettingsDeleteArgsSchema: z.ZodType<Prisma.UserSettingsDeleteArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  where: UserSettingsWhereUniqueInputSchema,
+}).strict()
+
+export const UserSettingsUpdateArgsSchema: z.ZodType<Prisma.UserSettingsUpdateArgs> = z.object({
+  select: UserSettingsSelectSchema.optional(),
+  include: UserSettingsIncludeSchema.optional(),
+  data: z.union([ UserSettingsUpdateInputSchema,UserSettingsUncheckedUpdateInputSchema ]),
+  where: UserSettingsWhereUniqueInputSchema,
+}).strict()
+
+export const UserSettingsUpdateManyArgsSchema: z.ZodType<Prisma.UserSettingsUpdateManyArgs> = z.object({
+  data: z.union([ UserSettingsUpdateManyMutationInputSchema,UserSettingsUncheckedUpdateManyInputSchema ]),
+  where: UserSettingsWhereInputSchema.optional(),
+}).strict()
+
+export const UserSettingsDeleteManyArgsSchema: z.ZodType<Prisma.UserSettingsDeleteManyArgs> = z.object({
+  where: UserSettingsWhereInputSchema.optional(),
 }).strict()
 
 export const ClientSalesRepCompanyCreateArgsSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateArgs> = z.object({
