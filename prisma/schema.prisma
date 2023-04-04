@@ -143,8 +143,7 @@ model ColorSettings {
 
 model UserSettings {
   username String @id
-  /// @zod.custom.use(z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }))
-  settings String @db.VarChar(5000)
+  settings Json   @db.Json
   User     User   @relation(fields: [username], references: [id])
 
   @@map("user_settings")

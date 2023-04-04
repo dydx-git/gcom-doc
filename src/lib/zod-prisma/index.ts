@@ -1,10 +1,48 @@
 import { z } from 'zod';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import validator from 'validator';
 
 /////////////////////////////////////////
 // HELPER FUNCTIONS
 /////////////////////////////////////////
+
+// JSON
+//------------------------------------------------------
+
+export type NullableJsonInput = Prisma.JsonValue | null | 'JsonNull' | 'DbNull' | Prisma.NullTypes.DbNull | Prisma.NullTypes.JsonNull;
+
+export const transformJsonNull = (v?: NullableJsonInput) => {
+  if (!v || v === 'DbNull') return Prisma.DbNull;
+  if (v === 'JsonNull') return Prisma.JsonNull;
+  return v;
+};
+
+export const JsonValue: z.ZodType<Prisma.JsonValue> = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.lazy(() => z.array(JsonValue)),
+  z.lazy(() => z.record(JsonValue)),
+]);
+
+export type JsonValueType = z.infer<typeof JsonValue>;
+
+export const NullableJsonValue = z
+  .union([JsonValue, z.literal('DbNull'), z.literal('JsonNull')])
+  .nullable()
+  .transform((v) => transformJsonNull(v));
+
+export type NullableJsonValueType = z.infer<typeof NullableJsonValue>;
+
+export const InputJsonValue: z.ZodType<Prisma.InputJsonValue> = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.lazy(() => z.array(InputJsonValue.nullable())),
+  z.lazy(() => z.record(InputJsonValue.nullable())),
+]);
+
+export type InputJsonValueType = z.infer<typeof InputJsonValue>;
 
 // DECIMAL
 //------------------------------------------------------
@@ -46,6 +84,10 @@ export const CompanyScalarFieldEnumSchema = z.enum(['id','name','address','city'
 export const GmailMsgScalarFieldEnumSchema = z.enum(['threadId','inboxMsgId','jobId','direction']);
 
 export const JobScalarFieldEnumSchema = z.enum(['id','name','price','createdAt','updatedAt','type','status','vendorId','purchaseOrderId']);
+
+export const JsonNullValueFilterSchema = z.enum(['DbNull','JsonNull','AnyNull',]);
+
+export const JsonNullValueInputSchema = z.enum(['JsonNull',]);
 
 export const KeyScalarFieldEnumSchema = z.enum(['id','hashed_password','user_id','primary','expires']);
 
@@ -487,7 +529,7 @@ export const ColorSettingsOptionalDefaultsWithRelationsSchema: z.ZodType<ColorSe
 
 export const UserSettingsSchema = z.object({
   username: z.string(),
-  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),
+  settings: InputJsonValue,
 })
 
 export type UserSettings = z.infer<typeof UserSettingsSchema>
@@ -1741,7 +1783,7 @@ export const UserSettingsWhereInputSchema: z.ZodType<Prisma.UserSettingsWhereInp
   OR: z.lazy(() => UserSettingsWhereInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => UserSettingsWhereInputSchema),z.lazy(() => UserSettingsWhereInputSchema).array() ]).optional(),
   username: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  settings: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  settings: z.lazy(() => JsonFilterSchema).optional(),
   User: z.union([ z.lazy(() => UserRelationFilterSchema),z.lazy(() => UserWhereInputSchema) ]).optional(),
 }).strict();
 
@@ -1768,7 +1810,7 @@ export const UserSettingsScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.
   OR: z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema),z.lazy(() => UserSettingsScalarWhereWithAggregatesInputSchema).array() ]).optional(),
   username: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  settings: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
+  settings: z.lazy(() => JsonWithAggregatesFilterSchema).optional()
 }).strict();
 
 export const ClientSalesRepCompanyWhereInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyWhereInput> = z.object({
@@ -2696,37 +2738,37 @@ export const ColorSettingsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.Color
 }).strict();
 
 export const UserSettingsCreateInputSchema: z.ZodType<Prisma.UserSettingsCreateInput> = z.object({
-  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]),
   User: z.lazy(() => UserCreateNestedOneWithoutUserSettingsInputSchema)
 }).strict();
 
 export const UserSettingsUncheckedCreateInputSchema: z.ZodType<Prisma.UserSettingsUncheckedCreateInput> = z.object({
   username: z.string(),
-  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' })
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]),
 }).strict();
 
 export const UserSettingsUpdateInputSchema: z.ZodType<Prisma.UserSettingsUpdateInput> = z.object({
-  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
   User: z.lazy(() => UserUpdateOneRequiredWithoutUserSettingsNestedInputSchema).optional()
 }).strict();
 
 export const UserSettingsUncheckedUpdateInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateInput> = z.object({
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
 }).strict();
 
 export const UserSettingsCreateManyInputSchema: z.ZodType<Prisma.UserSettingsCreateManyInput> = z.object({
   username: z.string(),
-  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' })
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]),
 }).strict();
 
 export const UserSettingsUpdateManyMutationInputSchema: z.ZodType<Prisma.UserSettingsUpdateManyMutationInput> = z.object({
-  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
 }).strict();
 
 export const UserSettingsUncheckedUpdateManyInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateManyInput> = z.object({
   username: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
 }).strict();
 
 export const ClientSalesRepCompanyCreateInputSchema: z.ZodType<Prisma.ClientSalesRepCompanyCreateInput> = z.object({
@@ -3912,19 +3954,52 @@ export const EnumThemeWithAggregatesFilterSchema: z.ZodType<Prisma.EnumThemeWith
   _max: z.lazy(() => NestedEnumThemeFilterSchema).optional()
 }).strict();
 
+export const JsonFilterSchema: z.ZodType<Prisma.JsonFilter> = z.object({
+  equals: z.union([ InputJsonValue,z.lazy(() => JsonNullValueFilterSchema) ]).optional(),
+  path: z.string().optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_contains: InputJsonValue.optional().nullable(),
+  array_starts_with: InputJsonValue.optional().nullable(),
+  array_ends_with: InputJsonValue.optional().nullable(),
+  lt: InputJsonValue.optional(),
+  lte: InputJsonValue.optional(),
+  gt: InputJsonValue.optional(),
+  gte: InputJsonValue.optional(),
+  not: z.union([ InputJsonValue,z.lazy(() => JsonNullValueFilterSchema) ]).optional(),
+}).strict();
+
 export const UserSettingsCountOrderByAggregateInputSchema: z.ZodType<Prisma.UserSettingsCountOrderByAggregateInput> = z.object({
   username: z.lazy(() => SortOrderSchema).optional(),
   settings: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const UserSettingsMaxOrderByAggregateInputSchema: z.ZodType<Prisma.UserSettingsMaxOrderByAggregateInput> = z.object({
-  username: z.lazy(() => SortOrderSchema).optional(),
-  settings: z.lazy(() => SortOrderSchema).optional()
+  username: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const UserSettingsMinOrderByAggregateInputSchema: z.ZodType<Prisma.UserSettingsMinOrderByAggregateInput> = z.object({
-  username: z.lazy(() => SortOrderSchema).optional(),
-  settings: z.lazy(() => SortOrderSchema).optional()
+  username: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const JsonWithAggregatesFilterSchema: z.ZodType<Prisma.JsonWithAggregatesFilter> = z.object({
+  equals: z.union([ InputJsonValue,z.lazy(() => JsonNullValueFilterSchema) ]).optional(),
+  path: z.string().optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_contains: InputJsonValue.optional().nullable(),
+  array_starts_with: InputJsonValue.optional().nullable(),
+  array_ends_with: InputJsonValue.optional().nullable(),
+  lt: InputJsonValue.optional(),
+  lte: InputJsonValue.optional(),
+  gt: InputJsonValue.optional(),
+  gte: InputJsonValue.optional(),
+  not: z.union([ InputJsonValue,z.lazy(() => JsonNullValueFilterSchema) ]).optional(),
+  _count: z.lazy(() => NestedIntFilterSchema).optional(),
+  _min: z.lazy(() => NestedJsonFilterSchema).optional(),
+  _max: z.lazy(() => NestedJsonFilterSchema).optional()
 }).strict();
 
 export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilter> = z.object({
@@ -5818,6 +5893,22 @@ export const NestedEnumThemeWithAggregatesFilterSchema: z.ZodType<Prisma.NestedE
   _count: z.lazy(() => NestedIntFilterSchema).optional(),
   _min: z.lazy(() => NestedEnumThemeFilterSchema).optional(),
   _max: z.lazy(() => NestedEnumThemeFilterSchema).optional()
+}).strict();
+
+export const NestedJsonFilterSchema: z.ZodType<Prisma.NestedJsonFilter> = z.object({
+  equals: z.union([ InputJsonValue,z.lazy(() => JsonNullValueFilterSchema) ]).optional(),
+  path: z.string().optional(),
+  string_contains: z.string().optional(),
+  string_starts_with: z.string().optional(),
+  string_ends_with: z.string().optional(),
+  array_contains: InputJsonValue.optional().nullable(),
+  array_starts_with: InputJsonValue.optional().nullable(),
+  array_ends_with: InputJsonValue.optional().nullable(),
+  lt: InputJsonValue.optional(),
+  lte: InputJsonValue.optional(),
+  gt: InputJsonValue.optional(),
+  gte: InputJsonValue.optional(),
+  not: z.union([ InputJsonValue,z.lazy(() => JsonNullValueFilterSchema) ]).optional(),
 }).strict();
 
 export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.object({
@@ -7879,11 +7970,11 @@ export const SalesRepCreateOrConnectWithoutUserInputSchema: z.ZodType<Prisma.Sal
 }).strict();
 
 export const UserSettingsCreateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsCreateWithoutUserInput> = z.object({
-  settings: z.string()
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]),
 }).strict();
 
 export const UserSettingsUncheckedCreateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUncheckedCreateWithoutUserInput> = z.object({
-  settings: z.string()
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]),
 }).strict();
 
 export const UserSettingsCreateOrConnectWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsCreateOrConnectWithoutUserInput> = z.object({
@@ -7996,7 +8087,7 @@ export const UserSettingsScalarWhereInputSchema: z.ZodType<Prisma.UserSettingsSc
   OR: z.lazy(() => UserSettingsScalarWhereInputSchema).array().optional(),
   NOT: z.union([ z.lazy(() => UserSettingsScalarWhereInputSchema),z.lazy(() => UserSettingsScalarWhereInputSchema).array() ]).optional(),
   username: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  settings: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
+  settings: z.lazy(() => JsonFilterSchema).optional()
 }).strict();
 
 export const UserCreateWithoutSessionInputSchema: z.ZodType<Prisma.UserCreateWithoutSessionInput> = z.object({
@@ -8543,7 +8634,7 @@ export const KeyCreateManyUserInputSchema: z.ZodType<Prisma.KeyCreateManyUserInp
 }).strict();
 
 export const UserSettingsCreateManyUserInputSchema: z.ZodType<Prisma.UserSettingsCreateManyUserInput> = z.object({
-  settings: z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' })
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]),
 }).strict();
 
 export const SessionUpdateWithoutUserInputSchema: z.ZodType<Prisma.SessionUpdateWithoutUserInput> = z.object({
@@ -8586,15 +8677,15 @@ export const KeyUncheckedUpdateManyWithoutKeyInputSchema: z.ZodType<Prisma.KeyUn
 }).strict();
 
 export const UserSettingsUpdateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUpdateWithoutUserInput> = z.object({
-  settings: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
 }).strict();
 
 export const UserSettingsUncheckedUpdateWithoutUserInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateWithoutUserInput> = z.object({
-  settings: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
 }).strict();
 
 export const UserSettingsUncheckedUpdateManyWithoutUserSettingsInputSchema: z.ZodType<Prisma.UserSettingsUncheckedUpdateManyWithoutUserSettingsInput> = z.object({
-  settings: z.union([ z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
+  settings: z.union([ z.lazy(() => JsonNullValueInputSchema),InputJsonValue ]).optional(),
 }).strict();
 
 /////////////////////////////////////////

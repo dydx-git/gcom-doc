@@ -21,12 +21,12 @@
 		InlineLoading
 	} from 'carbon-components-svelte';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
-	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { schema } from './meta';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
+	import type { SalesRepColors } from '$lib/modules/salesRep/meta';
 
 	export let data: PageServerData;
 	let submissionError: Error | null = null;
