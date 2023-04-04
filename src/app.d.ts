@@ -1,5 +1,6 @@
 import type { User } from '@prisma/client';
 import type { Server } from "@ghostebony/sse/server";
+import type { Settings } from '$lib/modules/userSettings/meta';
 
 declare global {
 	namespace App {
@@ -9,6 +10,7 @@ declare global {
 			code?: number;
 		}
 		interface Locals {
+			userSettings: Settings;
 			validate: import('@lucia-auth/sveltekit').Validate;
 			validateUser: import('@lucia-auth/sveltekit').ValidateUser;
 			setSession: import('@lucia-auth/sveltekit').SetSession;

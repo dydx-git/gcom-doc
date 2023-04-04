@@ -1,6 +1,7 @@
 import { User } from '$lib/modules/auth/user';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { UserSettings } from '$lib/modules/userSettings/userSettings';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const session = await locals.validate();
@@ -19,6 +20,9 @@ export const actions: Actions = {
 			if (!session) return fail(401);
 
 			locals.setSession(session);
+			locals.userSettings = await new UserSettings().read({ username: username });
+			console.log(locals.userSettings);
+
 		} catch (error) {
 			console.error(error);
 			return fail(400);
