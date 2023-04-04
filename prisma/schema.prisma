@@ -117,7 +117,7 @@ model SalesRep {
   user                  User                    @relation(fields: [username], references: [username], map: "sales_rep_user")
   clientSalesRepCompany ClientSalesRepCompany[]
   client                Client[]
-  SalesRepColors        ColorSettings[]
+  ColorSettings         ColorSettings[]
 
   @@map("sales_reps")
 }
@@ -133,11 +133,12 @@ model ColorSettings {
   secondaryColor   String   @db.VarChar(8)
   /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   auxiliaryColor   String   @db.VarChar(8)
-  theme            Theme
+  /// z.string().optional()
+  theme            Theme    @default(white)
   salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "sales_rep_colors_sales_rep")
 
   @@id([salesRepUsername])
-  @@map("sales_rep_colors")
+  @@map("color_settings")
 }
 
 model UserSettings {

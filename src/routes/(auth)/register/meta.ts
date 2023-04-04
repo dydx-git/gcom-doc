@@ -1,8 +1,8 @@
-import { SalesRepColorsSchema, SalesRepOptionalDefaultsSchema, UserRolesSchema } from "$lib/zod-prisma";
+import { ColorSettingsSchema, SalesRepOptionalDefaultsSchema, UserRolesSchema } from "$lib/zod-prisma";
 import { z } from "zod";
 
 export const schema = z.object({
-    colors: SalesRepColorsSchema.omit({ salesRepUsername: true }),
+    colors: ColorSettingsSchema.omit({ salesRepUsername: true, theme: true }),
     auth: z.object({
         username: z
             .string()

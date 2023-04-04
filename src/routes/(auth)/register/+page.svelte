@@ -26,6 +26,7 @@
 	import { schema } from './meta';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
+	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 
 	export let data: PageServerData;
 	let submissionError: Error | null = null;
@@ -84,6 +85,8 @@
 		}
 	};
 </script>
+
+<SuperDebug data="{$errors}" />
 
 <Grid>
 	<h1>Register</h1>

@@ -24,12 +24,13 @@ export const load: LayoutServerLoad = async ({ locals, url: { pathname } }) => {
 		where: { username: user.username }
 	});
 
+
 	return {
 		user: {
 			username: data.username,
 			role: data.role,
 			name: data.SalesRep?.name ?? "Not Set",
-			settings: data.UserSettings[0].settings
+			settings: data.UserSettings[0]?.settings
 		}, pathname
 	};
 };

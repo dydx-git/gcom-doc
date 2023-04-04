@@ -1,5 +1,4 @@
 import { UserRoles } from '@prisma/client';
-import type { SalesRepColors } from '../sales-rep/meta';
 
 export const UserRoleLabels: { [key in UserRoles]: string } = {
 	[UserRoles.ADMIN]: UserRoles.ADMIN,

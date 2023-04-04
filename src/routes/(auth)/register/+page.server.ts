@@ -24,7 +24,7 @@ export const actions = {
 
 		try {
 			await new User().create(auth.username, auth.password, auth.role);
-			await client.salesRepColors.create({
+			await client.colorSettings.create({
 				data: {
 					...data.colors,
 					salesRep: {
