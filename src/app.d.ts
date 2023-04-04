@@ -10,7 +10,6 @@ declare global {
 			code?: number;
 		}
 		interface Locals {
-			userSettings: Settings;
 			validate: import('@lucia-auth/sveltekit').Validate;
 			validateUser: import('@lucia-auth/sveltekit').ValidateUser;
 			setSession: import('@lucia-auth/sveltekit').SetSession;
