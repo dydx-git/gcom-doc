@@ -23,7 +23,6 @@
 		Truncate,
 		ComboBox,
 		ComposedModal,
-		Dropdown,
 		FormGroup,
 		FormLabel,
 		InlineLoading,
@@ -31,7 +30,9 @@
 		ModalFooter,
 		ModalHeader,
 		TextInput,
-		Toggle
+		Toggle,
+		Select,
+		SelectItem
 	} from 'carbon-components-svelte';
 	import { Renew, UserFollow, Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import type { PageData, Snapshot } from './$types';
@@ -247,9 +248,10 @@
 			</Row>
 			<Row class="default-gap">
 				<Column sm="{2}" md="{4}" lg="{8}">
-					<Dropdown
+					<ComboBox
 						titleText="Company*"
 						label="Company*"
+						placeholder="Select a company"
 						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
 						invalid="{($errors?.client?.companyId?.length ?? 0) > 0}"
 						invalidText="{($errors?.client?.companyId ?? [''])[0]}"
@@ -289,14 +291,15 @@
 							/>
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
-							<Dropdown
-								titleText="Type*"
-								label="Type*"
-								items="{Object.entries(PhoneType).map((key) => ({ id: key[0], text: key[1] }))}"
-								itemToString="{(item) => item?.text ?? ''}"
-								bind:selectedId="{$form.phones[i].type}"
-								tabindex="{6 + i}"
-							/>
+							<Select
+								labelText="Type*"
+								name="{`phones[${i}].type`}"
+								bind:selected="{$form.phones[i].type}"
+							>
+								{#each Object.values(PhoneType) as type}
+									<SelectItem value="{type}" text="{type}" />
+								{/each}
+							</Select>
 						</Column>
 						<Column sm="{0}" md="{2}" lg="{6}">
 							<TextInput
@@ -352,13 +355,15 @@
 							/>
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
-							<Dropdown
-								titleText="Type*"
-								label="Type*"
-								items="{Object.entries(EmailType).map((key) => ({ id: key[0], text: key[1] }))}"
-								itemToString="{(item) => item?.text ?? ''}"
-								bind:selectedId="{$form.emails[i].type}"
-							/>
+							<Select
+								labelText="Type*"
+								name="{`phones[${i}].type`}"
+								bind:selected="{$form.emails[i].type}"
+							>
+								{#each Object.values(EmailType) as type}
+									<SelectItem value="{type}" text="{type}" />
+								{/each}
+							</Select>
 						</Column>
 						<Column sm="{0}" md="{2}" lg="{6}">
 							<TextInput
@@ -400,7 +405,8 @@
 
 			<Row>
 				<Column sm="{2}" md="{4}" lg="{6}">
-					<Dropdown
+					<ComboBox
+						placeholder="Select a payment method"
 						titleText="Payment Method*"
 						label="Payment Method*"
 						items="{Object.entries(PayMethod).map((key) => ({ id: key[0], text: key[1] }))}"
@@ -411,15 +417,16 @@
 					/>
 				</Column>
 				<Column sm="{2}" md="{3}" lg="{4}">
-					<Dropdown
-						titleText="Currency*"
-						label="Currency*"
-						items="{Object.entries(Currency).map((key) => ({ id: key[0], text: key[1] }))}"
-						itemToString="{(item) => item?.text ?? ''}"
-						bind:selectedId="{$form.client.currency}"
+					<Select
+						labelText="Type*"
+						bind:selected="{$form.client.currency}"
 						invalid="{($errors?.client?.currency?.length ?? 0) > 0}"
 						invalidText="{($errors?.client?.currency ?? [''])[0]}"
-					/>
+					>
+						{#each Object.values(Currency) as curr}
+							<SelectItem value="{curr}" text="{curr}" />
+						{/each}
+					</Select>
 				</Column>
 				<Column sm="{2}" md="{2}" lg="{4}">
 					<Toggle

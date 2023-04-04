@@ -117,12 +117,12 @@ model SalesRep {
   user                  User                    @relation(fields: [username], references: [username], map: "sales_rep_user")
   clientSalesRepCompany ClientSalesRepCompany[]
   client                Client[]
-  SalesRepColors        SalesRepColors[]
+  SalesRepColors        ColorSettings[]
 
   @@map("sales_reps")
 }
 
-model SalesRepColors {
+model ColorSettings {
   /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }))
   salesRepUsername String   @map("sales_rep_username") @db.VarChar(100)
   /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
@@ -133,10 +133,20 @@ model SalesRepColors {
   secondaryColor   String   @db.VarChar(8)
   /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   auxiliaryColor   String   @db.VarChar(8)
+  theme            Theme
   salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "sales_rep_colors_sales_rep")
 
   @@id([salesRepUsername])
   @@map("sales_rep_colors")
+}
+
+model UserSettings {
+  username String @id
+  /// @zod.custom.use(z.string().min(2).max(5000).refine((v) => validator.isJSON(v), { message: 'Invalid settings object' }))
+  settings String @db.VarChar(5000)
+  User     User   @relation(fields: [username], references: [id])
+
+  @@map("user_settings")
 }
 
 model ClientSalesRepCompany {
@@ -223,12 +233,13 @@ model Company {
 }
 
 model User {
-  id       String    @id @unique
-  username String    @unique
-  role     UserRoles
-  session  Session[]
-  Key      Key[]
-  SalesRep SalesRep?
+  id           String         @id @unique
+  username     String         @unique
+  role         UserRoles
+  session      Session[]
+  Key          Key[]
+  SalesRep     SalesRep?
+  UserSettings UserSettings[]
 
   @@map("user")
 }
@@ -319,4 +330,12 @@ enum UserRoles {
   ADMIN
   USER
   MANAGER
+}
+
+enum Theme {
+  white
+  g10
+  g80
+  g90
+  g100
 }

@@ -6,7 +6,30 @@ export const load: LayoutServerLoad = async ({ locals, url: { pathname } }) => {
 	const { user } = await locals.validateUser();
 	if (!user) return fail(401, { message: 'Unauthorized' });
 
-	const salesRep = prisma.salesRep.findFirst({ select: { name: true }, where: { username: user.username } });
+	const data = await prisma.user.findUniqueOrThrow({
+		select: {
+			username: true,
+			role: true,
+			SalesRep: {
+				select: {
+					name: true
+				}
+			},
+			UserSettings: {
+				select: {
+					settings: true
+				}
+			}
+		},
+		where: { username: user.username }
+	});
 
-	return { user, salesRep, pathname };
+	return {
+		user: {
+			username: data.username,
+			role: data.role,
+			name: data.SalesRep?.name ?? "Not Set",
+			settings: data.UserSettings[0].settings
+		}, pathname
+	};
 };
