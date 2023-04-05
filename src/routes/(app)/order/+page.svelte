@@ -35,16 +35,19 @@
 	import { orderColumns, orderDatatableColumnKeys } from '$lib/components/data/datatable/order';
 	import { OrderStatus, type OrderDataTable } from '$lib/modules/order/meta';
 
+	export let data;
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
 
-	export let tableData: OrderDataTable[] = [];
+	export let tableData = data.orders;
 
 	let dtColumns = orderColumns;
 
 	const filterTable = (text: string) => {};
 
 	const render = (cell: DataTableCell) => {
+		if (!cell.value) return '';
+
 		switch (cell.key) {
 			case orderDatatableColumnKeys.price:
 				return `$${cell.value}`;
