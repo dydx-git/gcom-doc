@@ -46,11 +46,14 @@
 	const filterTable = (text: string) => {};
 
 	const render = (cell: DataTableCell) => {
+		if (!cell.value) return '';
+		console.log(cell);
+
 		switch (cell.key) {
 			case orderDatatableColumnKeys.price:
 				return `$${cell.value}`;
 			case orderDatatableColumnKeys.date:
-				return getRelativeTime(new Date(cell.value));
+				return '';
 			case orderDatatableColumnKeys.status:
 				return screenSize == 'sm' ? '' : cell.value;
 			default:
