@@ -17,8 +17,8 @@
 
 <Grid>
 	<h1>Login</h1>
-	<Row>
-		<Column sm={{ span: 2, offset: 1 }}>
+	<Row class="default-gap">
+		<Column sm="{4}" md="{{ span: 6, offset: 1 }}">
 			<FluidForm method="POST">
 				<TextInput
 					labelText="User name"
@@ -28,7 +28,7 @@
 					width="100px"
 				/>
 				<PasswordInput
-					bind:value={password}
+					bind:value="{password}"
 					name="password"
 					required
 					size="sm"
