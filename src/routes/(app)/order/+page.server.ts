@@ -3,23 +3,17 @@ import { superValidate } from 'sveltekit-superforms/server';
 import type { PageServerLoad } from './$types';
 import prisma from '$db/client';
 import { Prisma } from '@prisma/client';
-import { schema } from '$lib/modules/client/meta';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 import { Jobs } from '$lib/modules/order/order';
 import dayjs from 'dayjs';
-import { error } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
+import { schema } from '$lib/modules/order/meta';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
 	const form = superValidate(event, schema);
-
-	const { user } = await validateUser();
-	if (!user) throw error(401, 'Unauthorized');
-
-	const userSettings = await new UserSettings().read({ username: user.username });
-
 	const clients = prisma.client.findMany({ select: { id: true, name: true } });
 
 	const { user } = await validateUser();
@@ -27,10 +21,9 @@ export const load: PageServerLoad = async (event) => {
 
 	const userSettings = await new UserSettings().read({ username: user.username });
 	const dateUntil = dayjs().subtract(userSettings.datatable.order.showRecordsForLastDays, 'day').toDate();
-	const orders = await new Jobs().read(dateUntil);
+	const orders = new Jobs().readForDataTable(dateUntil);
 
 	depends(url.pathname);
-	console.log('orders', structuredClone(orders));
 
 	return { form, clients, orders };
 };

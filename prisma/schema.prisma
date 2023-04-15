@@ -61,6 +61,7 @@ model Vendor {
 model GmailMsg {
   threadId   String         @map("thread_id") @db.VarChar(16)
   inboxMsgId String         @map("inbox_msg_id") @db.VarChar(16)
+  rfcId      String         @map("rfc_id") @db.VarChar(32)
   jobId      String         @map("job_id") @db.VarChar(32)
   direction  EmailDirection
   job        Job            @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "gmail_msgs_job_primary")
@@ -154,6 +155,7 @@ model ClientSalesRepCompany {
   salesRepUsername String    @map("sales_rep_username") @db.VarChar(100)
   /// @zod.custom.use(z.coerce.number().gte(1, { message: 'Please select a valid company' }))
   companyId        Int       @map("company_id")
+  defaultPrice     Decimal?  @map("default_price") @db.Decimal(10, 2)
   fromDate         DateTime  @default(now()) @db.DateTime(0)
   toDate           DateTime? @db.DateTime(0)
   isActive         Boolean   @default(true)

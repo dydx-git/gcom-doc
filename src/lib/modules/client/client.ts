@@ -2,7 +2,7 @@ import prisma from '$db/client';
 import hash from 'object-hash';
 import { UserRoles } from '@prisma/client';
 import type { User } from 'lucia-auth';
-import type { addressSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, schema } from './meta';
+import type { addressSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, ClientSchema } from './meta';
 
 export class Clients {
 	public async read(user: User) {
@@ -82,7 +82,7 @@ export class Clients {
 	}
 
 	// TODO: Write a test for this
-	private hash(obj: schema): string {
+	private hash(obj: ClientSchema): string {
 		const { client, emails, phones } = obj;
 
 		return hash({

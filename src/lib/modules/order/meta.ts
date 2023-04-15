@@ -1,4 +1,7 @@
+import { GmailMsgSchema, JobOptionalDefaultsSchema } from '$lib/zod-prisma';
 import { JobStatus, type Job, type PurchaseOrder } from '@prisma/client';
+import { z } from 'zod';
+import { withDefaults } from "../common/functions/core";
 
 export const OrderStatus = {
 	...JobStatus,
@@ -36,3 +39,19 @@ export type JobsWithVendorAndClient = (PurchaseOrder & {
 		};
 	};
 })[];
+
+const orderSchema = JobOptionalDefaultsSchema.omit({ id: true });
+export type OrderSchema = z.infer<typeof orderSchema>;
+const gmailSchema = GmailMsgSchema.omit({ jobId: true });
+export type GmailSchema = z.infer<typeof gmailSchema>;
+const attachmentSchema = z.object({
+	id: z.string(),
+	name: z.string()
+});
+
+export const schema = z.object({
+	order: withDefaults(orderSchema, { status: JobStatus.PENDING }),
+	gmail: gmailSchema,
+	attachments: z.array(attachmentSchema)
+});
+export type JobSchema = z.infer<typeof schema>;

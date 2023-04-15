@@ -1,7 +1,6 @@
 <script lang="ts">
 	import HighlightTile from '$lib/components/HighlightTile.svelte';
 	import { getRelativeTime } from '$lib/utils/relativeTime';
-
 	import {
 		Grid,
 		Column,
@@ -15,8 +14,14 @@
 		Tag,
 		OverflowMenu,
 		OverflowMenuItem,
-		TooltipDefinition
+		TooltipDefinition,
+		ComposedModal,
+		ModalHeader,
+		ModalBody,
+		TextInput,
+		ComboBox
 	} from 'carbon-components-svelte';
+	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
 	import {
@@ -28,19 +33,26 @@
 		Checkmark,
 		InProgress,
 		IncompleteCancel,
-		TrainSpeed
+		TrainSpeed,
+		Edit
 	} from 'carbon-icons-svelte';
 	import dayjs from 'dayjs';
 	import { screenSizeStore } from '$lib/store';
-	import { orderColumns, orderDatatableColumnKeys } from '$lib/components/data/datatable/order';
-	import { OrderStatus, type OrderDataTable } from '$lib/modules/order/meta';
+	import { orderColumns, orderDatatableColumnKeys } from './columns';
+	import { superForm } from 'sveltekit-superforms/client';
+	import { OrderStatus, type OrderDataTable, schema } from '$lib/modules/order/meta';
+	import { FormSubmitType } from '../meta.js';
+	import type { Snapshot } from '@sveltejs/kit';
 
 	export let data;
+	const { clients, orders } = data;
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
 
-	export let tableData = data.orders;
+	export let tableData = orders;
 
+	let isAddNewModalOpen = false;
+	let submitType: FormSubmitType = FormSubmitType.AddNew;
 	let dtColumns = orderColumns;
 
 	const filterTable = (text: string) => {};
@@ -105,6 +117,40 @@
 			].includes(column.key)
 		);
 	else dtColumns = orderColumns;
+
+	//#region Form
+
+	let submissionError: Error | null = null;
+	const openNewOrderModal = () => {
+		isAddNewModalOpen = true;
+		submitType = FormSubmitType.AddNew;
+	};
+
+	$: formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
+	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
+	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
+
+	const { form, errors, enhance, capture, restore } = superForm(data.form, {
+		dataType: 'json',
+		autoFocusOnError: 'detect',
+		defaultValidator: 'clear',
+		validators: schema,
+		taintedMessage: null,
+		onResult: ({ result }) => {
+			if (result.type !== 'failure') {
+				isAddNewModalOpen = false;
+				return;
+			}
+
+			submissionError = result?.data?.error;
+		}
+	});
+
+	export const snapshot: Snapshot = {
+		capture,
+		restore
+	};
+	//#endregion
 </script>
 
 <Grid>
@@ -180,10 +226,59 @@
 					<ToolbarContent>
 						<ToolbarSearch />
 						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
-						<Button icon="{Add}" accesskey="n">Create New</Button>
+						<Button icon="{Add}" accesskey="n" on:click="{openNewOrderModal}">Create New</Button>
 					</ToolbarContent>
 				</Toolbar>
 			</DataTable>
 		</Column>
 	</Row>
 </Grid>
+
+<!-- #region Form -->
+<ComposedModal
+	bind:open="{isAddNewModalOpen}"
+	aria-label="Add new order"
+	aria-labelledby="add-new-order-modal-title"
+	aria-describedby="add-new-order-modal-description"
+	role="dialog"
+	on:submit="{() => {
+		isAddNewModalOpen = false;
+	}}"
+	on:close="{() => {
+		isAddNewModalOpen = false;
+	}}"
+>
+	<form method="POST" use:enhance action="{formActionUrl}">
+		<ModalHeader label="{formTitle}">
+			<Row>
+				<Column sm="{12}" md="{4}" lg="{8}">
+					<h3>Client</h3>
+				</Column>
+			</Row>
+		</ModalHeader>
+		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
+			<FormSubmissionError bind:error="{submissionError}" />
+			<Row>
+				<Column sm="{4}" md="{4}" lg="{8}">
+					<TextInput
+						id="name"
+						name="name"
+						labelText="Name*"
+						invalid="{($errors?.order?.name?.length ?? 0) > 0}"
+						invalidText="{($errors?.order?.name ?? [''])[0]}"
+						bind:value="{$form.order.name}"
+						minlength="{3}"
+						placeholder="John Doe"
+						tabindex="{1}"
+					/>
+				</Column>
+				<Column sm="{4}" md="{4}" lg="{8}">
+					<ComboBox
+						placeholder="Select a client"
+						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
+					/>
+				</Column>
+			</Row>
+		</ModalBody>
+	</form>
+</ComposedModal>

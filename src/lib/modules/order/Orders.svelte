@@ -34,7 +34,7 @@
 	import dayjs from 'dayjs';
 	import { screenSizeStore } from '$lib/store';
 	import { OrderStatus, type OrderDataTable } from './meta';
-	import { orderColumns, orderDatatableColumnKeys } from '$lib/components/data/datatable/order';
+	import { orderColumns, orderDatatableColumnKeys } from '../../../routes/(app)/order/columns';
 
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";

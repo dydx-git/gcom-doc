@@ -102,9 +102,9 @@
 
 	const userPreferences = $userPreferencesStore;
 
-	const formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
-	const formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
-	const formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
+	$: formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
+	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
+	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
 	const onOpen = (e: Event) => {};
 
@@ -204,6 +204,7 @@
 <ComposedModal
 	bind:open="{isAddNewModalOpen}"
 	selectorPrimaryFocus="#name"
+	role="dialog"
 	on:open="{onOpen}"
 	on:close="{onClose}"
 	on:submit="{onSubmit}"
