@@ -12,10 +12,12 @@ export class GmailAuth {
     private tokenPath: string
     private __filename = fileURLToPath(import.meta.url);
     private __dirname = path.dirname(this.__filename);
+    private companyId: number
 
     constructor(companyId: number) {
         this.oAuth2Client = this.getOAuth2Client()
         this.tokenPath = path.join(this.__dirname, `./includes/${companyId}-token.json`)
+        this.companyId = companyId
     }
 
     public async authorize() {
@@ -36,7 +38,7 @@ export class GmailAuth {
             access_type: 'offline',
             prompt: 'consent',
             scope: SCOPES,
-            state: JSON.stringify({ companyId: 1 })
+            state: JSON.stringify({ companyId: this.companyId })
         })
     }
 

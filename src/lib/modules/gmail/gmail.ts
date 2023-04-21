@@ -36,8 +36,7 @@ export class Gmailer {
         const messages = await Promise.all(responseMessages.map(async message => {
             if (!message.id)
                 return null;
-            const messageResponse = await this.getMessage(message.id);
-            return this.parser.parseMessage(messageResponse);
+            return this.getMessage(message.id);
         }));
 
         // removes nulls
@@ -45,8 +44,8 @@ export class Gmailer {
     }
 
 
-    public async getMessage(messageId: string): Promise<IEmail> {
-        const response = await this.gmail.users.messages.get({ id: messageId, userId: 'me' })
+    public async getMessage(messageId: string, fields = 'id,threadId,labelIds,payload,snippet'): Promise<IEmail> {
+        const response = await this.gmail.users.messages.get({ id: messageId, userId: 'me', fields })
         const message = this.parser.parseMessage(response.data)
         return message;
     }
@@ -59,7 +58,6 @@ export class Gmailer {
         return attachment;
     }
 
-
     public async getThread(messageId: string): Promise<IEmail[]> {
         const response = await this.gmail.users.threads.get({ id: messageId, userId: 'me' });
         const responseMessages = response.data.messages;
@@ -68,8 +66,7 @@ export class Gmailer {
         const messages = await Promise.all(responseMessages.map(async (message) => {
             if (!message || !message.id)
                 return null;
-            const messageResponse = await this.gmail.users.messages.get({ id: message.id, userId: 'me' })
-            return this.parser.parseMessage(messageResponse.data)
+            return this.getMessage(message.id);
         }));
 
         return messages.flatMap(f => !!f ? [f] : []);
@@ -108,5 +105,24 @@ export class Gmailer {
                 raw: encodedMessage
             }
         });
+    }
+
+    public async getMessageFromRfcId(rfcId: string): Promise<IEmail | null> {
+        const messageId = await this.getMessageIdFromRfcId(rfcId);
+        if (!messageId)
+            return null;
+
+        return this.getMessage(messageId);
+    }
+
+    private async getMessageIdFromRfcId(rfcId: string): Promise<string | null> {
+        const response = await this.gmail.users.messages.list({ userId: 'me', q: `rfc822msgid:${rfcId}` });
+        const responseMessages = response.data.messages;
+        if (!responseMessages)
+            return null;
+        const message = responseMessages[0];
+        if (!message)
+            return null;
+        return message.id ?? null;
     }
 }

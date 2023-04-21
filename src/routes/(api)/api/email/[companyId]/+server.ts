@@ -5,6 +5,7 @@ import { error } from '@sveltejs/kit';
 export const GET: RequestHandler = async ({ params }) => {
     const auth = new GmailAuth(+params.companyId);
     const authenticated = await auth.authorize();
+
     if (authenticated)
         throw error(400, 'Already authenticated');
 

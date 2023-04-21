@@ -43,6 +43,7 @@
 	import { OrderStatus, type OrderDataTable, schema } from '$lib/modules/order/meta';
 	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
+	import { CompanyLabel } from '$lib/modules/company/meta';
 
 	export let data;
 	const { clients, orders } = data;
@@ -125,6 +126,18 @@
 		isAddNewModalOpen = true;
 		submitType = FormSubmitType.AddNew;
 	};
+
+	//#region Rfc
+	let rfcId = '';
+	let selectedCompanyId: number | null = null;
+
+	$: if (rfcId && selectedCompanyId) {
+		const orderEmailData = fetch(`?/email/rfc/${rfcId}/${selectedCompanyId}`).then((res) =>
+			res.json()
+		);
+		console.log(orderEmailData);
+	}
+	//#endregion
 
 	$: formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
 	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
@@ -259,21 +272,44 @@
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
 			<Row>
+				<Column sm="{6}" md="{6}" lg="{10}">
+					<TextInput
+						id="rfc"
+						labelText="RFC Id*"
+						placeholder="RFC Message-Id from a Gmail message"
+						bind:value="{rfcId}"
+					/>
+				</Column>
+				<Column sm="{2}" md="{2}" lg="{6}">
+					<ComboBox
+						id="company"
+						titleText="Company*"
+						label="Company*"
+						placeholder="Select a company"
+						bind:selectedId="{selectedCompanyId}"
+						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
+					/>
+				</Column>
+			</Row>
+			<Row>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
 						id="name"
 						name="name"
-						labelText="Name*"
+						labelText="Order Name*"
 						invalid="{($errors?.order?.name?.length ?? 0) > 0}"
 						invalidText="{($errors?.order?.name ?? [''])[0]}"
 						bind:value="{$form.order.name}"
 						minlength="{3}"
-						placeholder="John Doe"
+						placeholder="ABC Logo"
 						tabindex="{1}"
 					/>
 				</Column>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<ComboBox
+						id="client"
+						titleText="Client*"
+						label="Client*"
 						placeholder="Select a client"
 						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
 					/>
