@@ -21,11 +21,12 @@ export const load: PageServerLoad = async (event) => {
 
 	const userSettings = await new UserSettings().read({ username: user.username });
 	const dateUntil = dayjs().subtract(userSettings.datatable.order.showRecordsForLastDays, 'day').toDate();
+	const vendors = prisma.vendor.findMany({ select: { id: true, name: true } });
 	const orders = new Jobs().readForDataTable(dateUntil);
 
 	depends(url.pathname);
 
-	return { form, clients, orders };
+	return { form, clients, orders, vendors };
 };
 
 // export const actions: Actions = {
