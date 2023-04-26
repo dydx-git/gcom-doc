@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ url, params }) => {
     if (!company)
         throw error(404, 'Company not found');
 
-    const gmail = Gmailer.getInstance(company);
+    const gmail = await Gmailer.getInstance(company);
 
     const data = await gmail.getMessageFromRfcId(rfcId.replace("rfc822msgid:", ""));
     if (!data)

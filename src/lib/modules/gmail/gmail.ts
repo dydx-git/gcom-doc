@@ -7,16 +7,14 @@ import MailComposer from 'nodemailer/lib/mail-composer';
 export class Gmailer {
     private static _instances: { [id: number]: Gmailer } = {} as any;
     private _company: Company;
-    private authenticated: Promise<boolean>;
     private gmail = google.gmail('v1')
     private parser = new ParseGmailApi();
 
-    public static getInstance(company: Company) {
+    public static async getInstance(company: Company) {
         const id = company.id;
-        console.log(Gmailer._instances);
-        if (!Gmailer._instances[id]) {
+        await Gmailer.ensureAuth(id);
+        if (!Gmailer._instances[id])
             Gmailer._instances[id] = new Gmailer(company);
-        }
 
         return Gmailer._instances[id];
     }
@@ -24,12 +22,9 @@ export class Gmailer {
     private constructor(company: Company) {
         this._company = company;
         const id = company.id;
-        const gmailAuth = new GmailAuth(id);
-        this.authenticated = (async () => await gmailAuth.authorize())();
     }
 
     public async getMessages(params: gmail_v1.Params$Resource$Users$Messages$List): Promise<IEmail[]> {
-        await this.ensureAuth();
         const response = await this.gmail.users.messages.list({ userId: 'me', ...params });
         const responseMessages = response.data.messages;
         if (!responseMessages)
@@ -47,7 +42,6 @@ export class Gmailer {
 
 
     public async getMessage(messageId: string, fields = 'id,threadId,labelIds,payload,snippet'): Promise<IEmail> {
-        await this.ensureAuth();
         const response = await this.gmail.users.messages.get({ id: messageId, userId: 'me', fields })
         const message = this.parser.parseMessage(response.data)
 
@@ -55,7 +49,6 @@ export class Gmailer {
     }
 
     public async getAttachment(attachmentId: string, messageId: string): Promise<gmail_v1.Schema$MessagePartBody> {
-        await this.ensureAuth();
         const response = await this.gmail.users.messages.attachments.get({
             id: attachmentId, messageId, userId: 'me'
         })
@@ -64,7 +57,6 @@ export class Gmailer {
     }
 
     public async getThread(messageId: string): Promise<IEmail[]> {
-        await this.ensureAuth();
         const response = await this.gmail.users.threads.get({ id: messageId, userId: 'me' });
         const responseMessages = response.data.messages;
         if (!responseMessages)
@@ -104,7 +96,7 @@ export class Gmailer {
         });
 
         const encodedMessage = await buildMessage();
-        await this.ensureAuth();
+
         await this.gmail.users.messages.send({
             userId: 'me',
             requestBody: {
@@ -123,7 +115,6 @@ export class Gmailer {
     }
 
     private async getMessageIdFromRfcId(rfcId: string): Promise<string | null> {
-        await this.ensureAuth();
         const response = await this.gmail.users.messages.list({ userId: 'me', q: `rfc822msgid:${rfcId}` });
         const responseMessages = response.data.messages;
 
@@ -135,8 +126,9 @@ export class Gmailer {
         return message.id ?? null;
     }
 
-    private async ensureAuth() {
-        const authenticated = await this.authenticated;
+    private static async ensureAuth(id: number) {
+        const gmailAuth = new GmailAuth(id);
+        const authenticated = await gmailAuth.authorize();
         if (!authenticated)
             throw new Error("Gmail account not authenticated");
     }
