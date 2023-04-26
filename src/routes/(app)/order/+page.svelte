@@ -19,7 +19,9 @@
 		ModalHeader,
 		ModalBody,
 		TextInput,
-		ComboBox
+		ComboBox,
+		FormGroup,
+		InlineLoading
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
@@ -130,12 +132,16 @@
 	//#region Rfc
 	let rfcId = '';
 	let selectedCompanyId: number | null = null;
+	let isLoadingRfc = false;
 
 	$: if (rfcId && selectedCompanyId) {
-		const orderEmailData = fetch(`?/email/rfc/${rfcId}/${selectedCompanyId}`).then((res) =>
-			res.json()
-		);
+		isLoadingRfc = true;
+		const orderEmailData = fetch(
+			`/api/email/${selectedCompanyId}/rfc/?id=${encodeURIComponent(rfcId)}`
+		).then((res) => res.json());
+
 		console.log(orderEmailData);
+		isLoadingRfc = false;
 	}
 	//#endregion
 
@@ -271,26 +277,37 @@
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
-			<Row>
-				<Column sm="{6}" md="{6}" lg="{10}">
-					<TextInput
-						id="rfc"
-						labelText="RFC Id*"
-						placeholder="RFC Message-Id from a Gmail message"
-						bind:value="{rfcId}"
-					/>
-				</Column>
-				<Column sm="{2}" md="{2}" lg="{6}">
-					<ComboBox
-						id="company"
-						titleText="Company*"
-						label="Company*"
-						placeholder="Select a company"
-						bind:selectedId="{selectedCompanyId}"
-						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
-					/>
-				</Column>
-			</Row>
+			<FormGroup>
+				<Row>
+					<Column sm="{5}" md="{5}" lg="{6}">
+						<TextInput
+							id="rfc"
+							labelText="RFC Id"
+							placeholder="RFC Message-Id from a Gmail message"
+							bind:value="{rfcId}"
+						/>
+					</Column>
+					<Column sm="{2}" md="{2}" lg="{6}">
+						<ComboBox
+							id="company"
+							titleText="Company"
+							label="Company"
+							placeholder="Select a company"
+							bind:selectedId="{selectedCompanyId}"
+							items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
+						/>
+					</Column>
+					<Column sm="{1}" md="{3}" lg="{4}" class="default-gap">
+						{#if isLoadingRfc}
+							<InlineLoading
+								description="Loading order details..."
+								status="active"
+								class="default-gap"
+							/>
+						{/if}
+					</Column>
+				</Row>
+			</FormGroup>
 			<Row>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
