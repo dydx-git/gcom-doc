@@ -1,18 +1,25 @@
-import { error, fail, json } from '@sveltejs/kit';
+import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { Gmailer } from '$lib/modules/gmail/gmail';
 import prisma from '$db/client';
+import { GmailDataTransformer } from '$lib/modules/gmail/dataTransformer';
 
 export const GET: RequestHandler = async ({ url, params }) => {
     const rfcId = url.searchParams.get('id');
     if (!rfcId)
-        throw new Error('Missing id');
+        throw error(400, 'Missing id');
 
     const company = await prisma.company.findUnique({ where: { id: +params.companyId } });
     if (!company)
-        throw new Error('Company not found');
+        throw error(404, 'Company not found');
 
     const gmail = Gmailer.getInstance(company);
 
-    return json(gmail.getMessageFromRfcId(rfcId.replace("rfc822msgid:", "")));
+    const data = await gmail.getMessageFromRfcId(rfcId.replace("rfc822msgid:", ""));
+    if (!data)
+        throw error(404, 'Email not found');
+
+    const response = await new GmailDataTransformer(data).toRfcEmailResponse();
+
+    return json(response);
 };

@@ -78,4 +78,4 @@ export const schema = z.object({
 	address: addressSchema
 });
 
-export type schema = z.infer<typeof schema>;
+export type ClientSchema = z.infer<typeof schema>;

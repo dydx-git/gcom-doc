@@ -8,7 +8,7 @@ export interface IHasId {
 	id: string | number;
 }
 
-export interface IEntity extends INamed, IHasId {}
+export interface IEntity extends INamed, IHasId { }
 
 export interface IHasEmail {
 	email: Email;
@@ -30,3 +30,6 @@ export enum Environment {
 	Development = 'DEV',
 	Production = 'PROD'
 }
+
+export type PromiseArrayElement<ArrayType extends Promise<unknown[]>> =
+	ArrayType extends Promise<(infer ElementType)[]> ? ElementType : never;

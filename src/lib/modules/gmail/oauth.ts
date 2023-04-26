@@ -15,7 +15,8 @@ export class GmailAuth {
     private companyId: number
 
     constructor(companyId: number) {
-        this.oAuth2Client = this.getOAuth2Client()
+        this.oAuth2Client = this.getOAuth2Client();
+
         this.tokenPath = path.join(this.__dirname, `./includes/${companyId}-token.json`)
         this.companyId = companyId
     }

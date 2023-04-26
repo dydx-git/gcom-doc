@@ -137,7 +137,7 @@
 	$: if (rfcId && selectedCompanyId) {
 		isLoadingRfc = true;
 		const orderEmailData = fetch(
-			`/api/email/${selectedCompanyId}/rfc/?id=${encodeURIComponent(rfcId)}`
+			`/api/email/${selectedCompanyId}/rfc?id=${encodeURIComponent(rfcId)}`
 		).then((res) => res.json());
 
 		console.log(orderEmailData);
@@ -279,15 +279,7 @@
 			<FormSubmissionError bind:error="{submissionError}" />
 			<FormGroup>
 				<Row>
-					<Column sm="{5}" md="{5}" lg="{6}">
-						<TextInput
-							id="rfc"
-							labelText="RFC Id"
-							placeholder="RFC Message-Id from a Gmail message"
-							bind:value="{rfcId}"
-						/>
-					</Column>
-					<Column sm="{2}" md="{2}" lg="{6}">
+					<Column sm="{2}" md="{2}" lg="{5}">
 						<ComboBox
 							id="company"
 							titleText="Company"
@@ -295,6 +287,14 @@
 							placeholder="Select a company"
 							bind:selectedId="{selectedCompanyId}"
 							items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
+						/>
+					</Column>
+					<Column sm="{8}" md="{8}" lg="{10}">
+						<TextInput
+							id="rfc"
+							labelText="RFC Id"
+							placeholder="RFC Message-Id from a Gmail message"
+							bind:value="{rfcId}"
 						/>
 					</Column>
 					<Column sm="{1}" md="{3}" lg="{4}" class="default-gap">

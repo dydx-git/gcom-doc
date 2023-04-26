@@ -1,10 +1,34 @@
 import prisma from '$db/client';
 import hash from 'object-hash';
-import { UserRoles } from '@prisma/client';
+import { Prisma, UserRoles } from '@prisma/client';
 import type { User } from 'lucia-auth';
-import type { addressSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, ClientSchema } from './meta';
+import type { addressSchema, ClientSchema, ClientSchemaWithoutId, emailSchema, phoneSchema } from './meta';
+import type { Email } from '$lib/modules/common/models/email';
+import type { PromiseArrayElement } from '$lib/modules/common/interfaces/core';
 
 export class Clients {
+	public include: Prisma.ClientInclude;
+
+	constructor() {
+		this.include = {
+			emails: true,
+			phones: true,
+			salesRep: {
+				select: {
+					id: true,
+					name: true
+				}
+			},
+			company: {
+				select: {
+					id: true,
+					name: true
+				}
+			},
+			clientAddress: true
+		};
+	}
+
 	public async read(user: User) {
 		const where =
 			user.role == UserRoles.USER
@@ -16,28 +40,67 @@ export class Clients {
 				: {};
 
 		const data = await prisma.client.findMany({
-			include: {
-				emails: true,
-				phones: true,
-				salesRep: {
-					select: {
-						id: true,
-						name: true
-					}
-				},
-				company: {
-					select: {
-						id: true,
-						name: true
-					}
-				},
-				clientAddress: true
-			},
+			include: this.include,
 			where
 		});
 
 		return data;
 	}
+
+	public async getEmails(clientId: string) {
+		const data = await prisma.client.findUnique({
+			where: {
+				id: clientId
+			},
+			select: {
+				emails: true
+			}
+		});
+
+		return data?.emails;
+	}
+
+	public async getClient(clientId: string): Promise<ClientReadSchema>;
+	public async getClient(fromEmails: Email[]): Promise<ClientReadSchema | null>;
+	public async getClient(clientIdOrEmails: string | Email[]): Promise<ClientReadSchema | null> {
+		if (typeof clientIdOrEmails === 'string') {
+			return this.getClientFromClientId(clientIdOrEmails);
+		} else {
+			return this.getClientFromEmails(clientIdOrEmails);
+		}
+	}
+
+	private async getClientFromClientId(clientId: string): Promise<ClientReadSchema> {
+		const data = await prisma.client.findUnique({
+			where: {
+				id: clientId
+			},
+			include: this.include
+		});
+
+		if (!data)
+			throw new Error('Client not found');
+
+		return data;
+	}
+
+	private async getClientFromEmails(fromEmails: Email[]) {
+		const data = await prisma.client.findFirst({
+			where: {
+				emails: {
+					some: {
+						email: {
+							in: fromEmails.map((email) => email.toString())
+						}
+					}
+				}
+			},
+			include: this.include
+		});
+
+		return data;
+	}
+
 
 	public async create(client: ClientSchemaWithoutId, address: addressSchema, emails: Array<emailSchema>, phones: Array<phoneSchema>) {
 		const id = this.hash({ client, emails, phones, address });
@@ -93,4 +156,8 @@ export class Clients {
 			phones: phones.map((p) => p.phone)
 		}, { algorithm: 'md5' });
 	}
+
 }
+
+type ClientsReadSchema = ReturnType<Clients['read']>;
+type ClientReadSchema = PromiseArrayElement<ClientsReadSchema>;
