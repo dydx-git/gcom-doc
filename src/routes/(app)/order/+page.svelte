@@ -46,6 +46,7 @@
 	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
 	import { CompanyLabel } from '$lib/modules/company/meta';
+	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
 
 	export let data;
 	const { clients, orders } = data;
@@ -134,15 +135,22 @@
 	let selectedCompanyId: number | null = null;
 	let isLoadingRfc = false;
 
-	$: if (rfcId && selectedCompanyId) {
-		isLoadingRfc = true;
-		const orderEmailData = fetch(
-			`/api/email/${selectedCompanyId}/rfc?id=${encodeURIComponent(rfcId)}`
-		).then((res) => res.json());
+	const onRfcIdChange = async () => {
+		if (!rfcId || !selectedCompanyId) return;
 
-		console.log(orderEmailData);
+		isLoadingRfc = true;
+		const response = await fetch(
+			`/api/email/${selectedCompanyId}/rfc?id=${encodeURIComponent(rfcId)}`
+		);
+		const data: RfcEmailResponse = await response.json();
 		isLoadingRfc = false;
-	}
+		if (!response.ok) {
+			const error = data as unknown;
+			submissionError = error as Error;
+			return;
+		}
+	};
+
 	//#endregion
 
 	$: formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
@@ -285,6 +293,7 @@
 							titleText="Company"
 							label="Company"
 							placeholder="Select a company"
+							on:select="{onRfcIdChange}"
 							bind:selectedId="{selectedCompanyId}"
 							items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
 						/>
@@ -295,15 +304,14 @@
 							labelText="RFC Id"
 							placeholder="RFC Message-Id from a Gmail message"
 							bind:value="{rfcId}"
+							on:input="{onRfcIdChange}"
 						/>
 					</Column>
-					<Column sm="{1}" md="{3}" lg="{4}" class="default-gap">
+					<Column sm="{1}" md="{1}" lg="{1}" class="default-gap">
 						{#if isLoadingRfc}
-							<InlineLoading
-								description="Loading order details..."
-								status="active"
-								class="default-gap"
-							/>
+							<div class="default-gap">
+								<InlineLoading />
+							</div>
 						{/if}
 					</Column>
 				</Row>

@@ -7,7 +7,7 @@
 {#if error}
 	<InlineNotification
 		lowContrast
-		title="{error.name}"
+		title="{error?.name || 'Error'}"
 		subtitle="{error.message}"
 		timeout="{8000}"
 		on:close="{() => (error = null)}"
