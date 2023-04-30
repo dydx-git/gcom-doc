@@ -14,7 +14,13 @@ export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
 	const form = superValidate(event, schema);
-	const clients = prisma.client.findMany({ select: { id: true, name: true } });
+	const clients = prisma.client.findMany({
+		select: {
+			id: true, name: true, ClientSetPrice: {
+				select: { price: true, type: true }
+			}
+		}
+	});
 
 	const { user } = await validateUser();
 	if (!user) return fail(401, { message: 'Unauthorized' });

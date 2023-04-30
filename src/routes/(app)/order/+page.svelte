@@ -20,8 +20,10 @@
 		ModalBody,
 		TextInput,
 		ComboBox,
-		FormGroup,
-		InlineLoading
+		InlineLoading,
+		NumberInput,
+		Toggle,
+		FormLabel
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
@@ -47,9 +49,10 @@
 	import type { Snapshot } from '@sveltejs/kit';
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
+	import { OrderPriceType } from './meta';
 
 	export let data;
-	const { clients, orders } = data;
+	const { clients, orders, vendors } = data;
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
 
@@ -58,6 +61,7 @@
 	let isAddNewModalOpen = false;
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
 	let dtColumns = orderColumns;
+	const stitchCountPricingModeCutoff = 1000;
 
 	const filterTable = (text: string) => {};
 
@@ -130,6 +134,12 @@
 		submitType = FormSubmitType.AddNew;
 	};
 
+	const handleRushToggle = (event: MouseEvent) => {
+		const { value } = event.target as HTMLInputElement;
+		if (value) $form.order.status = OrderStatus.RUSH;
+		else $form.order.status = OrderStatus.PENDING;
+	};
+
 	//#region Rfc
 	let rfcId = '';
 	let selectedCompanyId: number | null = null;
@@ -177,6 +187,11 @@
 		capture,
 		restore
 	};
+
+	$: pricingMode =
+		$form.order.price > stitchCountPricingModeCutoff
+			? OrderPriceType.StitchCount
+			: OrderPriceType.FlatRate;
 	//#endregion
 </script>
 
@@ -279,44 +294,42 @@
 		<ModalHeader label="{formTitle}">
 			<Row>
 				<Column sm="{12}" md="{4}" lg="{8}">
-					<h3>Client</h3>
+					<h3>Order</h3>
 				</Column>
 			</Row>
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
-			<FormGroup>
-				<Row>
-					<Column sm="{2}" md="{2}" lg="{5}">
-						<ComboBox
-							id="company"
-							titleText="Company"
-							label="Company"
-							placeholder="Select a company"
-							on:select="{onRfcIdChange}"
-							bind:selectedId="{selectedCompanyId}"
-							items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
-						/>
-					</Column>
-					<Column sm="{8}" md="{8}" lg="{10}">
-						<TextInput
-							id="rfc"
-							labelText="RFC Id"
-							placeholder="RFC Message-Id from a Gmail message"
-							bind:value="{rfcId}"
-							on:input="{onRfcIdChange}"
-						/>
-					</Column>
-					<Column sm="{1}" md="{1}" lg="{1}" class="default-gap">
-						{#if isLoadingRfc}
-							<div class="default-gap">
-								<InlineLoading />
-							</div>
-						{/if}
-					</Column>
-				</Row>
-			</FormGroup>
 			<Row>
+				<Column sm="{2}" md="{2}" lg="{5}">
+					<ComboBox
+						id="company"
+						titleText="Company"
+						label="Company"
+						placeholder="Select a company"
+						on:select="{onRfcIdChange}"
+						bind:selectedId="{selectedCompanyId}"
+						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
+					/>
+				</Column>
+				<Column sm="{8}" md="{8}" lg="{10}">
+					<TextInput
+						id="rfc"
+						labelText="RFC Id"
+						placeholder="RFC Message-Id from a Gmail message"
+						bind:value="{rfcId}"
+						on:input="{onRfcIdChange}"
+					/>
+				</Column>
+				<Column sm="{1}" md="{1}" lg="{1}" class="default-gap">
+					{#if isLoadingRfc}
+						<div class="default-gap">
+							<InlineLoading />
+						</div>
+					{/if}
+				</Column>
+			</Row>
+			<Row class="default-gap">
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
 						id="name"
@@ -338,6 +351,45 @@
 						placeholder="Select a client"
 						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
 					/>
+				</Column>
+			</Row>
+			<Row>
+				<Column sm="{1}" md="{2}" lg="{4}">
+					<NumberInput
+						hideSteppers
+						id="price"
+						name="price"
+						label="Price*"
+						warn="{pricingMode == OrderPriceType.StitchCount}"
+						warnText="Using stitch count pricing mode"
+						invalid="{($errors?.order?.price?.length ?? 0) > 0}"
+						invalidText="{($errors?.order?.price ?? [''])[0]}"
+						bind:value="{$form.order.price}"
+						minlength="{3}"
+						placeholder=""
+					/>
+				</Column>
+				<Column sm="{3}" md="{4}" lg="{8}">
+					<ComboBox
+						id="vendor"
+						titleText="Vendor*"
+						label="Vendor*"
+						placeholder="Select a vendor"
+						items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
+						let:item
+						let:index
+					>
+						<div style="margin-top: -10px">
+							{item.text}
+							<Tag type="outline" icon="{InProgress}" class="cds--type-body-01">4</Tag>
+							<Tag type="red" icon="{InProgressWarning}" class="cds--type-body-01">8</Tag>
+							<Tag type="purple" icon="{TrainSpeed}" class="cds--type-body-01">3</Tag>
+						</div>
+					</ComboBox>
+				</Column>
+				<Column sm="{1}" md="{2}" lg="{4}">
+					<FormLabel style="margin-top: 5px">Rush</FormLabel>
+					<Toggle id="rush" name="rush" labelText="Rush" on:click="{handleRushToggle}" hideLabel />
 				</Column>
 			</Row>
 		</ModalBody>

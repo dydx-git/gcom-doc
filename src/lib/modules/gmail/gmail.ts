@@ -105,8 +105,8 @@ export class Gmailer {
         });
     }
 
-    public async getMessageFromRfcId(rfcId: string): Promise<IEmail | null> {
-        const messageId = await this.getMessageIdFromRfcId(rfcId);
+    public async getMessageFromSearch(searchString: string): Promise<IEmail | null> {
+        const messageId = await this.getMessageIdFromSearch(searchString);
 
         if (!messageId)
             return null;
@@ -114,15 +114,17 @@ export class Gmailer {
         return this.getMessage(messageId);
     }
 
-    private async getMessageIdFromRfcId(rfcId: string): Promise<string | null> {
-        const response = await this.gmail.users.messages.list({ userId: 'me', q: `rfc822msgid:${rfcId}` });
+    private async getMessageIdFromSearch(searchString: string): Promise<string | null> {
+        const response = await this.gmail.users.messages.list({ userId: 'me', q: searchString });
         const responseMessages = response.data.messages;
 
         if (!responseMessages)
             return null;
+
         const message = responseMessages[0];
         if (!message)
             return null;
+
         return message.id ?? null;
     }
 

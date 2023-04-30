@@ -40,7 +40,9 @@ export type JobsWithVendorAndClient = (PurchaseOrder & {
 	};
 })[];
 
-const orderSchema = JobOptionalDefaultsSchema.omit({ id: true });
+const orderSchema = JobOptionalDefaultsSchema.omit({ id: true, price: true, jobId: true }).extend({
+	price: z.number()
+});
 export type OrderSchema = z.infer<typeof orderSchema>;
 const gmailSchema = GmailMsgSchema.omit({ jobId: true });
 export type GmailSchema = z.infer<typeof gmailSchema>;
