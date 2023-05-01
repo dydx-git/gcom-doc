@@ -23,7 +23,10 @@
 		InlineLoading,
 		NumberInput,
 		Toggle,
-		FormLabel
+		FormLabel,
+		FileUploaderDropContainer,
+		FileUploaderButton,
+		TextArea
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
@@ -50,6 +53,8 @@
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
 	import { OrderPriceType } from './meta';
+	import fuzzy from '@leeoniya/ufuzzy';
+	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
 
 	export let data;
 	const { clients, orders, vendors } = data;
@@ -62,6 +67,7 @@
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
 	let dtColumns = orderColumns;
 	const stitchCountPricingModeCutoff = 1000;
+	const search = new fuzzy({ intraMode: 1 });
 
 	const filterTable = (text: string) => {};
 
@@ -129,10 +135,34 @@
 	//#region Form
 
 	let submissionError: Error | null = null;
+
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
 		submitType = FormSubmitType.AddNew;
 	};
+	const filterComboBoxItems = (item: ComboBoxItem, value: string) =>
+		item.text.toLowerCase().includes(value.toLowerCase());
+
+	//#region file upload
+	const acceptedFileTypes = [
+		'.pdf',
+		'.doc',
+		'.docx',
+		'.jpg',
+		'.jpeg',
+		'.png',
+		'.bmp',
+		'.cdr',
+		'.ai',
+		'.svg',
+		'.eps'
+	];
+	// define max file size as 20 mb
+	const maxFileSize = 20_971_520;
+	const validateUploadFiles = (files: readonly File[]) =>
+		files.filter((file) => file.size < maxFileSize && acceptedFileTypes.includes(file.type));
+
+	//#endregion file upload
 
 	const handleRushToggle = (event: MouseEvent) => {
 		const { value } = event.target as HTMLInputElement;
@@ -204,23 +234,20 @@
 			<HighlightTile
 				clickHandler="{() => filterTable('pending digitizing')}"
 				text="Pending digitizing:"
-				highlight="14"
-			/>
+				highlight="14" />
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
 				clickHandler="{() => filterTable('pending vector')}"
 				text="Pending vector:"
-				highlight="10"
-			/>
+				highlight="10" />
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
 				clickHandler="{() => filterTable('overdue')}"
 				text="Overdue:"
 				highlight="10"
-				type="warning"
-			/>
+				type="warning" />
 		</Column>
 	</Row>
 	<Row class="default-gap">
@@ -237,8 +264,7 @@
 								interactive
 								icon="{getIconByStatus(row.status)}"
 								type="{getColorByStatus(row.status)}"
-								size="{screenSize == 'sm' ? screenSize : 'default'}"
-							>
+								size="{screenSize == 'sm' ? screenSize : 'default'}">
 								{render(cell)}
 							</Tag>
 						</Truncate>
@@ -247,8 +273,7 @@
 							<OverflowMenuItem text="Restart" />
 							<OverflowMenuItem
 								href="https://cloud.ibm.com/docs/loadbalancer-service"
-								text="API documentation"
-							/>
+								text="API documentation" />
 							<OverflowMenuItem danger text="Stop" />
 						</OverflowMenu>
 					{:else if cell.key == orderDatatableColumnKeys.date}
@@ -288,8 +313,7 @@
 	}}"
 	on:close="{() => {
 		isAddNewModalOpen = false;
-	}}"
->
+	}}">
 	<form method="POST" use:enhance action="{formActionUrl}">
 		<ModalHeader label="{formTitle}">
 			<Row>
@@ -307,10 +331,10 @@
 						titleText="Company"
 						label="Company"
 						placeholder="Select a company"
+						shouldFilterItem="{filterComboBoxItems}"
 						on:select="{onRfcIdChange}"
 						bind:selectedId="{selectedCompanyId}"
-						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
-					/>
+						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}" />
 				</Column>
 				<Column sm="{8}" md="{8}" lg="{10}">
 					<TextInput
@@ -318,8 +342,7 @@
 						labelText="RFC Id"
 						placeholder="RFC Message-Id from a Gmail message"
 						bind:value="{rfcId}"
-						on:input="{onRfcIdChange}"
-					/>
+						on:input="{onRfcIdChange}" />
 				</Column>
 				<Column sm="{1}" md="{1}" lg="{1}" class="default-gap">
 					{#if isLoadingRfc}
@@ -340,21 +363,20 @@
 						bind:value="{$form.order.name}"
 						minlength="{3}"
 						placeholder="ABC Logo"
-						tabindex="{1}"
-					/>
+						tabindex="{1}" />
 				</Column>
-				<Column sm="{4}" md="{4}" lg="{8}">
+				<Column sm="{4}" md="{4}" lg="{7}">
 					<ComboBox
 						id="client"
 						titleText="Client*"
 						label="Client*"
 						placeholder="Select a client"
-						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
-					/>
+						shouldFilterItem="{filterComboBoxItems}"
+						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
 				</Column>
 			</Row>
-			<Row>
-				<Column sm="{1}" md="{2}" lg="{4}">
+			<Row class="default-gap">
+				<Column sm="{2}" md="{2}" lg="{4}">
 					<NumberInput
 						hideSteppers
 						id="price"
@@ -366,8 +388,7 @@
 						invalidText="{($errors?.order?.price ?? [''])[0]}"
 						bind:value="{$form.order.price}"
 						minlength="{3}"
-						placeholder=""
-					/>
+						placeholder="" />
 				</Column>
 				<Column sm="{3}" md="{4}" lg="{8}">
 					<ComboBox
@@ -375,6 +396,7 @@
 						titleText="Vendor*"
 						label="Vendor*"
 						placeholder="Select a vendor"
+						shouldFilterItem="{filterComboBoxItems}"
 						items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
 						let:item
 						let:index>
@@ -395,6 +417,21 @@
 				<Column sm="{1}" md="{2}" lg="{4}">
 					<FormLabel style="margin-top: 5px">Rush</FormLabel>
 					<Toggle id="rush" name="rush" labelText="Rush" on:click="{handleRushToggle}" hideLabel />
+				</Column>
+			</Row>
+			<Row class="default-gap">
+				<Column sm="{2}" md="{4}" lg="{9}">
+					<TextInput labelText="Append to subject" placeholder="Subject" />
+					<TextArea placeholder="Email body" rows="{12}" />
+				</Column>
+				<Column>
+					<FormLabel>Attachments</FormLabel>
+					<FileUploaderDropContainer
+						labelText="Upload files"
+						accept="{acceptedFileTypes}"
+						multiple
+						validateFiles="{validateUploadFiles}" />
+					<FileUploaderButton labelText="Add files" accept="{acceptedFileTypes}" multiple />
 				</Column>
 			</Row>
 		</ModalBody>
