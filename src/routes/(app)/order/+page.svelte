@@ -377,19 +377,18 @@
 						placeholder="Select a vendor"
 						items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
 						let:item
-						let:index
-					>
+						let:index>
 						<div style="margin-top: -10px">
 							{item.text}
-							<Tag type="outline" icon="{InProgress}" class="cds--type-body-01"
-								>{vendors ? vendors[index].orders.pending : 0}</Tag
-							>
-							<Tag type="red" icon="{InProgressWarning}" class="cds--type-body-01"
-								>{vendors ? vendors[index].orders.overdue : 0}</Tag
-							>
-							<Tag type="purple" icon="{TrainSpeed}" class="cds--type-body-01"
-								>{vendors ? vendors[index].orders.rush : 0}</Tag
-							>
+							<Tag type="outline" icon="{InProgress}" class="cds--type-body-01">
+								{vendors ? vendors[index].orders.pending : 0}
+							</Tag>
+							<Tag type="red" icon="{InProgressWarning}" class="cds--type-body-01">
+								{vendors ? vendors[index].orders.overdue : 0}
+							</Tag>
+							<Tag type="purple" icon="{TrainSpeed}" class="cds--type-body-01">
+								{vendors ? vendors[index].orders.rush : 0}
+							</Tag>
 						</div>
 					</ComboBox>
 				</Column>
