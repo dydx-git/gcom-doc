@@ -2,13 +2,14 @@
 import { superValidate } from 'sveltekit-superforms/server';
 import type { PageServerLoad } from './$types';
 import prisma from '$db/client';
-import { Prisma } from '@prisma/client';
+import { JobStatus, Prisma } from '@prisma/client';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 import { Jobs } from '$lib/modules/order/order';
 import dayjs from 'dayjs';
 import { error, fail } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
 import { schema } from '$lib/modules/order/meta';
+import { Vendors } from '$lib/modules/vendor/vendor';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
@@ -27,7 +28,8 @@ export const load: PageServerLoad = async (event) => {
 
 	const userSettings = await new UserSettings().read({ username: user.username });
 	const dateUntil = dayjs().subtract(userSettings.datatable.order.showRecordsForLastDays, 'day').toDate();
-	const vendors = prisma.vendor.findMany({ select: { id: true, name: true } });
+	const vendors = new Vendors().getPendingOrdersAggregate();
+
 	const orders = new Jobs().readForDataTable(dateUntil);
 
 	depends(url.pathname);

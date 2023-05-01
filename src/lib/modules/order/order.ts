@@ -1,5 +1,6 @@
 import prisma from '$db/client';
-import type { JobsWithVendorAndClient, OrderDataTable } from './meta';
+import { JobStatus } from '@prisma/client';
+import { type JobsWithVendorAndClient, type OrderDataTable, OrderStatus } from './meta';
 
 export class Jobs {
 	public async read(dateUntil: Date): Promise<JobsWithVendorAndClient> {
@@ -43,6 +44,8 @@ export class Jobs {
 	public async readForDataTable(dateUntil: Date): Promise<OrderDataTable[]> {
 		const jobs = await this.read(dateUntil);
 		const result: OrderDataTable[] = [];
+		const aDayAgo = new Date();
+		aDayAgo.setDate(aDayAgo.getDate() - 1);
 
 		jobs.forEach((job) => {
 			const { client, jobs } = job;
@@ -57,7 +60,9 @@ export class Jobs {
 					vendor: job.vendor.name,
 					vendorId: job.vendor.id,
 					date: job.createdAt.toString(),
-					status: job.status
+					status: job.createdAt > aDayAgo && job.status == JobStatus.PENDING
+						? OrderStatus.OVERDUE
+						: job.status
 				});
 			});
 		});
