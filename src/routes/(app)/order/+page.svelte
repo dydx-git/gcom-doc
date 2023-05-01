@@ -189,6 +189,9 @@
 			submissionError = error as Error;
 			return;
 		}
+		console.log(data);
+
+		setFormData(data);
 	};
 
 	//#endregion
@@ -212,6 +215,16 @@
 			submissionError = result?.data?.error;
 		}
 	});
+
+	const setFormData = (email: RfcEmailResponse) => {
+		if (email.clientId) $form.po.clientId = email.clientId;
+		$form.attachments = email.attachments;
+		$form.gmail.threadId = email.threadId;
+		$form.gmail.inboxMsgId = email.messageId;
+		$form.gmail.rfcId = rfcId;
+		$form.subjectAddendum = email.subject;
+		$form.body = email.body;
+	};
 
 	export const snapshot: Snapshot = {
 		capture,
@@ -422,7 +435,7 @@
 			<Row class="default-gap">
 				<Column sm="{2}" md="{4}" lg="{9}">
 					<TextInput labelText="Append to subject" placeholder="Subject" />
-					<TextArea placeholder="Email body" rows="{12}" />
+					<TextArea placeholder="Email body" rows="{11}" />
 				</Column>
 				<Column>
 					<FormLabel>Attachments</FormLabel>

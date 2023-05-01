@@ -116,6 +116,7 @@ export class Gmailer {
 
     private async getMessageIdFromSearch(searchString: string): Promise<string | null> {
         const response = await this.gmail.users.messages.list({ userId: 'me', q: searchString });
+
         const responseMessages = response.data.messages;
 
         if (!responseMessages)

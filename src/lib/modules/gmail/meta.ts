@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { IHasId } from '../common/interfaces/core';
 
 export class GmailRawId implements IHasId {
@@ -11,3 +12,10 @@ export class GmailRawId implements IHasId {
 		return new Date(parseInt(this.id.slice(0, 13)));
 	}
 }
+
+export const fileSchema = z.object({
+	filename: z.string(),
+	mimeType: z.string(),
+	size: z.number()
+});
+export type GenericFile = z.infer<typeof fileSchema>;

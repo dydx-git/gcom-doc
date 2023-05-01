@@ -15,7 +15,7 @@ export const GET: RequestHandler = async ({ url, params }) => {
 
     const gmail = await Gmailer.getInstance(company);
 
-    const data = await gmail.getMessageFromRfcId(rfcId.replace("rfc822msgid:", ""));
+    const data = await gmail.getMessageFromSearch(rfcId);
     if (!data)
         throw error(404, 'Email not found');
 
