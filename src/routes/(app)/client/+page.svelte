@@ -69,6 +69,7 @@
 	//#region Form
 
 	let submissionError: Error | null = null;
+	let hasUserInteracted = false;
 
 	const { form, errors, enhance, capture, restore, tainted } = superForm(data.form, {
 		dataType: 'json',
@@ -77,6 +78,7 @@
 		validators: schema,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') {
+				hasUserInteracted = false;
 				isAddNewModalOpen = false;
 				return;
 			}
@@ -85,16 +87,9 @@
 		}
 	});
 
-	let hasUserInteract = false;
-	const markUserInteraction = () => {
-		console.log("Form changed")
-		hasUserInteract = true;
-	}
-	
-	$: if ($tainted && !hasUserInteract) {
-		$tainted.client.companyId = undefined;
-		$tainted.client.currency = undefined;
-	}
+	const markUserInteraction = () => (hasUserInteracted = true);
+
+	$: if ($tainted && !hasUserInteracted) form.update(($form) => $form, { taint: 'untaint-all' });
 
 	export const snapshot: Snapshot = {
 		capture,
@@ -184,8 +179,7 @@
 							<OverflowMenuItem text="Restart" />
 							<OverflowMenuItem
 								href="https://cloud.ibm.com/docs/loadbalancer-service"
-								text="API documentation"
-							/>
+								text="API documentation" />
 							<OverflowMenuItem danger text="Stop" />
 						</OverflowMenu>
 					{:else}
@@ -200,8 +194,7 @@
 						<ToolbarSearch />
 						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
 						<Button icon="{UserFollow}" accesskey="n" on:click="{openNewOrderModal}"
-							>Create New</Button
-						>
+							>Create New</Button>
 					</ToolbarContent>
 				</Toolbar>
 			</DataTable>
@@ -217,9 +210,15 @@
 	role="dialog"
 	on:open="{onOpen}"
 	on:close="{onClose}"
-	on:submit="{onSubmit}"
->
-	<form method="POST" use:enhance action="{formActionUrl}">
+	on:submit="{onSubmit}">
+	<form
+		method="POST"
+		use:enhance
+		action="{formActionUrl}"
+		on:keydown="{markUserInteraction}"
+		on:keyup="{markUserInteraction}"
+		on:keypress="{markUserInteraction}"
+		on:click="{markUserInteraction}">
 		<ModalHeader label="{formTitle}">
 			<Row>
 				<Column sm="{12}" md="{4}" lg="{8}">
@@ -240,8 +239,7 @@
 						bind:value="{$form.client.name}"
 						minlength="{3}"
 						placeholder="John Doe"
-						tabindex="{1}"
-					/>
+						tabindex="{1}" />
 				</Column>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
@@ -253,8 +251,7 @@
 						bind:value="{$form.client.companyName}"
 						invalid="{($errors?.client?.companyName?.length ?? 0) > 0}"
 						invalidText="{($errors?.client?.companyName ?? [''])[0]}"
-						tabindex="{2}"
-					/>
+						tabindex="{2}" />
 				</Column>
 			</Row>
 			<Row class="default-gap">
@@ -268,8 +265,7 @@
 						invalidText="{($errors?.client?.companyId ?? [''])[0]}"
 						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.client.companyId}"
-						tabindex="{3}"
-					/>
+						tabindex="{3}" />
 				</Column>
 				<Column sm="{2}" md="{4}" lg="{8}">
 					<ComboBox
@@ -281,8 +277,7 @@
 						bind:selectedId="{$form.client.salesRepUsername}"
 						invalid="{($errors?.client?.salesRepUsername?.length ?? 0) > 0}"
 						invalidText="{($errors?.client?.salesRepUsername ?? [''])[0]}"
-						tabindex="{4}"
-					/>
+						tabindex="{4}" />
 				</Column>
 			</Row>
 			<FormGroup class="default-gap">
@@ -298,15 +293,13 @@
 								invalid="{($errors?.phones?.[i]?.phone?.length ?? 0) > 0}"
 								invalidText="{($errors?.phones?.[i]?.phone ?? [''])[0]}"
 								bind:value="{phone.phone}"
-								tabindex="{5 + i}"
-							/>
+								tabindex="{5 + i}" />
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
 							<Select
 								labelText="Type*"
 								name="{`phones[${i}].type`}"
-								bind:selected="{$form.phones[i].type}"
-							>
+								bind:selected="{$form.phones[i].type}">
 								{#each Object.values(PhoneType) as type}
 									<SelectItem value="{type}" text="{type}" />
 								{/each}
@@ -318,8 +311,7 @@
 								placeholder="Personal phone etc."
 								labelText="Description"
 								bind:value="{phone.description}"
-								tabindex="{7 + i}"
-							/>
+								tabindex="{7 + i}" />
 						</Column>
 						<Column sm="{0}" md="{1}" lg="{1}">
 							<Button
@@ -333,8 +325,7 @@
 										...$form.phones,
 										{ phone: '', type: PhoneType.PRIMARY, description: '' }
 									];
-								}}"
-							/>
+								}}" />
 							<Button
 								kind="danger-tertiary"
 								icon="{Subtract}"
@@ -344,8 +335,7 @@
 								tooltipPosition="left"
 								on:click="{() => {
 									$form.phones = $form.phones.filter((_, index) => index !== i);
-								}}"
-							/>
+								}}" />
 						</Column>
 					</Row>
 				{/each}
@@ -362,15 +352,13 @@
 								placeholder="john.doe@example.com"
 								bind:value="{email.email}"
 								invalid="{($errors?.emails?.[i]?.email?.length ?? 0) > 0}"
-								invalidText="{($errors?.emails?.[i]?.email ?? [''])[0]}"
-							/>
+								invalidText="{($errors?.emails?.[i]?.email ?? [''])[0]}" />
 						</Column>
 						<Column sm="{2}" md="{2}" lg="{4}">
 							<Select
 								labelText="Type*"
 								name="{`phones[${i}].type`}"
-								bind:selected="{$form.emails[i].type}"
-							>
+								bind:selected="{$form.emails[i].type}">
 								{#each Object.values(EmailType) as type}
 									<SelectItem value="{type}" text="{type}" />
 								{/each}
@@ -381,8 +369,7 @@
 								name="{`emails[${i}].description`}"
 								placeholder="Description"
 								labelText="Description"
-								bind:value="{email.description}"
-							/>
+								bind:value="{email.description}" />
 						</Column>
 						<Column sm="{0}" md="{1}" lg="{1}">
 							<Button
@@ -396,8 +383,7 @@
 										...$form.emails,
 										{ email: '', type: EmailType.JOB, description: '' }
 									];
-								}}"
-							/>
+								}}" />
 							<Button
 								kind="danger-tertiary"
 								icon="{Subtract}"
@@ -407,8 +393,7 @@
 								disabled="{$form.emails.length === 1}"
 								on:click="{() => {
 									$form.emails = $form.emails.filter((_, index) => index !== i);
-								}}"
-							/>
+								}}" />
 						</Column>
 					</Row>
 				{/each}
@@ -424,16 +409,14 @@
 						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.client.payMethod}"
 						invalid="{($errors?.client?.payMethod?.length ?? 0) > 0}"
-						invalidText="{($errors?.client?.payMethod ?? [''])[0]}"
-					/>
+						invalidText="{($errors?.client?.payMethod ?? [''])[0]}" />
 				</Column>
 				<Column sm="{2}" md="{3}" lg="{4}">
 					<Select
 						labelText="Type*"
 						bind:selected="{$form.client.currency}"
 						invalid="{($errors?.client?.currency?.length ?? 0) > 0}"
-						invalidText="{($errors?.client?.currency ?? [''])[0]}"
-					>
+						invalidText="{($errors?.client?.currency ?? [''])[0]}">
 						{#each Object.values(Currency) as curr}
 							<SelectItem value="{curr}" text="{curr}" />
 						{/each}
@@ -442,8 +425,7 @@
 				<Column sm="{2}" md="{2}" lg="{4}">
 					<Toggle
 						labelText="Add transaction charges"
-						bind:toggled="{$form.client.addTransactionCharges}"
-					/>
+						bind:toggled="{$form.client.addTransactionCharges}" />
 				</Column>
 			</Row>
 			<FormGroup class="default-gap">
@@ -456,8 +438,7 @@
 							bind:value="{$form.address.address}"
 							invalid="{($errors?.address?.address?.length ?? 0) > 0}"
 							invalidText="{($errors?.address?.address ?? [''])[0]}"
-							on:keyup="{debounce(parseAddress, userPreferences.inputToProcessDelay)}"
-						/>
+							on:keyup="{debounce(parseAddress, userPreferences.inputToProcessDelay)}" />
 					</Column>
 					<Column sm="{1}" md="{2}" lg="{4}">
 						<TextInput
@@ -466,8 +447,7 @@
 							placeholder="Los Angeles"
 							bind:value="{$form.address.city}"
 							invalid="{($errors?.address?.city?.length ?? 0) > 0}"
-							invalidText="{($errors?.address?.city ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.address?.city ?? [''])[0]}" />
 					</Column>
 					<Column sm="{1}" md="{2}" lg="{2}">
 						<TextInput
@@ -476,8 +456,7 @@
 							placeholder="Code: CA, NY etc"
 							bind:value="{$form.address.state}"
 							invalid="{($errors?.address?.state?.length ?? 0) > 0}"
-							invalidText="{($errors?.address?.state ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.address?.state ?? [''])[0]}" />
 					</Column>
 					<Column sm="{2}" md="{2}" lg="{2}">
 						<TextInput
@@ -486,8 +465,7 @@
 							placeholder="12345"
 							bind:value="{$form.address.zip}"
 							invalid="{($errors?.address?.zip?.length ?? 0) > 0}"
-							invalidText="{($errors?.address?.zip ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.address?.zip ?? [''])[0]}" />
 					</Column>
 					<Column sm="{2}" md="{3}" lg="{3}">
 						<TextInput
@@ -496,8 +474,7 @@
 							placeholder="USA, UK etc"
 							bind:value="{$form.address.country}"
 							invalid="{($errors?.address?.country?.length ?? 0) > 0}"
-							invalidText="{($errors?.address?.country ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.address?.country ?? [''])[0]}" />
 					</Column>
 				</Row>
 				<Row class="default-gap">
@@ -513,8 +490,7 @@
 									text: suggestion.formattedAddress,
 									value: suggestion
 								};
-							})}"
-						/>
+							})}" />
 					</Column>
 					{#if addressSuggestionProps.response}
 						<Column sm="{1}" md="{3}" lg="{4}" class="default-gap">
@@ -522,21 +498,18 @@
 								<InlineLoading
 									description="Loading suggestions..."
 									status="active"
-									class="default-gap"
-								/>
+									class="default-gap" />
 							{:then r}
 								{#if r.ok}
 									<InlineLoading
 										description="Suggestions loaded!"
 										status="finished"
-										class="default-gap"
-									/>
+										class="default-gap" />
 								{:else}
 									<InlineLoading
 										description="Error loading suggestions!"
 										status="error"
-										class="default-gap"
-									/>
+										class="default-gap" />
 								{/if}
 							{/await}
 						</Column>
@@ -548,8 +521,7 @@
 							labelText="Notes"
 							bind:value="{$form.client.notes}"
 							placeholder="Add notes"
-							type="multi"
-						/>
+							type="multi" />
 					</Column>
 				</Row>
 			</FormGroup>

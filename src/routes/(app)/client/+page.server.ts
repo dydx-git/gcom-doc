@@ -22,9 +22,8 @@ export const load: PageServerLoad = async ({ locals, depends, url, request }) =>
 };
 
 export const actions: Actions = {
-	create: async (event) => {
-		const { locals, url } = event;
-		const form = await superValidate(event, schema);
+	create: async ({ locals, url, request }) => {
+		let form = await superValidate(request, schema);
 
 		if (!form.valid) {
 			return fail(400, { form });
@@ -46,6 +45,7 @@ export const actions: Actions = {
 		}
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
 
+		form = await superValidate(schema); // empty form
 		return { form, error: null };
 	}
 };
