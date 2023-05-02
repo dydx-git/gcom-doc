@@ -7,10 +7,9 @@ import { Prisma } from '@prisma/client';
 import { schema } from '$lib/modules/client/meta';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 
-export const load: PageServerLoad = async (event) => {
-	const form = superValidate(event, schema);
+export const load: PageServerLoad = async ({ locals, depends, url, request }) => {
+	const form = superValidate(request, schema);
 	const salesRep = prisma.salesRep.findMany({ select: { username: true, name: true } });
-	const { locals, depends, url } = event;
 
 	const { user } = await locals.validateUser();
 	if (!user) return fail(401, { message: 'You must be logged in to access this page' });

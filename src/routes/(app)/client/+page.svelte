@@ -70,12 +70,11 @@
 
 	let submissionError: Error | null = null;
 
-	const { form, errors, enhance, capture, restore } = superForm(data.form, {
+	const { form, errors, enhance, capture, restore, tainted } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
 		validators: schema,
-		taintedMessage: null,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') {
 				isAddNewModalOpen = false;
@@ -85,6 +84,17 @@
 			submissionError = result?.data?.error;
 		}
 	});
+
+	let hasUserInteract = false;
+	const markUserInteraction = () => {
+		console.log("Form changed")
+		hasUserInteract = true;
+	}
+	
+	$: if ($tainted && !hasUserInteract) {
+		$tainted.client.companyId = undefined;
+		$tainted.client.currency = undefined;
+	}
 
 	export const snapshot: Snapshot = {
 		capture,
