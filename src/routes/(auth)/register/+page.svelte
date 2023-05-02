@@ -25,7 +25,6 @@
 	import { schema } from './meta';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
-	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import type { SalesRepColors } from '$lib/modules/salesRep/meta';
 
 	export let data: PageServerData;
@@ -85,8 +84,6 @@
 		}
 	};
 </script>
-
-<SuperDebug data="{$errors}" />
 
 <Grid>
 	<h1>Register</h1>

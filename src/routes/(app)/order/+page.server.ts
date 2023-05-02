@@ -17,9 +17,7 @@ export const load: PageServerLoad = async (event) => {
 	const form = superValidate(event, schema);
 	const clients = prisma.client.findMany({
 		select: {
-			id: true, name: true, ClientSetPrice: {
-				select: { price: true, type: true }
-			}
+			id: true, name: true
 		}
 	});
 
