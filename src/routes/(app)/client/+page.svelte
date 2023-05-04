@@ -9,6 +9,7 @@
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import { schema } from '$lib/modules/client/meta';
+	import clone from 'just-clone';
 	import {
 		Grid,
 		Column,
@@ -38,13 +39,12 @@
 	import type { PageData, Snapshot } from './$types';
 	import type { Address } from '$lib/address/meta';
 
-	export let data: PageData;
+	export let data;
 
 	export let title = 'Clients';
 	export let description = 'Showing all clients';
 	$: tableData = data.client;
 
-	let isSearchExpanded = true;
 	let searchText = '';
 	let isAddNewModalOpen = false;
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
@@ -69,16 +69,16 @@
 	//#region Form
 
 	let submissionError: Error | null = null;
-	let hasUserInteracted = false;
+	let initialFormData: any | null = null;
 
-	const { form, errors, enhance, capture, restore, tainted } = superForm(data.form, {
+	const { form, errors, enhance, capture, restore } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
 		validators: schema,
+		taintedMessage: null,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') {
-				hasUserInteracted = false;
 				isAddNewModalOpen = false;
 				return;
 			}
@@ -87,9 +87,9 @@
 		}
 	});
 
-	const markUserInteraction = () => (hasUserInteracted = true);
-
-	$: if ($tainted && !hasUserInteracted) form.update(($form) => $form, { taint: 'untaint-all' });
+	$: if ($form && !initialFormData) {
+		initialFormData = clone($form);
+	}
 
 	export const snapshot: Snapshot = {
 		capture,
@@ -113,7 +113,9 @@
 
 	const onOpen = (e: Event) => {};
 
-	const onClose = (e: Event) => {};
+	const onClear = (e: Event) => {
+		$form = clone(initialFormData);
+	};
 
 	const onSubmit = (e: Event) => {
 		const nameInput = document.getElementById('name') as HTMLInputElement;
@@ -209,22 +211,15 @@
 	selectorPrimaryFocus="#name"
 	role="dialog"
 	on:open="{onOpen}"
-	on:close="{onClose}"
 	on:submit="{onSubmit}">
-	<form
-		method="POST"
-		use:enhance
-		action="{formActionUrl}"
-		on:keydown="{markUserInteraction}"
-		on:keyup="{markUserInteraction}"
-		on:keypress="{markUserInteraction}"
-		on:click="{markUserInteraction}">
+	<form method="POST" use:enhance action="{formActionUrl}">
 		<ModalHeader label="{formTitle}">
 			<Row>
 				<Column sm="{12}" md="{4}" lg="{8}">
 					<h3>Client</h3>
 				</Column>
 			</Row>
+			<!-- <SuperDebug data="{$form}" /> -->
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
@@ -527,7 +522,7 @@
 			</FormGroup>
 		</ModalBody>
 		<ModalFooter>
-			<Button kind="secondary" on:click="{onClose}" icon="{Close}">Cancel</Button>
+			<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
 			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>
 		</ModalFooter>
 	</form>
