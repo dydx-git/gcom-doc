@@ -31,6 +31,7 @@
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
+	import { page } from '$app/stores';
 	import {
 		Add,
 		type CarbonIcon,
@@ -55,6 +56,9 @@
 	import { OrderPriceType } from './meta';
 	import fuzzy from '@leeoniya/ufuzzy';
 	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
+	import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
+	import type { StatusCode } from '$lib/modules/common/interfaces/core';
+	import type { SvelteComponentTyped } from 'svelte';
 
 	export let data;
 	const { clients, orders, vendors } = data;
@@ -134,7 +138,8 @@
 
 	//#region Form
 
-	let submissionError: Error | null = null;
+	let orderNameInput: HTMLInputElement;
+	let submissionError: FormStatusMessage | null = null;
 
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
@@ -185,13 +190,17 @@
 		const data: RfcEmailResponse = await response.json();
 		isLoadingRfc = false;
 		if (!response.ok) {
-			const error = data as unknown;
-			submissionError = error as Error;
+			const unknownError = data as unknown;
+			const err = unknownError as Error;
+			submissionError = {
+				status: $page.status as StatusCode,
+				message: err.message
+			};
 			return;
 		}
-		console.log(data);
 
 		setFormData(data);
+		orderNameInput.focus();
 	};
 
 	//#endregion
@@ -200,7 +209,7 @@
 	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
-	const { form, errors, enhance, capture, restore } = superForm(data.form, {
+	const { form, errors, enhance, capture, restore, message } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
@@ -211,19 +220,20 @@
 				isAddNewModalOpen = false;
 				return;
 			}
-
-			submissionError = result?.data?.error;
 		}
 	});
 
+	$: if ($message) submissionError = $message;
+
 	const setFormData = (email: RfcEmailResponse) => {
 		if (email.clientId) $form.po.clientId = email.clientId;
-		$form.attachments = email.attachments;
+		$form.gmail.attachments = email.attachments;
 		$form.gmail.threadId = email.threadId;
 		$form.gmail.inboxMsgId = email.messageId;
 		$form.gmail.rfcId = rfcId;
-		$form.subjectAddendum = email.subject;
-		$form.body = email.body;
+		$form.gmail.body = email.body;
+
+		console.log(email.body);
 	};
 
 	export const snapshot: Snapshot = {
@@ -370,6 +380,7 @@
 					<TextInput
 						id="name"
 						name="name"
+						bind:ref="{orderNameInput}"
 						labelText="Order Name*"
 						invalid="{($errors?.order?.name?.length ?? 0) > 0}"
 						invalidText="{($errors?.order?.name ?? [''])[0]}"
@@ -385,6 +396,7 @@
 						label="Client*"
 						placeholder="Select a client"
 						shouldFilterItem="{filterComboBoxItems}"
+						bind:selectedId="{$form.po.clientId}"
 						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
 				</Column>
 			</Row>
@@ -434,8 +446,17 @@
 			</Row>
 			<Row class="default-gap">
 				<Column sm="{2}" md="{4}" lg="{9}">
-					<TextInput labelText="Append to subject" placeholder="Subject" />
-					<TextArea placeholder="Email body" rows="{11}" />
+					<TextInput
+						labelText="Append to subject"
+						placeholder="Subject"
+						bind:value="{$form.gmail.subjectAddendum}" />
+					<div
+						placeholder="Email body"
+						bind:innerHTML="{$form.gmail.body}"
+						contenteditable
+						class="bx--text-area"
+						style="min-height: 220px">
+					</div>
 				</Column>
 				<Column>
 					<FormLabel>Attachments</FormLabel>

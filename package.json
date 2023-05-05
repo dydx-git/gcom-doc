@@ -32,7 +32,7 @@
 		"@types/validator": "^13.7.15",
 		"@typescript-eslint/eslint-plugin": "^5.54.1",
 		"@typescript-eslint/parser": "^5.54.1",
-		"carbon-components-svelte": "^0.73.3",
+		"carbon-components-svelte": "^0.73.5",
 		"carbon-icons-svelte": "^11.4.0",
 		"carbon-preprocess-svelte": "^0.9.1",
 		"devemu": "^1.0.7",

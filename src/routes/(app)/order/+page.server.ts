@@ -10,11 +10,12 @@ import { error, fail } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
 import { schema } from '$lib/modules/order/meta';
 import { Vendors } from '$lib/modules/vendor/vendor';
+import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
-	const form = superValidate(event, schema);
+	const form = superValidate<typeof schema, FormStatusMessage>(event, schema);
 	const clients = prisma.client.findMany({
 		select: {
 			id: true, name: true
