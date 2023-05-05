@@ -7,10 +7,9 @@ import { Prisma } from '@prisma/client';
 import { schema } from '$lib/modules/client/meta';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 
-export const load: PageServerLoad = async (event) => {
-	const form = superValidate(event, schema);
+export const load: PageServerLoad = async ({ locals, depends, url, request }) => {
+	const form = superValidate(request, schema);
 	const salesRep = prisma.salesRep.findMany({ select: { username: true, name: true } });
-	const { locals, depends, url } = event;
 
 	const { user } = await locals.validateUser();
 	if (!user) return fail(401, { message: 'You must be logged in to access this page' });
@@ -23,9 +22,8 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
-	create: async (event) => {
-		const { locals, url } = event;
-		const form = await superValidate(event, schema);
+	create: async ({ locals, url, request }) => {
+		let form = await superValidate(request, schema);
 
 		if (!form.valid) {
 			return fail(400, { form });
@@ -47,6 +45,7 @@ export const actions: Actions = {
 		}
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
 
+		form = await superValidate(schema); // empty form
 		return { form, error: null };
 	}
 };
