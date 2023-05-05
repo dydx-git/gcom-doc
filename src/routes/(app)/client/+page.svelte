@@ -70,6 +70,7 @@
 
 	let submissionError: Error | null = null;
 	let initialFormData: any | null = null;
+	let initialFormError: any | null = null;
 
 	const { form, errors, enhance, capture, restore } = superForm(data.form, {
 		dataType: 'json',
@@ -89,6 +90,10 @@
 
 	$: if ($form && !initialFormData) {
 		initialFormData = clone($form);
+	}
+
+	$: if ($errors && !initialFormError) {
+		initialFormError = clone($errors);
 	}
 
 	export const snapshot: Snapshot = {
@@ -115,6 +120,7 @@
 
 	const onClear = (e: Event) => {
 		$form = clone(initialFormData);
+		$errors = clone(initialFormError);
 	};
 
 	const onSubmit = (e: Event) => {
