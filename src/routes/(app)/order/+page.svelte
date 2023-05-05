@@ -232,7 +232,7 @@
 	};
 
 	$: pricingMode =
-		$form.order.price > stitchCountPricingModeCutoff
+		$form?.order?.price > stitchCountPricingModeCutoff
 			? OrderPriceType.StitchCount
 			: OrderPriceType.FlatRate;
 	//#endregion
