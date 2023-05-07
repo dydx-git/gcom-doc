@@ -13,9 +13,14 @@ export class GmailRawId implements IHasId {
 	}
 }
 
-export const fileSchema = z.object({
+export const fileInfoSchema = z.object({
 	filename: z.string(),
 	mimeType: z.string(),
 	size: z.number()
 });
-export type GenericFile = z.infer<typeof fileSchema>;
+export type GenericFileInfo = z.infer<typeof fileInfoSchema>;
+
+export const fileSchema = fileInfoSchema.extend({
+	data: z.string()
+});
+export type FileSchema = z.infer<typeof fileSchema>;

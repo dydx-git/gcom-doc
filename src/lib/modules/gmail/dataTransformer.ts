@@ -2,7 +2,7 @@ import type { IEmail } from 'gmail-api-parse-message-ts';
 import { z } from 'zod';
 import { Clients } from "$lib/modules/client/client";
 import { Email } from '$lib/modules/common/models/email';
-import type { GenericFile } from './meta';
+import type { GenericFileInfo } from './meta';
 
 export const rfcEmailResponse = z.object({
     messageId: z.string(),
@@ -36,7 +36,7 @@ export class GmailDataTransformer {
             body: this.data.textHtml,
             subject: this.data.subject,
             clientId: client?.id,
-            attachments: this.data.attachments.map((attachment): GenericFile => ({
+            attachments: this.data.attachments.map((attachment): GenericFileInfo => ({
                 filename: attachment.filename,
                 mimeType: attachment.mimeType,
                 size: attachment.size
