@@ -2,7 +2,7 @@ import { GmailMsgSchema, JobOptionalDefaultsSchema, PurchaseOrderOptionalDefault
 import { JobStatus, type Job, type PurchaseOrder, EmailDirection } from '@prisma/client';
 import { z } from 'zod';
 import { withDefaults } from "../common/functions/core";
-import { fileInfoSchema } from '../gmail/meta';
+import { fileInfoSchema } from '../common/interfaces/file';
 
 export const OrderStatus = {
 	...JobStatus,

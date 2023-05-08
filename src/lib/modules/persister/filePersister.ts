@@ -1,6 +1,6 @@
-import type { FileSchema } from "../gmail/meta";
 import * as fs from 'fs-extra';
 import { DataPersister } from "./dataPersister";
+import type { FileSchema } from '../common/interfaces/file';
 
 export class FilePersister extends DataPersister {
     constructor(folderPath: string) {
@@ -8,8 +8,7 @@ export class FilePersister extends DataPersister {
     }
 
     public async saveFile(file: FileSchema): Promise<void> {
-        const path = `${this.folderPath}/${file.filename}`;
-        const buffer = Buffer.from(file.data, 'base64');
-        const streamWriter = new 
+        const filePath = `${this.folderPath}/${file.filename}`;
+        await fs.writeFile(filePath, file.data);
     }
 }

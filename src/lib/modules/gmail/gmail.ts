@@ -3,6 +3,7 @@ import { GmailAuth } from "./oauth";
 import { google, gmail_v1 } from 'googleapis'
 import { ParseGmailApi, type IEmail } from 'gmail-api-parse-message-ts';
 import MailComposer from 'nodemailer/lib/mail-composer';
+import type { Attachment } from "./meta";
 
 export class Gmailer {
     private static _instances: { [id: number]: Gmailer } = {} as any;
@@ -52,6 +53,7 @@ export class Gmailer {
         const response = await this.gmail.users.messages.attachments.get({
             id: attachmentId, messageId, userId: 'me'
         })
+
         const attachment = response.data
         return attachment;
     }
@@ -113,6 +115,43 @@ export class Gmailer {
 
         return this.getMessage(messageId);
     }
+
+    public async getAttachments(messageId: string): Promise<gmail_v1.Schema$MessagePartBody[]>;
+    public async getAttachments(message: IEmail): Promise<gmail_v1.Schema$MessagePartBody[]>;
+    public async getAttachments(messageOrId: string | IEmail): Promise<gmail_v1.Schema$MessagePartBody[]> {
+        if (typeof messageOrId === 'string')
+            return this.getAttachmentsFromMessageId(messageOrId);
+
+        return this.getAttachmentsFromMessage(messageOrId);
+    }
+
+    private async getAttachmentsFromMessageId(messageId: string): Promise<Attachment[]> {
+        const message = await this.getMessage(messageId, 'id,threadId,labelIds,payload,snippet');
+        return this.getAttachmentsFromMessage(message);
+    }
+
+    private async getAttachmentsFromMessage(message: IEmail): Promise<Attachment[]> {
+        const attachments = message.attachments ?? [];
+        const attachmentsWithData = attachments.map(async (a): Promise<Attachment> => {
+            if (a.data)
+                return {
+                    ...a,
+                    data: a.data
+                }
+
+            const data = (await this.getAttachment(a.attachmentId, message.id)).data;
+            if (!data)
+                throw new Error("Attachment data not found");
+
+            return {
+                ...a,
+                data: data
+            }
+        });
+
+        return Promise.all(attachmentsWithData);
+    }
+
 
     private async getMessageIdFromSearch(searchString: string): Promise<string | null> {
         const response = await this.gmail.users.messages.list({ userId: 'me', q: searchString });

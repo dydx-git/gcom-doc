@@ -2,7 +2,7 @@ import type { IEmail } from 'gmail-api-parse-message-ts';
 import { z } from 'zod';
 import { Clients } from "$lib/modules/client/client";
 import { Email } from '$lib/modules/common/models/email';
-import type { GenericFileInfo } from './meta';
+import type { GenericFileInfo } from '../common/interfaces/file';
 
 export const rfcEmailResponse = z.object({
     messageId: z.string(),

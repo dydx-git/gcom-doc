@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { IAttachment } from 'gmail-api-parse-message-ts';
 import type { IHasId } from '../common/interfaces/core';
 
 export class GmailRawId implements IHasId {
@@ -13,14 +13,4 @@ export class GmailRawId implements IHasId {
 	}
 }
 
-export const fileInfoSchema = z.object({
-	filename: z.string(),
-	mimeType: z.string(),
-	size: z.number()
-});
-export type GenericFileInfo = z.infer<typeof fileInfoSchema>;
-
-export const fileSchema = fileInfoSchema.extend({
-	data: z.string()
-});
-export type FileSchema = z.infer<typeof fileSchema>;
+export type Attachment = IAttachment & { data: string };
