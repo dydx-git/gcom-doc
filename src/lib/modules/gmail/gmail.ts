@@ -13,9 +13,10 @@ export class Gmailer {
 
     public static async getInstance(company: Company) {
         const id = company.id;
-        await Gmailer.ensureAuth(id);
-        if (!Gmailer._instances[id])
+        if (!Gmailer._instances[id]) {
+            await Gmailer.ensureAuth(id);
             Gmailer._instances[id] = new Gmailer(company);
+        }
 
         return Gmailer._instances[id];
     }

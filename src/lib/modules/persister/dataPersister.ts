@@ -7,15 +7,37 @@ export abstract class DataPersister {
 
     constructor(folderPath: string) {
         this.folderPath = folderPath;
+        if (!fs.existsSync(folderPath))
+            fs.mkdirSync(folderPath);
     }
 
-    public async save(filename: string, data: string): Promise<void> {
-        const path = `${this.folderPath}/${filename}`;
-        await fs.writeFile(path, data);
+    public async save(filePath: string, data: string): Promise<void> {
+        const splits = filePath.split('/');
+        const folder = splits.pop();
+        const filename = splits.pop();
+        const path = `${this.folderPath}/${folder}`;
+        if (!fs.existsSync(path))
+            await fs.mkdirp(path);
+
+        await fs.writeFile(`${path}/${filename}`, data);
     }
 
-    public async read(filename: string): Promise<string> {
+    public async read(filename: string): Promise<string | null> {
         const path = `${this.folderPath}/${filename}`;
-        return fs.readFile(path, 'utf8');
+        try {
+            const data = await fs.readFile(path, 'utf8');
+            return data;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    public async readFolderFiles(folderToRead: string) {
+        try {
+            const folderFiles: string[] = await fs.readdir(`${this.folderPath}/${folderToRead}`);
+            return folderFiles;
+        } catch (error) {
+            return null;
+        }
     }
 }

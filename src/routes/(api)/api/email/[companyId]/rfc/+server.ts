@@ -3,7 +3,6 @@ import type { RequestHandler } from './$types';
 import { Gmailer } from '$lib/modules/gmail/gmail';
 import prisma from '$db/client';
 import { GmailDataTransformer } from '$lib/modules/gmail/dataTransformer';
-import type { IEmail } from 'gmail-api-parse-message-ts';
 import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
 
 export const GET: RequestHandler = async ({ url, params }) => {
@@ -16,15 +15,13 @@ export const GET: RequestHandler = async ({ url, params }) => {
         throw error(404, 'Company not found');
 
     const gmail = await Gmailer.getInstance(company);
-
     const data = await gmail.getMessageFromSearch(rfcId);
     if (!data)
         throw error(404, 'Email not found');
 
-    const attachments = new AttachmentPersister().readAttachmentOrDownload(data, gmail);
-
-    if (!data)
-        throw error(404, 'Email not found');
+    new AttachmentPersister().readAttachmentOrDownload(data, gmail).catch(e => {
+        console.warn(e)
+    });
 
     const response = await new GmailDataTransformer(data).toRfcEmailResponse();
 

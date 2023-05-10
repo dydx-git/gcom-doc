@@ -13,3 +13,4 @@ vite.config.ts.timestamp-*
 includes/*
 *token.json
 src/lib/zod-prisma/*
+/.att
