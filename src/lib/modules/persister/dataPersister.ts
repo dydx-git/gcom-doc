@@ -11,18 +11,19 @@ export abstract class DataPersister {
             fs.mkdirSync(folderPath);
     }
 
-    public async save(filePath: string, data: string): Promise<void> {
-        const splits = filePath.split('/');
-        const folder = splits.pop();
-        const filename = splits.pop();
-        const path = `${this.folderPath}/${folder}`;
+    public async save(filePath: string, data: string | Buffer): Promise<void> {
+        const directories = filePath.split('/').slice(0, -1);
+        const filename = filePath.split('/').slice(-1)[0];
+
+        const path = `${this.folderPath}/${directories.join('/')}`;
+
         if (!fs.existsSync(path))
-            await fs.mkdirp(path);
+            fs.mkdirSync(path, { recursive: true });
 
         await fs.writeFile(`${path}/${filename}`, data);
     }
 
-    public async read(filename: string): Promise<string | null> {
+    public async readFile(filename: string): Promise<string | null> {
         const path = `${this.folderPath}/${filename}`;
         try {
             const data = await fs.readFile(path, 'utf8');
@@ -31,6 +32,20 @@ export abstract class DataPersister {
             return null;
         }
     }
+
+    public async readMultipleFiles(filenames: string[]) {
+        const data = await Promise.all(filenames.map(async filename => {
+            const fileData = await this.readFile(filename);
+            if (!fileData)
+                return null;
+            return {
+                filename,
+                data: fileData
+            };
+        }));
+        return data.flatMap(f => !!f ? [f] : []);
+    }
+
 
     public async readFolderFiles(folderToRead: string) {
         try {

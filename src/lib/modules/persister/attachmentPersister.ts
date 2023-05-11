@@ -1,7 +1,7 @@
 import type { IAttachment, IEmail } from "gmail-api-parse-message-ts";
 import { FilePersister } from "./filePersister";
 import hash from "shorthash2";
-// import mime from "mime-types";
+import mime from "mime-types";
 import type { Gmailer } from "../gmail/gmail";
 import type { Attachment } from "../gmail/meta";
 
@@ -17,54 +17,80 @@ export class AttachmentPersister extends FilePersister {
             return;
 
         const filePath = await this.getFilePath(attachment.attachmentId, messageId);
-        await this.save(`${filePath}${attachment.filename}`, attachment.data);
+        const filename = attachment.filename.split('.').slice(0, -1).join('.');
+        const extension = mime.extension(attachment.mimeType);
+
+        // base64 decode
+        const data = Buffer.from(attachment.data, 'base64');
+        await this.save(filePath + filename + "." + extension, data);
     }
 
     public async saveAttachments(attachments: IAttachment[], messageId: string): Promise<void> {
         await Promise.all(attachments.map(attachment => this.saveAttachment(attachment, messageId)));
     }
 
-    public async readAttachmentData(attachmentId: string, messageId: string): Promise<string | null> {
+    public async readAttachmentData(attachmentId: string, messageId: string): Promise<Attachment | null> {
         const filePath = await this.getFilePath(attachmentId, messageId);
 
-        return this.read(filePath);
+        const fileData = await this.read(filePath);
+        if (!fileData)
+            return null;
+
+        const { filename, data } = fileData;
+
+        return {
+            attachmentId,
+            filename,
+            mimeType: mime.lookup(filename).toString(),
+            data,
+            size: data.length
+        }
     }
 
-    public async readAttachmentsData(attachmentIds: string[], messageId: string): Promise<AttachmentData[]> {
+    public async readAttachmentsData(attachmentIds: string[], messageId: string): Promise<Attachment[]> {
         const attachments = await Promise.all(attachmentIds.map(async attachmentId => {
             const data = await this.readAttachmentData(attachmentId, messageId);
             if (!data)
                 return null;
-            return {
-                id: attachmentId,
-                data
-            };
+            return data;
         }));
 
         return attachments.flatMap(f => !!f ? [f] : []);
     }
 
-    public async readAttachmentOrDownload(message: IEmail, gmailClient: Gmailer): Promise<AttachmentData[]> {
+    public async readAttachmentOrDownload(message: IEmail, gmailClient: Gmailer): Promise<Attachment[]> {
         const attachmentIds = message.attachments.map(attachment => attachment.attachmentId);
         const localAttachments = await this.readAttachmentsData(attachmentIds, message.id);
 
-        const missingAttachments = message.attachments.filter(attachment => !localAttachments.find(localAttachment => localAttachment.id === attachment.attachmentId));
-        const missingAttachmentsData = await Promise.all(missingAttachments.map(async attachment => {
-            const data = (await gmailClient.getAttachment(attachment.attachmentId, message.id)).data;
-            if (!data)
-                return null;
-            this.saveAttachment({ ...attachment, data }, message.id);
-            return {
-                id: attachment.attachmentId,
-                data
-            };
-        }));
+        const missingAttachments = message.attachments.filter(attachment => !localAttachments.find(localAttachment => localAttachment.attachmentId === attachment.attachmentId));
+        const missingAttachmentsData = await this.downloadAttachments(message, missingAttachments.map(attachment => attachment.attachmentId), gmailClient);
 
         const attachments = [...localAttachments, ...missingAttachmentsData.flatMap(f => !!f ? [f] : [])];
         return attachments;
     }
 
-    public override async read(partialFilePath: string): Promise<string | null> {
+    public async downloadAttachments(message: IEmail, attachmentIdsToDownload: string[] | true, gmailClient: Gmailer): Promise<Attachment[]> {
+        if (attachmentIdsToDownload === true)
+            attachmentIdsToDownload = message.attachments.map(attachment => attachment.attachmentId);
+
+        const attachments = await Promise.all(attachmentIdsToDownload.map(async attachmentId => {
+            const data = (await gmailClient.getAttachment(attachmentId, message.id)).data;
+            if (!data)
+                return null;
+
+            const attachment = message.attachments.find(attachment => attachment.attachmentId === attachmentId);
+            if (!attachment)
+                return null;
+
+            this.saveAttachment({ ...attachment, data }, message.id);
+
+            return { ...attachment, data };
+        }));
+
+        return attachments.flatMap(f => !!f ? [f] : []);
+    }
+
+    public async read(partialFilePath: string) {
         const splits = partialFilePath.split('/');
         const folder = splits[0];
         const attachmentId = splits[1].replace(this.fileNameSeparator, '');
@@ -76,53 +102,16 @@ export class AttachmentPersister extends FilePersister {
         if (!attachmentFilename)
             return null;
 
-        return super.read(`${folder}/${attachmentFilename}`);
+        const data = await super.readMultipleFiles([`${folder}/${attachmentFilename}`]);
+        if (!data)
+            return null;
+
+        return data[0];
     }
-
-    // private async getAttachmentObjects(attachmentIdsWithData: AttachmentData[]): Promise<Attachment[]> {
-    //     return Promise.all(attachmentIdsWithData.map(async attachment => {
-    //         const mimeType = mime.lookup(attachment.id);
-    //         if (!mimeType)
-    //             throw new Error(`Mime type not found for attachment ${attachment.id}`);
-
-    //         return {
-    //             filename: attachment.id,
-    //             mimeType,
-    //             size: attachment.data.length,
-    //             data: attachment.data
-    //         };
-    //     }));
-    // }
 
     private async getFilePath(attachmentId: string, messageId: string): Promise<string> {
         const compressedId = hash(attachmentId);
 
         return `${messageId}/${compressedId}${this.fileNameSeparator}`;
     }
-
-    private async getAttachmentIdAndNameFromFilename(fileNameOnDisk: string): Promise<{ attachmentId: string, filename: string }> {
-        const split = fileNameOnDisk.split(this.fileNameSeparator);
-        if (split.length !== 2)
-            throw new Error(`Invalid filename ${fileNameOnDisk}`);
-
-        const attachmentId = split[1];
-
-        return {
-            attachmentId,
-            filename: fileNameOnDisk
-        };
-    }
-
-    // public async getAttachment(attachmentId: string, messageId: string): Promise<IAttachment> {
-    //     const attachment = await this.readAttachment(attachmentId);
-    //     return {
-    //         attachmentId,
-    //         data: attachment
-    //     };
-    // }
-}
-
-type AttachmentData = {
-    id: string;
-    data: string;
 }
