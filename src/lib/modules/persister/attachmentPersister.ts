@@ -1,6 +1,6 @@
 import type { IAttachment, IEmail } from "gmail-api-parse-message-ts";
 import { FilePersister } from "./filePersister";
-import hash from "shorthash2";
+import hash from "@sindresorhus/string-hash";
 import mime from "mime-types";
 import type { Gmailer } from "../gmail/gmail";
 import type { Attachment } from "../gmail/meta";
@@ -16,7 +16,7 @@ export class AttachmentPersister extends FilePersister {
         if (!attachment.data)
             return;
 
-        const filePath = await this.getFilePath(attachment.attachmentId, messageId);
+        const filePath = await this.getFilePath(AttachmentPersister.getAttachmentPrefix(attachment), messageId);
         const filename = attachment.filename.split('.').slice(0, -1).join('.');
         const extension = mime.extension(attachment.mimeType);
 
@@ -29,8 +29,8 @@ export class AttachmentPersister extends FilePersister {
         await Promise.all(attachments.map(attachment => this.saveAttachment(attachment, messageId)));
     }
 
-    public async readAttachmentData(attachmentId: string, messageId: string): Promise<Attachment | null> {
-        const filePath = await this.getFilePath(attachmentId, messageId);
+    public async readAttachmentData(attachmentPrefix: string, messageId: string): Promise<Attachment | null> {
+        const filePath = await this.getFilePath(attachmentPrefix, messageId);
 
         const fileData = await this.read(filePath);
         if (!fileData)
@@ -39,7 +39,6 @@ export class AttachmentPersister extends FilePersister {
         const { filename, data } = fileData;
 
         return {
-            attachmentId,
             filename,
             mimeType: mime.lookup(filename).toString(),
             data,
@@ -47,9 +46,9 @@ export class AttachmentPersister extends FilePersister {
         }
     }
 
-    public async readAttachmentsData(attachmentIds: string[], messageId: string): Promise<Attachment[]> {
-        const attachments = await Promise.all(attachmentIds.map(async attachmentId => {
-            const data = await this.readAttachmentData(attachmentId, messageId);
+    public async readAttachmentsData(attachmentPrefixs: string[], messageId: string): Promise<Attachment[]> {
+        const attachments = await Promise.all(attachmentPrefixs.map(async attachmentPrefix => {
+            const data = await this.readAttachmentData(attachmentPrefix, messageId);
             if (!data)
                 return null;
             return data;
@@ -59,10 +58,10 @@ export class AttachmentPersister extends FilePersister {
     }
 
     public async readAttachmentOrDownload(message: IEmail, gmailClient: Gmailer): Promise<Attachment[]> {
-        const attachmentIds = message.attachments.map(attachment => attachment.attachmentId);
-        const localAttachments = await this.readAttachmentsData(attachmentIds, message.id);
+        const attachmentPrefixs = message.attachments.map(attachment => AttachmentPersister.getAttachmentPrefix(attachment));
+        const localAttachments = await this.readAttachmentsData(attachmentPrefixs, message.id);
 
-        const missingAttachments = message.attachments.filter(attachment => !localAttachments.find(localAttachment => localAttachment.attachmentId === attachment.attachmentId));
+        const missingAttachments = message.attachments.filter(attachment => !localAttachments.find(localAttachment => AttachmentPersister.getAttachmentPrefix(localAttachment) === AttachmentPersister.getAttachmentPrefix(attachment)));
         const missingAttachmentsData = await this.downloadAttachments(message, missingAttachments.map(attachment => attachment.attachmentId), gmailClient);
 
         const attachments = [...localAttachments, ...missingAttachmentsData.flatMap(f => !!f ? [f] : [])];
@@ -72,6 +71,9 @@ export class AttachmentPersister extends FilePersister {
     public async downloadAttachments(message: IEmail, attachmentIdsToDownload: string[] | true, gmailClient: Gmailer): Promise<Attachment[]> {
         if (attachmentIdsToDownload === true)
             attachmentIdsToDownload = message.attachments.map(attachment => attachment.attachmentId);
+
+        console.warn("⚠ Downloading attachments")
+        console.warn(attachmentIdsToDownload);
 
         const attachments = await Promise.all(attachmentIdsToDownload.map(async attachmentId => {
             const data = (await gmailClient.getAttachment(attachmentId, message.id)).data;
@@ -93,12 +95,12 @@ export class AttachmentPersister extends FilePersister {
     public async read(partialFilePath: string) {
         const splits = partialFilePath.split('/');
         const folder = splits[0];
-        const attachmentId = splits[1].replace(this.fileNameSeparator, '');
+        const attachmentPrefix = splits[1].replace(this.fileNameSeparator, '');
         let folderFiles = await this.readFolderFiles(folder);
         if (!folderFiles)
             return null;
 
-        const attachmentFilename = folderFiles.find(file => file.includes(attachmentId));
+        const attachmentFilename = folderFiles.find(file => file.includes(attachmentPrefix));
         if (!attachmentFilename)
             return null;
 
@@ -109,9 +111,13 @@ export class AttachmentPersister extends FilePersister {
         return data[0];
     }
 
-    private async getFilePath(attachmentId: string, messageId: string): Promise<string> {
-        const compressedId = hash(attachmentId);
+    private async getFilePath(attachmentPrefix: string, messageId: string): Promise<string> {
+        const compressedId = hash(attachmentPrefix);
 
         return `${messageId}/${compressedId}${this.fileNameSeparator}`;
+    }
+
+    private static getAttachmentPrefix(attachment: IAttachment | Attachment) {
+        return `${attachment.mimeType}${attachment.size}`;
     }
 }
