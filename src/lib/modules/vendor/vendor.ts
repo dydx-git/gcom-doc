@@ -11,6 +11,12 @@ export class Vendors {
         });
     }
 
+    public async readById(id: number) {
+        return await prisma.vendor.findUnique({
+            where: { id }
+        });
+    }
+
     public async create(data: { name: string, email: string, department: Department, status: VendorStatus }) {
         return await prisma.vendor.create({
             data

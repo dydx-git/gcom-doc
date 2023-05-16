@@ -3,6 +3,7 @@ import { JobStatus, type Job, type PurchaseOrder, EmailDirection } from '@prisma
 import { z } from 'zod';
 import { withDefaults } from "../common/functions/core";
 import { fileInfoSchema } from '../common/interfaces/file';
+import type { Attachment } from '../gmail/meta';
 
 export const OrderStatus = {
 	...JobStatus,
@@ -25,12 +26,7 @@ export type OrderDataTable = {
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
 
 export type JobsWithVendorAndClient = (PurchaseOrder & {
-	jobs: (Job & {
-		vendor: {
-			id: number;
-			name: string;
-		};
-	})[];
+	jobs: JobWithVendorInfo[];
 	client: {
 		id: string;
 		name: string;
@@ -40,6 +36,18 @@ export type JobsWithVendorAndClient = (PurchaseOrder & {
 		};
 	};
 })[];
+
+export type JobWithVendorInfo = Job & {
+	vendor: {
+		name: string;
+	};
+};
+
+export type OrderEmailBody = {
+	subjectAddendum: string;
+	body: string;
+	attachments: Attachment[];
+}
 
 const orderSchema = JobOptionalDefaultsSchema.omit({ id: true, price: true }).extend({
 	price: z.number()

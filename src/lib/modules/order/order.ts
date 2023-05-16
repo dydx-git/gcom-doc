@@ -19,7 +19,6 @@ export class Jobs {
 					include: {
 						vendor: {
 							select: {
-								id: true,
 								name: true
 							}
 						}
@@ -58,7 +57,7 @@ export class Jobs {
 					companyName: client.companyName,
 					clientId: client.id,
 					vendor: job.vendor.name,
-					vendorId: job.vendor.id,
+					vendorId: job.vendorId,
 					date: job.createdAt.toString(),
 					status: job.createdAt > aDayAgo && job.status == JobStatus.PENDING
 						? OrderStatus.OVERDUE

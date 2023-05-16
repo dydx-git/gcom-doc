@@ -4,6 +4,7 @@ import { google, gmail_v1 } from 'googleapis'
 import { ParseGmailApi, type IEmail } from 'gmail-api-parse-message-ts';
 import MailComposer from 'nodemailer/lib/mail-composer';
 import type { Attachment } from "./meta";
+import type { Email } from "../common/models/email";
 
 export class Gmailer {
     private static _instances: { [id: number]: Gmailer } = {} as any;
@@ -73,10 +74,10 @@ export class Gmailer {
         return messages.flatMap(f => !!f ? [f] : []);
     }
 
-    public async sendMessage(to: string, subject: string, text = '', attachments = []) {
+    public async sendMessage(to: Email, subject: string, text = '', attachments: Attachment[] = []) {
         const buildMessage = () => new Promise<string>((resolve, reject) => {
             const message = new MailComposer({
-                to,
+                to: to.toString(),
                 subject,
                 text,
                 attachments,
@@ -100,7 +101,7 @@ export class Gmailer {
 
         const encodedMessage = await buildMessage();
 
-        await this.gmail.users.messages.send({
+        return await this.gmail.users.messages.send({
             userId: 'me',
             requestBody: {
                 raw: encodedMessage
