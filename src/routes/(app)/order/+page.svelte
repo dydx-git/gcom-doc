@@ -26,7 +26,8 @@
 		FormLabel,
 		FileUploaderDropContainer,
 		FileUploaderButton,
-		TextArea
+		TextArea,
+		FileUploaderItem
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
@@ -55,10 +56,11 @@
 	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
 	import { OrderPriceType } from './meta';
 	import fuzzy from '@leeoniya/ufuzzy';
+	import hash from '@sindresorhus/string-hash';
 	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
 	import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
 	import type { StatusCode } from '$lib/modules/common/interfaces/core';
-	import type { SvelteComponentTyped } from 'svelte';
+	import type { IAttachment } from 'gmail-api-parse-message-ts';
 
 	export let data;
 	const { clients, orders, vendors } = data;
@@ -71,9 +73,8 @@
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
 	let dtColumns = orderColumns;
 	const stitchCountPricingModeCutoff = 1000;
-	const search = new fuzzy({ intraMode: 1 });
 
-	const filterTable = (text: string) => {};
+	const filterTable = (test: string) => {};
 
 	const render = (cell: DataTableCell) => {
 		if (!cell.value) return '';
@@ -176,9 +177,11 @@
 	};
 
 	//#region Rfc
-	let rfcId = '';
+	let rfcId = '',
+		messageId: string | null = null;
 	let selectedCompanyId: number | null = null;
 	let isLoadingRfc = false;
+	let attachmentFilesFromServer: Omit<IAttachment, 'attachmentId'>[] = [];
 
 	const onRfcIdChange = async () => {
 		if (!rfcId || !selectedCompanyId) return;
@@ -199,6 +202,8 @@
 			return;
 		}
 
+		attachmentFilesFromServer = data.attachments;
+		messageId = data.messageId;
 		setFormData(data);
 		orderNameInput.focus();
 	};
@@ -206,7 +211,6 @@
 	//#endregion
 
 	$: formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
-	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
 	const { form, errors, enhance, capture, restore, message } = superForm(data.form, {
@@ -465,6 +469,15 @@
 						accept="{acceptedFileTypes}"
 						multiple
 						validateFiles="{validateUploadFiles}" />
+					{#each attachmentFilesFromServer as attachment}
+						<a
+							href="api/files/attachment/{messageId}?id={hash(
+								attachment.mimeType + attachment.size.toString()
+							)}"
+							target="_blank">
+							<FileUploaderItem name="{attachment.filename}" status="complete" />
+						</a>
+					{/each}
 					<FileUploaderButton labelText="Add files" accept="{acceptedFileTypes}" multiple />
 				</Column>
 			</Row>

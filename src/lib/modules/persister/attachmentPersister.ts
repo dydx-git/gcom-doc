@@ -49,6 +49,7 @@ export class AttachmentPersister extends FilePersister {
     public async readAttachmentsData(attachmentPrefixs: string[], messageId: string): Promise<Attachment[]> {
         const attachments = await Promise.all(attachmentPrefixs.map(async attachmentPrefix => {
             const data = await this.readAttachmentData(attachmentPrefix, messageId);
+
             if (!data)
                 return null;
             return data;
@@ -112,6 +113,7 @@ export class AttachmentPersister extends FilePersister {
             return null;
 
         const data = await super.readMultipleFiles([`${folder}/${attachmentFilename}`]);
+
         if (!data)
             return null;
 

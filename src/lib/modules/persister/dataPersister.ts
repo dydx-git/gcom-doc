@@ -26,7 +26,8 @@ export abstract class DataPersister {
     public async readFile(filename: string): Promise<string | null> {
         const path = `${this.folderPath}/${filename}`;
         try {
-            const data = await fs.readFile(path, 'utf8');
+            const data = await fs.readFile(path, 'base64');
+
             return data;
         } catch (error) {
             return null;
