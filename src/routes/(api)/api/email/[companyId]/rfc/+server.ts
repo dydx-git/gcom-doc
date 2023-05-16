@@ -19,7 +19,7 @@ export const GET: RequestHandler = async ({ url, params }) => {
     if (!data)
         throw error(404, 'Email not found');
 
-    new AttachmentPersister().downloadAttachments(data, true, gmail).catch(e => {
+    new AttachmentPersister().downloadAttachments(data, gmail, true).catch(e => {
         console.warn(e)
     });
 
