@@ -13,4 +13,4 @@ export class GmailRawId implements IHasId {
 	}
 }
 
-export type Attachment = IAttachment & { data: string };
+export type Attachment = Omit<IAttachment, 'attachmentId'> & { data: string };
