@@ -74,10 +74,10 @@ export class Gmailer {
         return messages.flatMap(f => !!f ? [f] : []);
     }
 
-    public async sendMessage(to: Email, subject: string, text = '', attachments: Attachment[] = []) {
+    public async sendMessage(to: Email | Email[], subject: string, text = '', attachments: Attachment[] = []) {
         const buildMessage = () => new Promise<string>((resolve, reject) => {
             const message = new MailComposer({
-                to: to.toString(),
+                to,
                 subject,
                 text,
                 attachments,

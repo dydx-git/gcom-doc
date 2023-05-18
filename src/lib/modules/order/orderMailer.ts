@@ -1,28 +1,44 @@
-import { EmailDirection, type Company } from "@prisma/client";
+import { type Company, type PurchaseOrder, EmailType } from "@prisma/client";
 import { Gmailer } from "../gmail/gmail";
 import type { JobWithVendorInfo, JobsWithVendorAndClient, OrderEmailBody } from "./meta";
 import { Vendors } from "../vendor/vendor";
 import { Email } from "../common/models/email";
+import { Clients } from "../client/client";
+import { Jobs } from "./order";
 
 export class OrderMailer {
-    private instance: Promise<Gmailer>;
-
-    get mailer() {
-        return await this.instance;
-    }
+    private mailer: Promise<Gmailer>;
 
     constructor(company: Company) {
-        this.instance = Gmailer.getInstance(company);
+        this.mailer = Gmailer.getInstance(company);
     }
 
-    public async sendOrder(order: JobsWithVendorAndClient & OrderEmailBody, direction: EmailDirection): Promise<boolean> {
-        const gmail = this.mailer;
-        const to = direction == EmailDirection.FORWARD ? order. : order.client.email;
-        const isSent = await gmail.sendMessage(order)
+    public async sendToClient(order: Omit<PurchaseOrder, "id"> & OrderEmailBody & { preferredEmail: Email | null, client: { name: string }, primaryJobId: string }): Promise<boolean> {
+        const gmail = await this.mailer;
+        let clientEmail: Email | Email[] | null = order.preferredEmail;
+        const job = await new Jobs().readById(order.primaryJobId);
+
+        if (!job)
+            throw new Error("Job not found");
+
+        if (!clientEmail) {
+            const emails = await new Clients().getEmails(order.clientId);
+
+            if (!emails || emails.length == 0)
+                throw new Error("Client has no emails");
+
+            clientEmail = emails.filter(email => email.type == EmailType.JOB).map(email => new Email(email.email, order.client.name));
+        }
+
+        const subject = `${job.name} ${order.subjectAddendum}`;
+        const isSent = await gmail.sendMessage(clientEmail, subject, order.body, order.attachments);
+
+        return isSent.status == 200;
     }
 
-    public async sendOrderToVendor(order: JobWithVendorInfo & OrderEmailBody): Promise<boolean> {
-        const gmail = this.mailer;
+
+    public async sendToVendor(order: JobWithVendorInfo & OrderEmailBody): Promise<boolean> {
+        const gmail = await this.mailer;
         const vendor = await new Vendors().readById(order.vendorId);
         if (!vendor)
             return false;

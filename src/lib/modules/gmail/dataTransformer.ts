@@ -36,6 +36,7 @@ export class GmailDataTransformer {
             body: this.data.textHtml,
             subject: this.data.subject,
             clientId: client?.id,
+            preferredEmail: client?.id ? fromEmail : null,
             attachments: this.data.attachments.map((attachment): GenericFileInfo => ({
                 filename: attachment.filename,
                 mimeType: attachment.mimeType,

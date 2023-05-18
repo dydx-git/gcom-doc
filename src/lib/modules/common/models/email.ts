@@ -1,16 +1,14 @@
 import validator from "validator";
 
 export class Email {
-	private readonly email: string;
+	public readonly address: string;
+	public name: string;
 
-	constructor(emailStr: string) {
-		this.email = emailStr;
-		if (!validator.isEmail(this.email)) {
+	constructor(emailStr: string, name: string = "Unknown") {
+		this.address = emailStr;
+		this.name = name;
+		if (!validator.isEmail(this.address)) {
 			throw new Error('Invalid email address');
 		}
-	}
-
-	public toString(): string {
-		return this.email;
 	}
 }

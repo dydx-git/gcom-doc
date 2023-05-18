@@ -4,29 +4,29 @@ import { Prisma, UserRoles } from '@prisma/client';
 import type { User } from 'lucia-auth';
 import type { addressSchema, ClientSchema, ClientSchemaWithoutId, emailSchema, phoneSchema } from './meta';
 import type { Email } from '$lib/modules/common/models/email';
-import type { PromiseArrayElement } from '$lib/modules/common/interfaces/core';
+import type { IHashId, PromiseArrayElement } from '$lib/modules/common/interfaces/core';
 
-export class Clients {
+export class Clients implements IHashId {
 	public include: Prisma.ClientInclude;
 
-	constructor() {
-		this.include = {
-			emails: true,
-			phones: true,
-			salesRep: {
-				select: {
-					id: true,
-					name: true
-				}
-			},
-			company: {
-				select: {
-					id: true,
-					name: true
-				}
-			},
-			clientAddress: true
-		};
+	constructor(include: Prisma.ClientInclude = {
+		emails: true,
+		phones: true,
+		salesRep: {
+			select: {
+				id: true,
+				name: true
+			}
+		},
+		company: {
+			select: {
+				id: true,
+				name: true
+			}
+		},
+		clientAddress: true
+	}) {
+		this.include = include;
 	}
 
 	public async read(user: User) {
@@ -45,6 +45,15 @@ export class Clients {
 		});
 
 		return data;
+	}
+
+	public async readById(clientId: string) {
+		return await prisma.client.findUnique({
+			where: {
+				id: clientId
+			},
+			include: this.include
+		});
 	}
 
 	public async getEmails(clientId: string) {
@@ -90,7 +99,7 @@ export class Clients {
 				emails: {
 					some: {
 						email: {
-							in: fromEmails.map((email) => email.toString())
+							in: fromEmails.map((email) => email.address)
 						}
 					}
 				}
@@ -144,8 +153,7 @@ export class Clients {
 		return addedClient;
 	}
 
-	// TODO: Write a test for this
-	private hash(obj: ClientSchema): string {
+	public hash(obj: ClientSchema): string {
 		const { client, emails, phones } = obj;
 
 		return hash({

@@ -6,7 +6,7 @@ import { JobStatus, Prisma } from '@prisma/client';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 import { Jobs } from '$lib/modules/order/order';
 import dayjs from 'dayjs';
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, type Actions } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
 import { schema } from '$lib/modules/order/meta';
 import { Vendors } from '$lib/modules/vendor/vendor';
@@ -36,31 +36,35 @@ export const load: PageServerLoad = async (event) => {
 	return { form, clients, orders, vendors };
 };
 
-// export const actions: Actions = {
-// 	create: async (event) => {
-// 		// const { locals, url } = event;
-// 		// const form = await superValidate(event, schema);
+export const actions: Actions = {
+	create: async ({ locals, request, url }) => {
+		let form = await superValidate(request, schema);
 
-// 		// if (!form.valid) {
-// 		// 	return fail(400, { form });
-// 		// }
+		if (!form.valid)
+			return fail(400, { form });
 
-// 		// const { data } = form;
-// 		// const { client } = data;
+		const { data } = form;
+		const { order, po, gmail } = data;
 
-// 		// try {
-// 		// 	await new Clients().create(client, data.address, data.emails, data.phones);
-// 		// } catch (e) {
-// 		// 	const err = e as Error;
-// 		// 	let { message } = err;
-// 		// 	if (e instanceof Prisma.PrismaClientKnownRequestError)
-// 		// 		if (e.code === 'P2002')
-// 		// 			message = `Cannot create a new client. ${client.name} already exists on ${client.salesRepUsername}'s account.`;
+		try {
+			await new Jobs().create({
+				...order,
+				...po,
+				...gmail,
+			});
+		} catch (e) {
+			const err = e as Error;
+			let { message } = err;
+			if (e instanceof Prisma.PrismaClientKnownRequestError)
+				if (e.code === 'P2002')
+					message = `Cannot create a new order. ${order.name} already exists.`;
 
-// 		// 	return fail(400, { form, error: { name: err.name, message } });
-// 		// }
-// 		// locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
+			return fail(400, { form, error: { name: err.name, message } });
+		}
 
-// 		// return { form, error: null };
-// 	}
-// };
+		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
+
+		form = await superValidate(schema); // empty form
+		return { form, error: null };
+	}
+};
