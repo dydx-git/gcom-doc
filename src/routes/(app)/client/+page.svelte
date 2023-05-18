@@ -8,7 +8,7 @@
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
-	import { schema } from '$lib/modules/client/meta';
+	import { schema, type ClientSchema } from '$lib/modules/client/meta';
 	import clone from 'just-clone';
 	import {
 		Grid,
@@ -69,7 +69,7 @@
 	//#region Form
 
 	let submissionError: Error | null = null;
-	let initialFormData: any | null = null;
+	let initialFormData: ClientSchema | null = null;
 	let initialFormError: any | null = null;
 
 	const { form, errors, enhance, capture, restore } = superForm(data.form, {
@@ -225,7 +225,6 @@
 					<h3>Client</h3>
 				</Column>
 			</Row>
-			<!-- <SuperDebug data="{$form}" /> -->
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />

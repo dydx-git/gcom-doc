@@ -26,8 +26,8 @@
 		FormLabel,
 		FileUploaderDropContainer,
 		FileUploaderButton,
-		TextArea,
-		FileUploaderItem
+		FileUploaderItem,
+		ModalFooter
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
@@ -43,13 +43,15 @@
 		InProgress,
 		IncompleteCancel,
 		TrainSpeed,
-		Edit
+		Edit,
+		Close
 	} from 'carbon-icons-svelte';
 	import dayjs from 'dayjs';
 	import { screenSizeStore } from '$lib/store';
 	import { orderColumns, orderDatatableColumnKeys } from './columns';
 	import { superForm } from 'sveltekit-superforms/client';
-	import { OrderStatus, type OrderDataTable, schema } from '$lib/modules/order/meta';
+	import { OrderStatus, schema, type OrderSchema } from '$lib/modules/order/meta';
+	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
 	import { CompanyLabel } from '$lib/modules/company/meta';
@@ -61,6 +63,7 @@
 	import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
 	import type { StatusCode } from '$lib/modules/common/interfaces/core';
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
+	import clone from 'just-clone';
 
 	export let data;
 	const { clients, orders, vendors } = data;
@@ -141,11 +144,27 @@
 
 	let orderNameInput: HTMLInputElement;
 	let submissionError: FormStatusMessage | null = null;
+	let initialFormData: OrderSchema | null = null;
+	let initialFormError: any | null = null;
 
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
 		submitType = FormSubmitType.AddNew;
 	};
+
+	const onClear = (e: Event) => {
+		if (initialFormData != null) $form = clone(initialFormData);
+		if (initialFormError != null) $errors = clone(initialFormError);
+	};
+
+	$: if ($form && !initialFormData) {
+		initialFormData = clone($form);
+	}
+
+	$: if ($errors && !initialFormError) {
+		initialFormError = clone($errors);
+	}
+
 	const filterComboBoxItems = (item: ComboBoxItem, value: string) =>
 		item.text.toLowerCase().includes(value.toLowerCase());
 
@@ -211,6 +230,7 @@
 	//#endregion
 
 	$: formTitle = submitType === FormSubmitType.AddNew ? 'Create new' : 'Edit';
+	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
 	const { form, errors, enhance, capture, restore, message } = superForm(data.form, {
@@ -236,8 +256,6 @@
 		$form.gmail.inboxMsgId = email.messageId;
 		$form.gmail.rfcId = rfcId;
 		$form.gmail.body = email.body;
-
-		console.log(email.body);
 	};
 
 	export const snapshot: Snapshot = {
@@ -335,9 +353,6 @@
 	aria-labelledby="add-new-order-modal-title"
 	aria-describedby="add-new-order-modal-description"
 	role="dialog"
-	on:submit="{() => {
-		isAddNewModalOpen = false;
-	}}"
 	on:close="{() => {
 		isAddNewModalOpen = false;
 	}}">
@@ -349,6 +364,7 @@
 				</Column>
 			</Row>
 		</ModalHeader>
+		<SuperDebug data="{$errors}" />
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
 			<Row>
@@ -482,5 +498,9 @@
 				</Column>
 			</Row>
 		</ModalBody>
+		<ModalFooter>
+			<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
+			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>
+		</ModalFooter>
 	</form>
 </ComposedModal>

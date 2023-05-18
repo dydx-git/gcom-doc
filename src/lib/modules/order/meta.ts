@@ -1,5 +1,5 @@
 import { GmailMsgSchema, JobOptionalDefaultsSchema, PurchaseOrderOptionalDefaultsSchema } from '$lib/zod-prisma';
-import { JobStatus, type Job, type PurchaseOrder, EmailDirection } from '@prisma/client';
+import { JobStatus, type Job, type PurchaseOrder, EmailDirection, JobType } from '@prisma/client';
 import { z } from 'zod';
 import { withDefaults } from "../common/functions/core";
 import { fileInfoSchema } from '../common/interfaces/file';
@@ -60,7 +60,7 @@ export type GmailSchema = z.infer<typeof gmailSchema>;
 export type CreateOrderSchema = CreateJobSchema & { clientId: string } & GmailSchema;
 
 export const schema = z.object({
-	order: withDefaults(jobSchema, { status: JobStatus.PENDING }),
+	order: withDefaults(jobSchema, { status: JobStatus.PENDING, type: JobType.JOB }),
 	po: PurchaseOrderOptionalDefaultsSchema.pick({ clientId: true }),
 	gmail: withDefaults(gmailSchema.extend({
 		attachments: z.array(fileInfoSchema),
