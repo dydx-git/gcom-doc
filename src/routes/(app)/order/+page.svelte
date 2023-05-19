@@ -66,11 +66,11 @@
 	import clone from 'just-clone';
 
 	export let data;
-	const { clients, orders, vendors } = data;
+	const { clients, vendors } = data;
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
 
-	export let tableData = orders;
+	$: tableData = data.orders;
 
 	let isAddNewModalOpen = false;
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
@@ -443,6 +443,7 @@
 						placeholder="Select a vendor"
 						shouldFilterItem="{filterComboBoxItems}"
 						items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
+						bind:selectedId="{$form.order.vendorId}"
 						let:item
 						let:index>
 						<div style="margin-top: -10px">

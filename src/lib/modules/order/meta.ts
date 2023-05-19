@@ -49,7 +49,7 @@ export type OrderEmailBody = {
 	attachments: Attachment[];
 }
 
-const jobSchema = JobOptionalDefaultsSchema.omit({ id: true, price: true, createdAt: true, updatedAt: true }).extend({
+export const jobSchema = JobOptionalDefaultsSchema.omit({ id: true, price: true, createdAt: true, updatedAt: true }).extend({
 	price: z.number()
 });
 export type JobSchema = z.infer<typeof jobSchema>;

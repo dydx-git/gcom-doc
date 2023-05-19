@@ -1,6 +1,6 @@
 import prisma from '$db/client';
 import { JobStatus, Prisma } from '@prisma/client';
-import { type JobsWithVendorAndClient, type OrderDataTable, OrderStatus, type JobSchema, type GmailSchema, type CreateOrderSchema } from './meta';
+import { type JobsWithVendorAndClient, type OrderDataTable, OrderStatus, type CreateOrderSchema, jobSchema } from './meta';
 import hash from 'object-hash';
 import type { IHashId } from '../common/interfaces/core';
 
@@ -91,8 +91,9 @@ export class Jobs implements IHashId {
 
 		const id = this.hash(job);
 		const data: Prisma.JobUncheckedCreateInput = { id, ...job, purchaseOrderId: createdPurchaseOrder.id };
+
 		const createdJob = await prisma.job.create({
-			data
+			data: { id, ...jobSchema.parse(data) }
 		});
 
 		await prisma.purchaseOrder.update({
@@ -123,6 +124,6 @@ export class Jobs implements IHashId {
 			price,
 			status,
 			inboxMsgId
-		});
+		}, { algorithm: 'md5' });
 	}
 }
