@@ -23,7 +23,8 @@ export const GET: RequestHandler = async ({ url, params }) => {
         console.warn(e)
     });
 
-    const response = await new GmailDataTransformer(data).toRfcEmailResponse();
+    const companyId = company.id;
+    const response = await new GmailDataTransformer({ ...data, companyId }).toRfcEmailResponse();
 
     return json(response);
 };

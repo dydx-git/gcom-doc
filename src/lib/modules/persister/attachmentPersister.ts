@@ -58,19 +58,19 @@ export class AttachmentPersister extends FilePersister {
         return attachments.flatMap(f => !!f ? [f] : []);
     }
 
-    public async readAttachmentOrDownload(message: string, gmailClient: Gmailer): Promise<Attachment[]>
-    public async readAttachmentOrDownload(message: IEmail | string, gmailClient: Gmailer): Promise<Attachment[]> {
-        if (typeof message === 'string')
-            message = await gmailClient.getMessage(message);
+    public async readAttachmentOrDownload(messageOrId: string, gmailClient: Gmailer): Promise<Attachment[]>
+    public async readAttachmentOrDownload(messageOrId: IEmail | string, gmailClient: Gmailer): Promise<Attachment[]> {
+        if (typeof messageOrId === 'string')
+            messageOrId = await gmailClient.getMessage(messageOrId);
 
-        const attachmentPrefixs = message.attachments.map(attachment => AttachmentPersister.getAttachmentPrefix(attachment));
-        const localAttachments = await this.readAttachmentsData(attachmentPrefixs, message.id);
+        const attachmentPrefixs = messageOrId.attachments.map(attachment => AttachmentPersister.getAttachmentPrefix(attachment));
+        const localAttachments = await this.readAttachmentsData(attachmentPrefixs, messageOrId.id);
 
-        const missingAttachments = message.attachments.filter(attachment => !localAttachments.find(localAttachment => AttachmentPersister.getAttachmentPrefix(localAttachment) === AttachmentPersister.getAttachmentPrefix(attachment)));
+        const missingAttachments = messageOrId.attachments.filter(attachment => !localAttachments.find(localAttachment => AttachmentPersister.getAttachmentPrefix(localAttachment) === AttachmentPersister.getAttachmentPrefix(attachment)));
         if (missingAttachments.length === 0)
             return localAttachments;
 
-        const missingAttachmentsData = await this.downloadAttachments(message, missingAttachments.map(attachment => attachment.attachmentId), gmailClient);
+        const missingAttachmentsData = await this.downloadAttachments(messageOrId, missingAttachments.map(attachment => attachment.attachmentId), gmailClient);
 
         const attachments = [...localAttachments, ...missingAttachmentsData.flatMap(f => !!f ? [f] : [])];
         return attachments;

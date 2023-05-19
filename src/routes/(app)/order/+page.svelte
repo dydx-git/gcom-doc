@@ -255,6 +255,7 @@
 		$form.gmail.threadId = email.threadId;
 		$form.gmail.inboxMsgId = email.messageId;
 		$form.gmail.rfcId = rfcId;
+		$form.gmail.companyId = email.companyId;
 		$form.gmail.body = email.body;
 	};
 

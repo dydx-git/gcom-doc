@@ -7,6 +7,7 @@ import type { GenericFileInfo } from '../common/interfaces/file';
 export const rfcEmailResponse = z.object({
     messageId: z.string(),
     threadId: z.string(),
+    companyId: z.number(),
     clientId: z.string().optional(),
     body: z.string(),
     subject: z.string(),
@@ -20,9 +21,9 @@ export const rfcEmailResponse = z.object({
 export type RfcEmailResponse = z.infer<typeof rfcEmailResponse>;
 
 export class GmailDataTransformer {
-    private data: IEmail;
+    private data: IEmail & { companyId: number };
 
-    constructor(data: IEmail) {
+    constructor(data: IEmail & { companyId: number }) {
         this.data = data;
     }
 
@@ -37,6 +38,7 @@ export class GmailDataTransformer {
             subject: this.data.subject,
             clientId: client?.id,
             preferredEmail: client?.id ? fromEmail : null,
+            companyId: this.data.companyId,
             attachments: this.data.attachments.map((attachment): GenericFileInfo => ({
                 filename: attachment.filename,
                 mimeType: attachment.mimeType,

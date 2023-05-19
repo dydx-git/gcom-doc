@@ -8,9 +8,13 @@ import { Jobs } from '$lib/modules/order/order';
 import dayjs from 'dayjs';
 import { error, fail, type Actions } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
-import { schema } from '$lib/modules/order/meta';
+import { schema, type OrderSchema } from '$lib/modules/order/meta';
 import { Vendors } from '$lib/modules/vendor/vendor';
 import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
+import { Gmailer } from '$lib/modules/gmail/gmail';
+import { Companies } from '$lib/modules/company/company';
+import { OrderMailer } from '$lib/modules/order/orderMailer';
+import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
@@ -63,8 +67,25 @@ export const actions: Actions = {
 		}
 
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
-
+		sendOrder(data);
 		form = await superValidate(schema); // empty form
 		return { form, error: null };
 	}
 };
+
+async function sendOrder(data: Omit<OrderSchema, "gmail"> & { gmail: Omit<OrderSchema["gmail"], "attachments"> }) {
+	const { order, po, gmail } = data;
+	const company = await new Companies().readById(gmail.companyId);
+	if (!company)
+		throw new Error('Company not found');
+
+
+	const mailer = new OrderMailer(company);
+	const attachments = await new AttachmentPersister().readAttachmentOrDownload(gmail.inboxMsgId, await mailer.mailer);
+	mailer.sendToVendor({
+		...order,
+		...po,
+		...gmail,
+		attachments
+	})
+}

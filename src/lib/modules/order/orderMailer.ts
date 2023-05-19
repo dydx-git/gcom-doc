@@ -1,13 +1,13 @@
 import { type Company, type PurchaseOrder, EmailType } from "@prisma/client";
 import { Gmailer } from "../gmail/gmail";
-import type { JobWithVendorInfo, JobsWithVendorAndClient, OrderEmailBody } from "./meta";
+import type { JobSchema, JobWithVendorInfo, JobsWithVendorAndClient, OrderEmailBody } from "./meta";
 import { Vendors } from "../vendor/vendor";
 import { Email } from "../common/models/email";
 import { Clients } from "../client/client";
 import { Jobs } from "./order";
 
 export class OrderMailer {
-    private mailer: Promise<Gmailer>;
+    public mailer: Promise<Gmailer>;
 
     constructor(company: Company) {
         this.mailer = Gmailer.getInstance(company);
@@ -30,20 +30,24 @@ export class OrderMailer {
             clientEmail = emails.filter(email => email.type == EmailType.JOB).map(email => new Email(email.email, order.client.name));
         }
 
-        const subject = `${job.name} ${order.subjectAddendum}`;
-        const isSent = await gmail.sendMessage(clientEmail, subject, order.body, order.attachments);
+        const isSent = await gmail.sendMessage(clientEmail, job.name, order.body, order.attachments);
 
         return isSent.status == 200;
     }
 
 
-    public async sendToVendor(order: JobWithVendorInfo & OrderEmailBody): Promise<boolean> {
+    public async sendToVendor(order: JobSchema & OrderEmailBody): Promise<boolean> {
         const gmail = await this.mailer;
         const vendor = await new Vendors().readById(order.vendorId);
         if (!vendor)
             return false;
+
         const vendorEmail = new Email(vendor.email);
-        const isSent = await gmail.sendMessage(vendorEmail, order.name, order.body, order.attachments);
+        let subject = order.name;
+        if (order.subjectAddendum)
+            subject += ` - ${order.subjectAddendum}`;
+
+        const isSent = await gmail.sendMessage(vendorEmail, subject, order.body, order.attachments);
 
         return isSent.status == 200;
     }

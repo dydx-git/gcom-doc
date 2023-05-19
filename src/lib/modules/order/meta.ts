@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { withDefaults } from "../common/functions/core";
 import { fileInfoSchema } from '../common/interfaces/file';
 import type { Attachment } from '../gmail/meta';
+import { Company } from '../company/meta';
 
 export const OrderStatus = {
 	...JobStatus,
@@ -44,7 +45,7 @@ export type JobWithVendorInfo = Job & {
 };
 
 export type OrderEmailBody = {
-	subjectAddendum: string;
+	subjectAddendum?: string;
 	body: string;
 	attachments: Attachment[];
 }
@@ -65,7 +66,8 @@ export const schema = z.object({
 	gmail: withDefaults(gmailSchema.extend({
 		attachments: z.array(fileInfoSchema),
 		subjectAddendum: z.string().optional(),
-		body: z.string()
+		body: z.string(),
+		companyId: z.number()
 	}), { direction: EmailDirection.BACKWARD })
 });
 export type OrderSchema = z.infer<typeof schema>;
