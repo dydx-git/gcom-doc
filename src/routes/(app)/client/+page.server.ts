@@ -1,5 +1,5 @@
 import { fail, type Actions } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms/server';
 import type { PageServerLoad } from './$types';
 import prisma from '$db/client';
 import { Clients } from '$lib/modules/client/client';
@@ -26,7 +26,7 @@ export const actions: Actions = {
 		let form = await superValidate(request, schema);
 
 		if (!form.valid) {
-			return fail(400, { form });
+			return message(form, "Form is invalid. Please check the fields and try again.");
 		}
 
 		const { data } = form;
@@ -36,12 +36,12 @@ export const actions: Actions = {
 			await new Clients().create(client, data.address, data.emails, data.phones);
 		} catch (e) {
 			const err = e as Error;
-			let { message } = err;
+			let { message: msg } = err;
 			if (e instanceof Prisma.PrismaClientKnownRequestError)
 				if (e.code === 'P2002')
-					message = `Cannot create a new client. ${client.name} already exists on ${client.salesRepUsername}'s account.`;
+					msg = `Cannot create a new client. ${client.name} already exists on ${client.salesRepUsername}'s account.`;
 
-			return fail(400, { form, error: { name: err.name, message } });
+			return message(form, msg);
 		}
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
 

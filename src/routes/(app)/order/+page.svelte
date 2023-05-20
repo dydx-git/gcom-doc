@@ -60,7 +60,6 @@
 	import fuzzy from '@leeoniya/ufuzzy';
 	import hash from '@sindresorhus/string-hash';
 	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
-	import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
 	import type { StatusCode } from '$lib/modules/common/interfaces/core';
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
@@ -143,7 +142,7 @@
 	//#region Form
 
 	let orderNameInput: HTMLInputElement;
-	let submissionError: FormStatusMessage | null = null;
+	let submissionError: string | null = null;
 	let initialFormData: OrderSchema | null = null;
 	let initialFormError: any | null = null;
 
@@ -214,10 +213,7 @@
 		if (!response.ok) {
 			const unknownError = data as unknown;
 			const err = unknownError as Error;
-			submissionError = {
-				status: $page.status as StatusCode,
-				message: err.message
-			};
+			submissionError = err.message;
 			return;
 		}
 
@@ -365,7 +361,6 @@
 				</Column>
 			</Row>
 		</ModalHeader>
-		<SuperDebug data="{$errors}" />
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
 			<Row>
@@ -502,7 +497,8 @@
 		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
-			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>
+			<Button kind="primary" type="submit" icon="{formSubmitIcon}" accesskey="s"
+				>{formTitle}</Button>
 		</ModalFooter>
 	</form>
 </ComposedModal>

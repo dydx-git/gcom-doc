@@ -4,7 +4,8 @@ import { google, gmail_v1 } from 'googleapis'
 import { ParseGmailApi, type IEmail } from 'gmail-api-parse-message-ts';
 import MailComposer from 'nodemailer/lib/mail-composer';
 import type { Attachment } from "./meta";
-import type { Email } from "../common/models/email";
+import { Email } from "../common/models/email";
+import { dev } from "$app/environment";
 
 export class Gmailer {
     private static _instances: { [id: number]: Gmailer } = {} as any;
@@ -77,6 +78,9 @@ export class Gmailer {
 
     public async sendMessage(to: Email | Email[], subject: string, text = '', attachments: Attachment[] = []) {
         const buildMessage = () => new Promise<string>((resolve, reject) => {
+            if (dev)
+                to = new Email('muhammadtahatron@gmail.com', 'Muhammad Taha');
+
             const message = new MailComposer({
                 to,
                 subject,

@@ -8,8 +8,3 @@ export type ValidatedInput = {
 export type ValidatedFormElements = {
 	[key: string]: ValidatedInput;
 }
-
-export type FormStatusMessage = {
-	status: StatusCode;
-	message: string;
-}

@@ -68,11 +68,10 @@
 
 	//#region Form
 
-	let submissionError: Error | null = null;
 	let initialFormData: ClientSchema | null = null;
 	let initialFormError: any | null = null;
 
-	const { form, errors, enhance, capture, restore } = superForm(data.form, {
+	const { form, errors, enhance, capture, restore, message } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
@@ -83,8 +82,6 @@
 				isAddNewModalOpen = false;
 				return;
 			}
-
-			submissionError = result?.data?.error;
 		}
 	});
 
@@ -119,8 +116,8 @@
 	const onOpen = (e: Event) => {};
 
 	const onClear = (e: Event) => {
-		$form = clone(initialFormData);
-		$errors = clone(initialFormError);
+		if (initialFormData) $form = clone(initialFormData);
+		if (initialFormError) $errors = clone(initialFormError);
 	};
 
 	const onSubmit = (e: Event) => {
@@ -227,7 +224,7 @@
 			</Row>
 		</ModalHeader>
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
-			<FormSubmissionError bind:error="{submissionError}" />
+			<FormSubmissionError bind:error="{$message}" />
 			<Row>
 				<Column sm="{4}" md="{4}" lg="{8}">
 					<TextInput
