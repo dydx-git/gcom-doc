@@ -1,5 +1,5 @@
 // import { fail, type Actions } from '@sveltejs/kit';
-import { superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms/server';
 import type { PageServerLoad } from './$types';
 import prisma from '$db/client';
 import { JobStatus, Prisma } from '@prisma/client';
@@ -10,8 +10,6 @@ import { error, fail, type Actions } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
 import { schema, type OrderSchema } from '$lib/modules/order/meta';
 import { Vendors } from '$lib/modules/vendor/vendor';
-import type { FormStatusMessage } from '$lib/modules/common/interfaces/form';
-import { Gmailer } from '$lib/modules/gmail/gmail';
 import { Companies } from '$lib/modules/company/company';
 import { OrderMailer } from '$lib/modules/order/orderMailer';
 import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
@@ -19,7 +17,7 @@ import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister'
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
-	const form = superValidate<typeof schema, FormStatusMessage>(event, schema);
+	const form = superValidate(event, schema);
 	const clients = prisma.client.findMany({
 		select: {
 			id: true, name: true
@@ -45,7 +43,7 @@ export const actions: Actions = {
 		let form = await superValidate(request, schema);
 
 		if (!form.valid)
-			return fail(400, { form });
+			return message(form, "Form is invalid. Please check the fields and try again.");
 
 		const { data } = form;
 		const { order, po, gmail } = data;
@@ -58,12 +56,12 @@ export const actions: Actions = {
 			});
 		} catch (e) {
 			const err = e as Error;
-			let { message } = err;
+			let { message: msg } = err;
 			if (e instanceof Prisma.PrismaClientKnownRequestError)
 				if (e.code === 'P2002')
-					message = `Cannot create a new order. ${order.name} already exists.`;
+					msg = `Cannot create a new order. ${order.name} already exists.`;
 
-			return fail(400, { form, error: { name: err.name, message } });
+			return message(form, msg);
 		}
 
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
@@ -87,5 +85,7 @@ async function sendOrder(data: Omit<OrderSchema, "gmail"> & { gmail: Omit<OrderS
 		...po,
 		...gmail,
 		attachments
-	})
+	}).catch(err => {
+		console.error(err);
+	});
 }
