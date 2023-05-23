@@ -15,6 +15,8 @@ export class Gmailer {
 
     public static async getInstance(company: Company) {
         const id = company.id;
+        console.log(Gmailer._instances);
+
         if (!Gmailer._instances[id]) {
             console.warn("Gmailer instance not found, creating new instance");
             await Gmailer.ensureAuth(id);
@@ -76,7 +78,7 @@ export class Gmailer {
         return messages.flatMap(f => !!f ? [f] : []);
     }
 
-    public async sendMessage(to: Email | Email[], subject: string, text = '', attachments: Attachment[] = []) {
+    public async sendMessage(to: Email | Email[], subject: string, body = '', attachments: Attachment[] = []) {
         const buildMessage = () => new Promise<string>((resolve, reject) => {
             if (dev)
                 to = new Email('muhammadtahatron@gmail.com', 'Muhammad Taha');
@@ -84,8 +86,14 @@ export class Gmailer {
             const message = new MailComposer({
                 to,
                 subject,
-                text,
-                attachments,
+                html: body,
+                attachments: attachments.map(attachment => ({
+                    filename: attachment.filename,
+                    contentType: attachment.mimeType,
+                    contentDisposition: 'attachment',
+                    content: attachment.data,
+                    encoding: 'base64'
+                })),
                 textEncoding: 'base64'
             });
 
@@ -165,14 +173,18 @@ export class Gmailer {
 
         const responseMessages = response.data.messages;
 
-        if (!responseMessages)
+        if (!responseMessages || responseMessages.length === 0 || !responseMessages[0].threadId)
             return null;
 
-        const message = responseMessages[0];
+        const message = this.getLastMessage(responseMessages[0].threadId, responseMessages);
         if (!message)
             return null;
 
         return message.id ?? null;
+    }
+
+    private getLastMessage(threadId: string, messageIdThreadIdPair: gmail_v1.Schema$Message[]) {
+        return messageIdThreadIdPair.reverse().find(m => m.threadId === threadId);
     }
 
     private static async ensureAuth(id: number) {

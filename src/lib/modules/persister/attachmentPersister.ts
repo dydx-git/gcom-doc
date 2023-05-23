@@ -63,22 +63,22 @@ export class AttachmentPersister extends FilePersister {
         if (typeof messageOrId === 'string')
             messageOrId = await gmailClient.getMessage(messageOrId);
 
-        const attachmentPrefixs = messageOrId.attachments.map(attachment => AttachmentPersister.getAttachmentPrefix(attachment));
+        const attachments = AttachmentPersister.getAttachments(messageOrId);
+        const attachmentPrefixs = attachments.map(attachment => AttachmentPersister.getAttachmentPrefix(attachment));
         const localAttachments = await this.readAttachmentsData(attachmentPrefixs, messageOrId.id);
 
-        const missingAttachments = messageOrId.attachments.filter(attachment => !localAttachments.find(localAttachment => AttachmentPersister.getAttachmentPrefix(localAttachment) === AttachmentPersister.getAttachmentPrefix(attachment)));
+        const missingAttachments = attachments.filter(attachment => !localAttachments.find(localAttachment => AttachmentPersister.getAttachmentPrefix(localAttachment) === AttachmentPersister.getAttachmentPrefix(attachment)));
         if (missingAttachments.length === 0)
             return localAttachments;
 
         const missingAttachmentsData = await this.downloadAttachments(messageOrId, missingAttachments.map(attachment => attachment.attachmentId), gmailClient);
 
-        const attachments = [...localAttachments, ...missingAttachmentsData.flatMap(f => !!f ? [f] : [])];
-        return attachments;
+        return [...localAttachments, ...missingAttachmentsData.flatMap(f => !!f ? [f] : [])];
     }
 
     public async downloadAttachments(message: IEmail, attachmentIdsToDownload: string[] | true, gmailClient: Gmailer): Promise<Attachment[]> {
         if (attachmentIdsToDownload === true)
-            attachmentIdsToDownload = message.attachments.map(attachment => attachment.attachmentId);
+            attachmentIdsToDownload = AttachmentPersister.getAttachments(message).map(attachment => attachment.attachmentId);
 
         console.warn("⚠ Downloading attachments")
         console.warn(attachmentIdsToDownload);
@@ -88,7 +88,7 @@ export class AttachmentPersister extends FilePersister {
             if (!data)
                 return null;
 
-            const attachment = message.attachments.find(attachment => attachment.attachmentId === attachmentId);
+            const attachment = AttachmentPersister.getAttachments(message).find(attachment => attachment.attachmentId === attachmentId);
             if (!attachment)
                 return null;
 
@@ -98,6 +98,10 @@ export class AttachmentPersister extends FilePersister {
         }));
 
         return attachments.flatMap(f => !!f ? [f] : []);
+    }
+
+    private static getAttachments(message: IEmail) {
+        return message.attachments.concat(message.inline ?? []);
     }
 
     public async read(partialFilePath: string) {
