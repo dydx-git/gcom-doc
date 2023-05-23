@@ -279,6 +279,7 @@
 			<HighlightTile
 				clickHandler="{() => filterTable('pending digitizing')}"
 				text="Pending digitizing:"
+				type="warning"
 				highlight="{pendingOrderDetails
 					?.filter((order) => order.type == Department.DIGITIZING)
 					.length.toString()}" />
@@ -287,6 +288,7 @@
 			<HighlightTile
 				clickHandler="{() => filterTable('pending vector')}"
 				text="Pending vector:"
+				type="warning"
 				highlight="{pendingOrderDetails
 					?.filter((order) => order.type == Department.VECTOR)
 					.length.toString()}" />
@@ -295,8 +297,8 @@
 			<HighlightTile
 				clickHandler="{() => filterTable('overdue')}"
 				text="Overdue:"
-				highlight="{pendingOrderDetails?.filter((order) => order.isOverdue).length.toString()}"
-				type="warning" />
+				type="danger"
+				highlight="{pendingOrderDetails?.filter((order) => order.isOverdue).length.toString()}" />
 		</Column>
 	</Row>
 	<Row class="default-gap">
