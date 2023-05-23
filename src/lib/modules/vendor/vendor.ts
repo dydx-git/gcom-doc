@@ -44,7 +44,7 @@ export class Vendors {
         return data.map(vendor => {
             const { orders } = vendor;
             const pendingOrders = orders.filter(order => order.status === JobStatus.PENDING).length;
-            const overdueOrders = orders.filter(order => order.status === JobStatus.PENDING && dayjs().diff(yesterday, 'day') > 1).length;
+            const overdueOrders = orders.filter(order => order.status === JobStatus.PENDING && dayjs(order.createdAt).diff(yesterday, 'day') > 1).length;
             const rushOrders = orders.filter(order => order.status === JobStatus.RUSH).length;
 
             return {

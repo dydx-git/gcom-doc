@@ -63,6 +63,8 @@
 	import type { StatusCode } from '$lib/modules/common/interfaces/core';
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
+	import type { PendingOrderDetails } from '$lib/modules/stats/order';
+	import { Department } from '@prisma/client';
 
 	export let data;
 	const { clients, vendors } = data;
@@ -70,6 +72,7 @@
 	export let description = "Showing orders from 01 Jan'";
 
 	$: tableData = data.orders;
+	$: pendingOrderDetails = data.pendingOrderDetails as PendingOrderDetails[];
 
 	let isAddNewModalOpen = false;
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
@@ -270,25 +273,29 @@
 <Grid>
 	<Row>
 		<Column sm="{4}" md="{4}" lg="{4}">
-			<HighlightTile text="New orders today" highlight="24" />
+			<HighlightTile text="New orders today" highlight="{data.orderCount?.toString()}" />
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
 				clickHandler="{() => filterTable('pending digitizing')}"
 				text="Pending digitizing:"
-				highlight="14" />
+				highlight="{pendingOrderDetails
+					?.filter((order) => order.type == Department.DIGITIZING)
+					.length.toString()}" />
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
 				clickHandler="{() => filterTable('pending vector')}"
 				text="Pending vector:"
-				highlight="10" />
+				highlight="{pendingOrderDetails
+					?.filter((order) => order.type == Department.VECTOR)
+					.length.toString()}" />
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
 				clickHandler="{() => filterTable('overdue')}"
 				text="Overdue:"
-				highlight="10"
+				highlight="{pendingOrderDetails?.filter((order) => order.isOverdue).length.toString()}"
 				type="warning" />
 		</Column>
 	</Row>

@@ -13,6 +13,7 @@ import { Vendors } from '$lib/modules/vendor/vendor';
 import { Companies } from '$lib/modules/company/company';
 import { OrderMailer } from '$lib/modules/order/orderMailer';
 import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
+import { OrderStats } from '$lib/modules/stats/order';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
@@ -32,10 +33,13 @@ export const load: PageServerLoad = async (event) => {
 	const vendors = new Vendors().getPendingOrdersAggregate();
 
 	const orders = new Jobs().readForDataTable(dateUntil);
+	const orderStats = new OrderStats();
+	const orderCount = orderStats.getOrderCount(dayjs().toDate());
+	const pendingOrderDetails = orderStats.getPendingOrderDetails();
 
 	depends(url.pathname);
 
-	return { form, clients, orders, vendors };
+	return { form, clients, orders, vendors, orderCount, pendingOrderDetails };
 };
 
 export const actions: Actions = {
