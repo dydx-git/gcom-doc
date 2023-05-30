@@ -69,9 +69,15 @@ export const actions: Actions = {
 		}
 
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
-		sendOrder(data);
+		if (gmail.companyId && gmail.inboxMsgId)
+			sendOrder(data);
 		form = await superValidate(schema); // empty form
 		return { form, error: null };
+	},
+	update: async ({ locals, request, url }) => {
+		console.log("update");
+
+		return { form: null, error: null };
 	}
 };
 
@@ -79,8 +85,7 @@ async function sendOrder(data: Omit<OrderSchema, "gmail"> & { gmail: Omit<OrderS
 	const { order, po, gmail } = data;
 	const company = await new Companies().readById(gmail.companyId);
 	if (!company)
-		throw new Error('Company not found');
-
+		throw error(500, "Company not found")
 
 	const mailer = new OrderMailer(company);
 	const attachments = await new AttachmentPersister().readAttachmentOrDownload(gmail.inboxMsgId, await mailer.mailer);

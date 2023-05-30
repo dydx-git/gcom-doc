@@ -130,6 +130,42 @@
 		}
 	};
 
+	const getNextStatus = (status: OrderStatus): OrderStatus => {
+		const orderedStatuses = [
+			OrderStatus.PENDING,
+			OrderStatus.OVERDUE,
+			OrderStatus.COMPLETED,
+			OrderStatus.CANCELLED,
+			OrderStatus.RUSH
+		];
+
+		const index = orderedStatuses.indexOf(status);
+		if (index == -1) return status;
+
+		return orderedStatuses[(index + 1) % orderedStatuses.length];
+	};
+
+	const modifyStatus = (orderId: number, status: OrderStatus) => async (e: MouseEvent) => {
+		const { innerText } = e.target as HTMLElement;
+
+		if (!innerText) return;
+
+		const response = await fetch(`?/update`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ status: getNextStatus(status), id: orderId })
+		});
+		const data: StatusCode = await response.json();
+		if (!response.ok) {
+			const unknownError = data as unknown;
+			const err = unknownError as Error;
+			submissionError = err.message;
+			return;
+		}
+	};
+
 	$: screenSize = $screenSizeStore;
 
 	$: if (screenSize == 'sm')
@@ -312,6 +348,7 @@
 					{#if cell.key === orderDatatableColumnKeys.status}
 						<Truncate>
 							<Tag
+								on:click="{modifyStatus(row.id, row.status)}"
 								interactive
 								icon="{getIconByStatus(row.status)}"
 								type="{getColorByStatus(row.status)}"
