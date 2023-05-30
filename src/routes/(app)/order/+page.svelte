@@ -65,6 +65,7 @@
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
 	import { Department } from '@prisma/client';
+	import { convertToFormData } from '$lib/utils/formHelper';
 
 	export let data;
 	const { clients, vendors } = data;
@@ -150,12 +151,15 @@
 
 		if (!innerText) return;
 
+		const formData = convertToFormData({ status: getNextStatus(status), id: orderId });
 		const response = await fetch(`?/update`, {
-			method: 'PATCH',
+			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json'
+				accept: 'application/json',
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'x-sveltekit-action': 'true'
 			},
-			body: JSON.stringify({ status: getNextStatus(status), id: orderId })
+			body: formData
 		});
 		const data: StatusCode = await response.json();
 		if (!response.ok) {
