@@ -33,7 +33,8 @@
 		TextInput,
 		Toggle,
 		Select,
-		SelectItem
+		SelectItem,
+		NumberInput
 	} from 'carbon-components-svelte';
 	import { Renew, UserFollow, Add, Close, Edit, Subtract } from 'carbon-icons-svelte';
 	import type { PageData, Snapshot } from './$types';
@@ -519,6 +520,17 @@
 							bind:value="{$form.client.notes}"
 							placeholder="Add notes"
 							type="multi" />
+					</Column>
+				</Row>
+				<Row class="default-gap">
+					<Column sm="{4}" md="{2}" lg="{4}">
+						<NumberInput />
+					</Column>
+					<Column sm="{4}" md="{2}" lg="{4}">
+						<NumberInput />
+					</Column>
+					<Column sm="{4}" md="{2}" lg="{4}">
+						<NumberInput />
 					</Column>
 				</Row>
 			</FormGroup>
