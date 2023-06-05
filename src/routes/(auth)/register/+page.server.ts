@@ -22,7 +22,7 @@ export const actions = {
 		const auth = data.auth;
 
 		try {
-			// await new User().create(auth.username, auth.password, auth.role);
+			await new User().create(auth.username, auth.password, auth.role);
 			await client.colorSettings.create({
 				data: {
 					...data.colors,
