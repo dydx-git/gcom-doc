@@ -514,23 +514,23 @@
 					{/if}
 				</Row>
 				<Row class="default-gap">
+					<Column sm="{4}" md="{2}" lg="{4}">
+						<NumberInput label="Default Vector Price" />
+					</Column>
+					<Column sm="{4}" md="{2}" lg="{4}">
+						<NumberInput />
+					</Column>
+					<Column sm="{4}" md="{2}" lg="{4}">
+						<NumberInput />
+					</Column>
+				</Row>
+				<Row class="default-gap">
 					<Column sm="{4}" md="{8}" lg="{15}">
 						<TextInput
 							labelText="Notes"
 							bind:value="{$form.client.notes}"
 							placeholder="Add notes"
 							type="multi" />
-					</Column>
-				</Row>
-				<Row class="default-gap">
-					<Column sm="{4}" md="{2}" lg="{4}">
-						<NumberInput />
-					</Column>
-					<Column sm="{4}" md="{2}" lg="{4}">
-						<NumberInput />
-					</Column>
-					<Column sm="{4}" md="{2}" lg="{4}">
-						<NumberInput />
 					</Column>
 				</Row>
 			</FormGroup>
