@@ -79,6 +79,10 @@ export class Gmailer {
     }
 
     public async sendMessage(to: Email | Email[], subject: string, body = '', attachments: Attachment[] = []) {
+        return Gmailer.sendMessage(this, to, subject, body, attachments);
+    }
+
+    public static async sendMessage(mailer: Gmailer, to: Email | Email[], subject: string, body = '', attachments: Attachment[] = []) {
         const buildMessage = () => new Promise<string>((resolve, reject) => {
             if (dev)
                 to = new Email('muhammadtahatron@gmail.com', 'Muhammad Taha');
@@ -114,7 +118,7 @@ export class Gmailer {
 
         const encodedMessage = await buildMessage();
 
-        return await this.gmail.users.messages.send({
+        return await mailer.gmail.users.messages.send({
             userId: 'me',
             requestBody: {
                 raw: encodedMessage

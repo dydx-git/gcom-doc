@@ -72,6 +72,15 @@ model GmailMsg {
   @@map("gmail_msgs")
 }
 
+model EmailStatus {
+  id        Int             @id @default(autoincrement())
+  msgId     String          @map("msg_id") @db.VarChar(16)
+  direction EmailDirection
+  subject   String          @db.VarChar(400)
+  date      DateTime        @db.DateTime(0)
+  status    EmailStatusType
+}
+
 model Job {
   id              String         @id @db.VarChar(32)
   name            String         @db.VarChar(100)
@@ -357,4 +366,10 @@ enum Theme {
   g80
   g90
   g100
+}
+
+enum EmailStatusType {
+  PENDING
+  SENT
+  FAILED
 }
