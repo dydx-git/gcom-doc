@@ -14,16 +14,13 @@ import { Companies } from '$lib/modules/company/company';
 import { OrderMailer } from '$lib/modules/order/orderMailer';
 import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
 import { OrderStats } from '$lib/modules/stats/order';
+import { Clients } from '$lib/modules/client/client';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
 	const form = superValidate(event, schema);
-	const clients = prisma.client.findMany({
-		select: {
-			id: true, name: true
-		}
-	});
+	const clients = new Clients().readClientWithPrice();
 
 	const { user } = await validateUser();
 	if (!user) return fail(401, { message: 'Unauthorized' });

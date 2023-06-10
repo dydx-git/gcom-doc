@@ -1,5 +1,5 @@
-import { ClientAddressOptionalDefaultsSchema, ClientEmailOptionalDefaultsSchema, ClientOptionalDefaultsSchema, ClientPhoneOptionalDefaultsSchema } from "$lib/zod-prisma";
-import { ClientStatus, EmailType, PhoneType } from "@prisma/client";
+import { ClientAddressOptionalDefaultsSchema, ClientEmailOptionalDefaultsSchema, ClientOptionalDefaultsSchema, ClientPhoneOptionalDefaultsSchema, ClientSetPriceSchema } from "$lib/zod-prisma";
+import { ClientStatus, EmailType, PhoneType, PriceType } from "@prisma/client";
 import { z } from "zod";
 import { withDefaults } from "../common/functions/core";
 
@@ -64,6 +64,10 @@ const phoneSchema = ClientPhoneOptionalDefaultsSchema.omit({ clientId: true });
 export type phoneSchema = z.infer<typeof phoneSchema>;
 const addressSchema = ClientAddressOptionalDefaultsSchema.omit({ clientId: true });
 export type addressSchema = z.infer<typeof addressSchema>;
+const priceSchema = ClientSetPriceSchema.omit({ clientId: true }).extend({
+	price: z.number().default(() => 0)
+});
+export type priceSchema = z.infer<typeof priceSchema>;
 
 export const schema = z.object({
 	client: withDefaults(ClientSchemaWithoutId, { status: ClientStatus.ACTIVE, salesRepUsername: undefined }),
@@ -75,7 +79,12 @@ export const schema = z.object({
 	phones: z.array(phoneSchema).default(() => [
 		{ phone: '', type: PhoneType.PRIMARY, description: '' }
 	]),
-	address: addressSchema
+	address: addressSchema,
+	prices: z.array(priceSchema).default(() => [
+		{ price: 0, type: PriceType.LEFTCHEST },
+		{ price: 0, type: PriceType.FULLBACK },
+		{ price: 0, type: PriceType.VECTOR }
+	])
 });
 
 export type ClientSchema = z.infer<typeof schema>;
