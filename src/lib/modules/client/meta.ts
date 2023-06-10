@@ -84,7 +84,7 @@ export const schema = z.object({
 		{ price: 0, type: PriceType.LEFTCHEST },
 		{ price: 0, type: PriceType.FULLBACK },
 		{ price: 0, type: PriceType.VECTOR }
-	])
+	]).optional()
 });
 
 export type ClientSchema = z.infer<typeof schema>;

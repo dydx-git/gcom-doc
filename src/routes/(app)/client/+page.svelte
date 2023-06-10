@@ -171,8 +171,6 @@
 
 	$: if (addressSuggestionProps.selectedItemId !== null) setAddress();
 	//#endregion
-
-	$: console.log($form);
 </script>
 
 <Grid>
@@ -220,7 +218,7 @@
 <!-- #region Form -->
 <ComposedModal
 	bind:open="{isAddNewModalOpen}"
-	selectorPrimaryFocus="#name"
+	preventCloseOnClickOutside="{true}"
 	role="dialog"
 	on:open="{onOpen}"
 	on:submit="{onSubmit}">
@@ -533,15 +531,17 @@
 			<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 				<FormSubmissionError bind:error="{$message}" />
 				<Row class="default-gap">
-					{#each $form.prices as price, i}
-						<Column sm="{4}" md="{2}" lg="{4}">
-							<NumberInput
-								label="{`Default ${price.type} Price`}"
-								bind:value="{$form.prices[i].price}"
-								invalid="{($errors?.prices?.[i]?.price?.length ?? 0) > 0}"
-								invalidText="{($errors?.prices?.[i]?.price ?? [''])[0]}" />
-						</Column>
-					{/each}
+					{#if $form.prices}
+						{#each $form.prices as price, i}
+							<Column sm="{4}" md="{2}" lg="{4}">
+								<NumberInput
+									label="{`Default ${price.type} Price`}"
+									bind:value="{$form.prices[i].price}"
+									invalid="{($errors?.prices?.[i]?.price?.length ?? 0) > 0}"
+									invalidText="{($errors?.prices?.[i]?.price ?? [''])[0]}" />
+							</Column>
+						{/each}
+					{/if}
 				</Row>
 				<Row class="default-gap">
 					<Column sm="{4}" md="{8}" lg="{15}">

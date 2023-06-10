@@ -33,7 +33,7 @@ export const actions: Actions = {
 		const { client } = data;
 
 		try {
-			await new Clients().create(client, data.address, data.emails, data.phones);
+			await new Clients().create(client, data.address, data.emails, data.phones, data.prices);
 		} catch (e) {
 			const err = e as Error;
 			let { message: msg } = err;

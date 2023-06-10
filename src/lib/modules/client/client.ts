@@ -2,12 +2,13 @@ import prisma from '$db/client';
 import hash from 'object-hash';
 import { Department, JobType, PriceType, Prisma, UserRoles } from '@prisma/client';
 import type { User } from 'lucia-auth';
-import type { addressSchema, ClientSchema, ClientSchemaWithoutId, emailSchema, phoneSchema } from './meta';
+import type { addressSchema, ClientSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, priceSchema } from './meta';
 import type { Email } from '$lib/modules/common/models/email';
-import type { IHashId, PromiseArrayElement } from '$lib/modules/common/interfaces/core';
+import type { IHashId, IReadById, PromiseArrayElement } from '$lib/modules/common/interfaces/core';
 import { Decimal } from '@prisma/client/runtime/library';
+import { logger } from '$lib/logger';
 
-export class Clients implements IHashId {
+export class Clients implements IHashId, IReadById {
 	public include: Prisma.ClientInclude;
 
 	constructor(include: Prisma.ClientInclude = {
@@ -64,11 +65,13 @@ export class Clients implements IHashId {
 			}
 		});
 
-		const prices = this.getClientPrice(clients.map((client) => client.id));
+		const prices = this.getClientsPrices(clients.map((client) => client.id));
 		return clients;
 	}
 
-	public async getClientPrice(clientIds: string[]): Promise<Record<string, Record<PriceType, Decimal>>> {
+	public async getClientsPrices(clientIds: string[]): Promise<Record<string, Record<PriceType, Decimal>>> {
+		const result = {} as Record<string, Record<PriceType, Decimal>>;
+
 		const clientSetPrices = await prisma.clientSetPrice.groupBy({
 			by: ['clientId', 'type', 'price'],
 			where: {
@@ -78,12 +81,31 @@ export class Clients implements IHashId {
 			}
 		});
 
-		const calculatedClientPrices = this.getModePrice(clientIds);
+		const calculatedClientPrices = await this.getModePrice(clientIds);
 
-		for (const clientId in clientIds) {
+		for (const clientId of clientIds) {
 			const clientSetPrice = clientSetPrices.find((clientSetPrice) => clientSetPrice.clientId === clientId);
-			console.log(clientSetPrice);
+			if (clientSetPrice) {
+				const { type, price } = clientSetPrice;
+				if (!result[clientId])
+					result[clientId] = { [type]: price } as Record<PriceType, Decimal>;
+				else
+					result[clientId][type] = price;
+				continue;
+			}
+
+			const calculatedClientPrice = calculatedClientPrices[clientId];
+			if (!calculatedClientPrice) {
+				logger.warn(`Client ${clientId} not found in calculatedClientPrices`);
+				continue;
+			}
+			result[clientId] = {
+				[PriceType.LEFTCHEST]: calculatedClientPrice[Department.DIGITIZING],
+				[PriceType.VECTOR]: calculatedClientPrice[Department.VECTOR]
+			} as Record<PriceType, Decimal>;
 		}
+
+		return result;
 	}
 
 	private async getModePrice(clientIds: string[]) {
@@ -209,7 +231,7 @@ export class Clients implements IHashId {
 	}
 
 
-	public async create(client: ClientSchemaWithoutId, address: addressSchema, emails: Array<emailSchema>, phones: Array<phoneSchema>) {
+	public async create(client: ClientSchemaWithoutId, address: addressSchema, emails: Array<emailSchema>, phones: Array<phoneSchema>, prices: Array<priceSchema> | null | undefined) {
 		const id = this.hash({ client, emails, phones, address });
 
 		const addedClient = await prisma.client.create({
@@ -247,8 +269,18 @@ export class Clients implements IHashId {
 				companyId: client.companyId
 			}
 		}).catch((err) => {
-			console.error(err);
+			logger.error(err);
 		});
+
+		if (prices)
+			prisma.clientSetPrice.createMany({
+				data: prices.filter(price => price.price > 0).map(price => ({
+					...price,
+					clientId: addedClient.id
+				}))
+			}).catch((err) => {
+				logger.error(err);
+			});
 
 		return addedClient;
 	}
