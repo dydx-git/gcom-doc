@@ -20,10 +20,11 @@ export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
 	const form = superValidate(event, schema);
-	const clients = new Clients().readClientWithPrice();
+	const clients = new Clients().readClientsWithPrices();
 
 	const { user } = await validateUser();
 	if (!user) return fail(401, { message: 'Unauthorized' });
+
 
 	const userSettings = await new UserSettings().read({ username: user.username });
 	const dateUntil = dayjs().subtract(userSettings.datatable.order.showRecordsForLastDays, 'day').toDate();

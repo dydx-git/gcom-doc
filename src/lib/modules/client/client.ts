@@ -58,19 +58,30 @@ export class Clients implements IHashId, IReadById {
 		});
 	}
 
-	public async readClientWithPrice() {
+	public async readClientsWithPrices(user: User | null = null) {
 		const clients = await prisma.client.findMany({
 			select: {
 				id: true, name: true
+			},
+			where: {
+				salesRep: {
+					username: user?.username
+				}
 			}
 		});
+		if (!clients.length)
+			throw new Error('No clients found');
 
-		const prices = this.getClientsPrices(clients.map((client) => client.id));
-		return clients;
+		const prices = await this.getClientsPrices(clients.map((client) => client.id));
+
+		return clients.map((client) => ({
+			...client,
+			prices: prices[client.id]
+		}));
 	}
 
-	public async getClientsPrices(clientIds: string[]): Promise<Record<string, Record<PriceType, Decimal>>> {
-		const result = {} as Record<string, Record<PriceType, Decimal>>;
+	public async getClientsPrices(clientIds: string[]): Promise<Record<string, Record<PriceType, string>>> {
+		const result = {} as Record<string, Record<PriceType, string>>;
 
 		const clientSetPrices = await prisma.clientSetPrice.groupBy({
 			by: ['clientId', 'type', 'price'],
@@ -82,13 +93,20 @@ export class Clients implements IHashId, IReadById {
 		});
 
 		const calculatedClientPrices = await this.getModePrice(clientIds);
+		const departmentToPriceType: Record<Department, PriceType> = {
+			[Department.DIGITIZING]: PriceType.LEFTCHEST,
+			[Department.VECTOR]: PriceType.VECTOR,
+			[Department.PATCH]: PriceType.UNKNOWN,
+		}
 
 		for (const clientId of clientIds) {
 			const clientSetPrice = clientSetPrices.find((clientSetPrice) => clientSetPrice.clientId === clientId);
+
 			if (clientSetPrice) {
-				const { type, price } = clientSetPrice;
+				const { type } = clientSetPrice;
+				const price = clientSetPrice.price.toFixed(2);
 				if (!result[clientId])
-					result[clientId] = { [type]: price } as Record<PriceType, Decimal>;
+					result[clientId] = { [type]: price } as Record<PriceType, string>;
 				else
 					result[clientId][type] = price;
 				continue;
@@ -99,10 +117,10 @@ export class Clients implements IHashId, IReadById {
 				logger.warn(`Client ${clientId} not found in calculatedClientPrices`);
 				continue;
 			}
-			result[clientId] = {
-				[PriceType.LEFTCHEST]: calculatedClientPrice[Department.DIGITIZING],
-				[PriceType.VECTOR]: calculatedClientPrice[Department.VECTOR]
-			} as Record<PriceType, Decimal>;
+			result[clientId] = {} as Record<PriceType, string>;
+			for (const [department, price] of Object.entries(calculatedClientPrice)) {
+				result[clientId][departmentToPriceType[department as Department]] = price.toFixed(2);
+			}
 		}
 
 		return result;
@@ -125,16 +143,21 @@ export class Clients implements IHashId, IReadById {
 			},
 			where: {
 				type: JobType.JOB,
+				purchaseOrder: {
+					clientId: {
+						in: clientIds
+					}
+				}
 			}
 		});
 
-		const pricesGroupByClientId: Record<string, Record<string, Decimal[]>> = {};
+		const pricesGroupByClientId: Record<string, Record<Department, Decimal[]>> = {};
 		// find mode of price for each price type and clientId
 		clientPrices.forEach((clientPrice) => {
 			const { purchaseOrder: { clientId }, price, vendor: { department } } = clientPrice;
 			const clientPriceGroup = pricesGroupByClientId[clientId];
 			if (!clientPriceGroup) {
-				pricesGroupByClientId[clientId] = { [department]: [price] };
+				pricesGroupByClientId[clientId] = { [department]: [price] } as Record<Department, Decimal[]>;
 				return;
 			}
 
@@ -147,7 +170,7 @@ export class Clients implements IHashId, IReadById {
 			priceGroup.push(price);
 		});
 
-		const modePrices: Record<string, Record<string, Decimal>> = {};
+		const modePrices: Record<string, Record<Department, Decimal>> = {};
 		Object.entries(pricesGroupByClientId).forEach(([clientId, clientPriceGroup]) => {
 			const modePriceGroup: Record<string, Decimal> = {};
 			Object.entries(clientPriceGroup).forEach(([department, prices]) => {

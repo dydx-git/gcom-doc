@@ -64,7 +64,7 @@
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
-	import { Department } from '@prisma/client';
+	import { Department, PriceType } from '@prisma/client';
 	import { convertToFormData } from '$lib/utils/formHelper';
 
 	export let data;
@@ -73,6 +73,7 @@
 	export let description = "Showing orders from 01 Jan'";
 
 	$: tableData = data.orders;
+
 	$: pendingOrderDetails = data.pendingOrderDetails as PendingOrderDetails[];
 
 	let isAddNewModalOpen = false;
@@ -188,6 +189,7 @@
 	let submissionError: string | null = null;
 	let initialFormData: OrderSchema | null = null;
 	let initialFormError: any | null = null;
+	let jobType: PriceType = PriceType.LEFTCHEST;
 
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
@@ -209,6 +211,21 @@
 
 	const filterComboBoxItems = (item: ComboBoxItem, value: string) =>
 		item.text.toLowerCase().includes(value.toLowerCase());
+
+	const setJobType = () => {
+		const { value } = orderNameInput;
+		if (!value) return;
+
+		//TODO: set job type
+		jobType = PriceType.LEFTCHEST;
+	};
+
+	const setPrice = (clientId: string) => {
+		const client = clients?.find((client) => client.id == clientId);
+		if (!client || !jobType || pricingMode == OrderPriceType.StitchCount) return;
+
+		$form.order.price = +client.prices[jobType];
+	};
 
 	//#region file upload
 	const acceptedFileTypes = [
@@ -447,6 +464,7 @@
 						id="name"
 						name="name"
 						bind:ref="{orderNameInput}"
+						on:blur="{setJobType}"
 						labelText="Order Name*"
 						invalid="{($errors?.order?.name?.length ?? 0) > 0}"
 						invalidText="{($errors?.order?.name ?? [''])[0]}"
@@ -463,6 +481,7 @@
 						placeholder="Select a client"
 						shouldFilterItem="{filterComboBoxItems}"
 						bind:selectedId="{$form.po.clientId}"
+						on:select="{() => setPrice($form.po.clientId)}"
 						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
 				</Column>
 			</Row>
