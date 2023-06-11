@@ -73,7 +73,7 @@ export const actions: Actions = {
 		return { form, error: null };
 	},
 	update: async ({ locals, request, url }) => {
-		console.log("update");
+
 
 		return { form: null, error: null };
 	}

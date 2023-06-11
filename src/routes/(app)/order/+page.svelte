@@ -27,10 +27,14 @@
 		FileUploaderDropContainer,
 		FileUploaderButton,
 		FileUploaderItem,
-		ModalFooter
+		ModalFooter,
+		Pagination
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
-	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
+	import type {
+		DataTableCell,
+		DataTableRow
+	} from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
 	import { page } from '$app/stores';
 	import {
@@ -57,7 +61,7 @@
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
 	import { OrderPriceType } from './meta';
-	import fuzzy from '@leeoniya/ufuzzy';
+	import { fuzzy } from 'fast-fuzzy';
 	import hash from '@sindresorhus/string-hash';
 	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
 	import type { StatusCode } from '$lib/modules/common/interfaces/core';
@@ -73,6 +77,10 @@
 	export let description = "Showing orders from 01 Jan'";
 
 	$: tableData = data.orders;
+	let filteredRowIds: number[] = [];
+	let pageSize = 10,
+		pageNum = 1;
+	let searchQuery: string = '';
 
 	$: pendingOrderDetails = data.pendingOrderDetails as PendingOrderDetails[];
 
@@ -81,7 +89,14 @@
 	let dtColumns = orderColumns;
 	const stitchCountPricingModeCutoff = 1000;
 
-	const filterTable = (test: string) => {};
+	const getRowId = (row: DataTableRow) => row.id;
+
+	const filterTable = (row: DataTableRow, query: string | number): boolean => {
+		const searchable = `${row.name} ${row.price} ${row.status} ${row.client} ${
+			row.vendor
+		} ${new Date(row.date).toISOString().slice(0, 10)}`;
+		return fuzzy(query.toString(), searchable) > 0.7;
+	};
 
 	const render = (cell: DataTableCell) => {
 		if (!cell.value) return '';
@@ -153,6 +168,8 @@
 		if (!innerText) return;
 
 		const formData = convertToFormData({ status: getNextStatus(status), id: orderId });
+		console.log(formData);
+
 		const response = await fetch(`?/update`, {
 			method: 'POST',
 			headers: {
@@ -334,7 +351,7 @@
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
-				clickHandler="{() => filterTable('pending digitizing')}"
+				clickHandler="{() => (searchQuery = 'pending logo')}"
 				text="Pending digitizing:"
 				type="warning"
 				highlight="{pendingOrderDetails
@@ -343,7 +360,7 @@
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
-				clickHandler="{() => filterTable('pending vector')}"
+				clickHandler="{() => (searchQuery = 'pending vector')}"
 				text="Pending vector:"
 				type="warning"
 				highlight="{pendingOrderDetails
@@ -352,7 +369,7 @@
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
-				clickHandler="{() => filterTable('overdue')}"
+				clickHandler="{() => (searchQuery = 'pending overdue')}"
 				text="Overdue:"
 				type="danger"
 				highlight="{pendingOrderDetails?.filter((order) => order.isOverdue).length.toString()}" />
@@ -400,12 +417,19 @@
 
 				<Toolbar>
 					<ToolbarContent>
-						<ToolbarSearch />
+						<ToolbarSearch
+							bind:value="{searchQuery}"
+							shouldFilterRows="{filterTable}"
+							bind:filteredRowIds="{filteredRowIds}" />
 						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
 						<Button icon="{Add}" accesskey="n" on:click="{openNewOrderModal}">Create New</Button>
 					</ToolbarContent>
 				</Toolbar>
 			</DataTable>
+			<Pagination
+				bind:pageSize="{pageSize}"
+				bind:page="{pageNum}"
+				totalItems="{filteredRowIds.length}" />
 		</Column>
 	</Row>
 </Grid>
@@ -571,3 +595,4 @@
 		</ModalFooter>
 	</form>
 </ComposedModal>
+<!-- #endregion -->
