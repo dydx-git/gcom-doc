@@ -227,7 +227,7 @@
 	}
 
 	const filterComboBoxItems = (item: ComboBoxItem, value: string) =>
-		item.text.toLowerCase().includes(value.toLowerCase());
+		fuzzy(value.toString(), item.text) > 0.7;
 
 	const setJobType = () => {
 		const { value } = orderNameInput;
@@ -238,6 +238,8 @@
 	};
 
 	const setPrice = (clientId: string) => {
+		if (!isNaN($form.order.price)) return;
+
 		const client = clients?.find((client) => client.id == clientId);
 		if (!client || !jobType || pricingMode == OrderPriceType.StitchCount) return;
 
