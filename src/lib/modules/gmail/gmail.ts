@@ -6,12 +6,13 @@ import MailComposer from 'nodemailer/lib/mail-composer';
 import type { Attachment } from "./meta";
 import { Email } from "../common/models/email";
 import { dev } from "$app/environment";
+import { emailSendLoggable } from "./emailStatusTracker";
 
 export class Gmailer {
     private static _instances: { [id: number]: Gmailer } = {} as any;
     private _company: Company;
     private gmail = google.gmail('v1')
-    private parser = new ParseGmailApi();
+    private static parser = new ParseGmailApi();
 
     public static async getInstance(company: Company) {
         const id = company.id;
@@ -50,7 +51,7 @@ export class Gmailer {
 
     public async getMessage(messageId: string, fields = 'id,threadId,labelIds,payload,snippet'): Promise<IEmail> {
         const response = await this.gmail.users.messages.get({ id: messageId, userId: 'me', fields })
-        const message = this.parser.parseMessage(response.data)
+        const message = Gmailer.parser.parseMessage(response.data)
 
         return message
     }
@@ -82,6 +83,7 @@ export class Gmailer {
         return Gmailer.sendMessage(this, to, subject, body, attachments);
     }
 
+    @emailSendLoggable()
     public static async sendMessage(mailer: Gmailer, to: Email | Email[], subject: string, body = '', attachments: Attachment[] = []) {
         const buildMessage = () => new Promise<string>((resolve, reject) => {
             if (dev)
@@ -118,12 +120,13 @@ export class Gmailer {
 
         const encodedMessage = await buildMessage();
 
-        return await mailer.gmail.users.messages.send({
+        const response = await mailer.gmail.users.messages.send({
             userId: 'me',
             requestBody: {
                 raw: encodedMessage
             }
         });
+        return Gmailer.parser.parseMessage(response.data);
     }
 
     public async getMessageFromSearch(searchString: string): Promise<IEmail | null> {

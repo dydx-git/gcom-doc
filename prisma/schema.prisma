@@ -73,12 +73,14 @@ model GmailMsg {
 }
 
 model EmailStatus {
-  id        Int             @id @default(autoincrement())
-  msgId     String          @map("msg_id") @db.VarChar(16)
-  direction EmailDirection
-  subject   String          @db.VarChar(400)
-  date      DateTime        @db.DateTime(0)
-  status    EmailStatusType
+  id      Int             @id @default(autoincrement())
+  msgId   String?         @map("msg_id") @db.VarChar(16)
+  to      String          @db.VarChar(100)
+  subject String          @db.VarChar(400)
+  date    DateTime        @db.DateTime(0)
+  status  EmailStatusType
+
+  @@map("email_status")
 }
 
 model Job {
