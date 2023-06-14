@@ -32,6 +32,10 @@ export interface IHashId {
 	hash(obj: object): string;
 }
 
+export interface IReadById {
+	readById(id: string | number): Promise<object | null>;
+}
+
 export enum Environment {
 	Development = 'DEV',
 	Production = 'PROD'

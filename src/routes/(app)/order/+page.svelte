@@ -27,10 +27,14 @@
 		FileUploaderDropContainer,
 		FileUploaderButton,
 		FileUploaderItem,
-		ModalFooter
+		ModalFooter,
+		Pagination
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
-	import type { DataTableCell } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
+	import type {
+		DataTableCell,
+		DataTableRow
+	} from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
 	import { page } from '$app/stores';
 	import {
@@ -57,14 +61,14 @@
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
 	import { OrderPriceType } from './meta';
-	import fuzzy from '@leeoniya/ufuzzy';
+	import { fuzzy } from 'fast-fuzzy';
 	import hash from '@sindresorhus/string-hash';
 	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
 	import type { StatusCode } from '$lib/modules/common/interfaces/core';
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
-	import { Department } from '@prisma/client';
+	import { Department, PriceType } from '@prisma/client';
 	import { convertToFormData } from '$lib/utils/formHelper';
 
 	export let data;
@@ -73,6 +77,11 @@
 	export let description = "Showing orders from 01 Jan'";
 
 	$: tableData = data.orders;
+	let filteredRowIds: number[] = [];
+	let pageSize = 10,
+		pageNum = 1;
+	let searchQuery: string = '';
+
 	$: pendingOrderDetails = data.pendingOrderDetails as PendingOrderDetails[];
 
 	let isAddNewModalOpen = false;
@@ -80,7 +89,14 @@
 	let dtColumns = orderColumns;
 	const stitchCountPricingModeCutoff = 1000;
 
-	const filterTable = (test: string) => {};
+	const getRowId = (row: DataTableRow) => row.id;
+
+	const filterTable = (row: DataTableRow, query: string | number): boolean => {
+		const searchable = `${row.name} ${row.price} ${row.status} ${row.client} ${
+			row.vendor
+		} ${new Date(row.date).toISOString().slice(0, 10)}`;
+		return fuzzy(query.toString(), searchable) > 0.7;
+	};
 
 	const render = (cell: DataTableCell) => {
 		if (!cell.value) return '';
@@ -152,6 +168,8 @@
 		if (!innerText) return;
 
 		const formData = convertToFormData({ status: getNextStatus(status), id: orderId });
+		console.log(formData);
+
 		const response = await fetch(`?/update`, {
 			method: 'POST',
 			headers: {
@@ -188,6 +206,7 @@
 	let submissionError: string | null = null;
 	let initialFormData: OrderSchema | null = null;
 	let initialFormError: any | null = null;
+	let jobType: PriceType = PriceType.LEFTCHEST;
 
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
@@ -208,7 +227,24 @@
 	}
 
 	const filterComboBoxItems = (item: ComboBoxItem, value: string) =>
-		item.text.toLowerCase().includes(value.toLowerCase());
+		fuzzy(value.toString(), item.text) > 0.7;
+
+	const setJobType = () => {
+		const { value } = orderNameInput;
+		if (!value) return;
+
+		//TODO: set job type
+		jobType = PriceType.LEFTCHEST;
+	};
+
+	const setPrice = (clientId: string) => {
+		if (!isNaN($form.order.price)) return;
+
+		const client = clients?.find((client) => client.id == clientId);
+		if (!client || !jobType || pricingMode == OrderPriceType.StitchCount) return;
+
+		$form.order.price = +client.prices[jobType];
+	};
 
 	//#region file upload
 	const acceptedFileTypes = [
@@ -317,7 +353,7 @@
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
-				clickHandler="{() => filterTable('pending digitizing')}"
+				clickHandler="{() => (searchQuery = 'pending logo')}"
 				text="Pending digitizing:"
 				type="warning"
 				highlight="{pendingOrderDetails
@@ -326,7 +362,7 @@
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
-				clickHandler="{() => filterTable('pending vector')}"
+				clickHandler="{() => (searchQuery = 'pending vector')}"
 				text="Pending vector:"
 				type="warning"
 				highlight="{pendingOrderDetails
@@ -335,7 +371,7 @@
 		</Column>
 		<Column sm="{0}" md="{4}" lg="{4}">
 			<HighlightTile
-				clickHandler="{() => filterTable('overdue')}"
+				clickHandler="{() => (searchQuery = 'pending overdue')}"
 				text="Overdue:"
 				type="danger"
 				highlight="{pendingOrderDetails?.filter((order) => order.isOverdue).length.toString()}" />
@@ -383,12 +419,19 @@
 
 				<Toolbar>
 					<ToolbarContent>
-						<ToolbarSearch />
+						<ToolbarSearch
+							bind:value="{searchQuery}"
+							shouldFilterRows="{filterTable}"
+							bind:filteredRowIds="{filteredRowIds}" />
 						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
 						<Button icon="{Add}" accesskey="n" on:click="{openNewOrderModal}">Create New</Button>
 					</ToolbarContent>
 				</Toolbar>
 			</DataTable>
+			<Pagination
+				bind:pageSize="{pageSize}"
+				bind:page="{pageNum}"
+				totalItems="{filteredRowIds.length}" />
 		</Column>
 	</Row>
 </Grid>
@@ -447,6 +490,7 @@
 						id="name"
 						name="name"
 						bind:ref="{orderNameInput}"
+						on:blur="{setJobType}"
 						labelText="Order Name*"
 						invalid="{($errors?.order?.name?.length ?? 0) > 0}"
 						invalidText="{($errors?.order?.name ?? [''])[0]}"
@@ -463,6 +507,7 @@
 						placeholder="Select a client"
 						shouldFilterItem="{filterComboBoxItems}"
 						bind:selectedId="{$form.po.clientId}"
+						on:select="{() => setPrice($form.po.clientId)}"
 						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
 				</Column>
 			</Row>
@@ -552,3 +597,4 @@
 		</ModalFooter>
 	</form>
 </ComposedModal>
+<!-- #endregion -->
