@@ -169,8 +169,8 @@
 			},
 			body: JSON.stringify({ status: getNextStatus(status), id: orderId })
 		});
-		const data: JobStatus = await response.json();
 		if (response.ok) {
+			const data: JobStatus = await response.json();
 			console.log(data);
 		}
 
