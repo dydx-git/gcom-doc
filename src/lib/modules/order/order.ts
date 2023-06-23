@@ -52,6 +52,15 @@ export class Jobs implements IHashId {
 		});
 	}
 
+	public async update(id: string, data: Prisma.JobUpdateInput) {
+		return await prisma.job.update({
+			where: {
+				id
+			},
+			data
+		});
+	}
+
 
 	public async readForDataTable(dateUntil: Date): Promise<OrderDataTable[]> {
 		const jobs = await this.read(dateUntil);

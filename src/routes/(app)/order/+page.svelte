@@ -68,8 +68,7 @@
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
-	import { Department, PriceType } from '@prisma/client';
-	import { convertToFormData } from '$lib/utils/formHelper';
+	import { Department, JobStatus, PriceType } from '@prisma/client';
 
 	export let data;
 	const { clients, vendors } = data;
@@ -148,27 +147,18 @@
 	};
 
 	const getNextStatus = (status: OrderStatus): OrderStatus => {
-		const orderedStatuses = [
-			OrderStatus.PENDING,
-			OrderStatus.OVERDUE,
-			OrderStatus.COMPLETED,
-			OrderStatus.CANCELLED,
-			OrderStatus.RUSH
-		];
+		const pendingStatuses = [OrderStatus.PENDING, OrderStatus.OVERDUE, OrderStatus.RUSH];
+		const completedStatuses = [OrderStatus.COMPLETED, OrderStatus.CANCELLED];
 
-		const index = orderedStatuses.indexOf(status);
-		if (index == -1) return status;
+		if (pendingStatuses.includes(status)) return OrderStatus.COMPLETED;
 
-		return orderedStatuses[(index + 1) % orderedStatuses.length];
+		return OrderStatus.PENDING;
 	};
 
 	const modifyStatus = (orderId: number, status: OrderStatus) => async (e: MouseEvent) => {
 		const { innerText } = e.target as HTMLElement;
 
 		if (!innerText) return;
-
-		const formData = convertToFormData({ status: getNextStatus(status), id: orderId });
-		console.log(formData);
 
 		const response = await fetch(`?/update`, {
 			method: 'POST',
@@ -177,15 +167,16 @@
 				'Content-Type': 'application/x-www-form-urlencoded',
 				'x-sveltekit-action': 'true'
 			},
-			body: formData
+			body: JSON.stringify({ status: getNextStatus(status), id: orderId })
 		});
-		const data: StatusCode = await response.json();
-		if (!response.ok) {
-			const unknownError = data as unknown;
-			const err = unknownError as Error;
-			submissionError = err.message;
-			return;
+		const data: JobStatus = await response.json();
+		if (response.ok) {
+			console.log(data);
 		}
+
+		const unknownError = data as unknown;
+		const err = unknownError as Error;
+		submissionError = err.message;
 	};
 
 	$: screenSize = $screenSizeStore;

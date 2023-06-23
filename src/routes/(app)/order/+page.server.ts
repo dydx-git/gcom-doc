@@ -15,6 +15,7 @@ import { OrderMailer } from '$lib/modules/order/orderMailer';
 import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
 import { OrderStats } from '$lib/modules/stats/order';
 import { Clients } from '$lib/modules/client/client';
+import { deserialize } from '$app/forms';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
@@ -72,10 +73,15 @@ export const actions: Actions = {
 		form = await superValidate(schema); // empty form
 		return { form, error: null };
 	},
-	update: async ({ locals, request, url }) => {
+	update: async ({ request, locals, url }) => {
+		const body = await request.json() as { id: string, status: JobStatus };
+		const { id, status } = body;
+		if (!id || !status)
+			return fail(400, { message: 'Invalid request' });
 
-
-		return { form: null, error: null };
+		await new Jobs().update(id, { status });
+		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
+		return { status };
 	}
 };
 
