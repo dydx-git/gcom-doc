@@ -79,6 +79,7 @@ model EmailStatus {
   subject String          @db.VarChar(400)
   date    DateTime        @db.DateTime(0)
   status  EmailStatusType
+  error   String?
 
   @@map("email_status")
 }

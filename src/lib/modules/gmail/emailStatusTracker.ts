@@ -8,11 +8,13 @@ export function emailSendLoggable() {
         if (!descriptor) {
             throw new Error("Decorator can only be applied to methods");
         }
+
         const sendMethod: typeof Gmailer.sendMessage = descriptor.value;
         descriptor.value = function (...args: Parameters<typeof sendMethod>) {
             const to = args[1];
             const subject = args[2];
             let email: string;
+
             if (to instanceof Email)
                 email = to.address;
             else if (Array.isArray(to))
@@ -34,22 +36,36 @@ export function emailSendLoggable() {
 
             try {
                 const result = sendMethod.apply(this, args);
-                if (result instanceof Promise) {
-                    result.then(r => {
-                        msgId = r.id;
+                let entryId: number;
+                statusEntry.then(entry => {
+                    entryId = entry.id;
+                });
+                if (!(result instanceof Promise))
+                    throw new Error("Invalid return type");
+
+                result.then(r => {
+                    msgId = r.id;
+                    client.emailStatus.update({
+                        where: { id: entryId },
+                        data: { status: newStatus, msgId }
+                    }).then(() => {
+                        console.log("Email sent successfully");
                     });
-                }
+                }).catch(err => {
+                    const error = err as Error;
+                    newStatus = EmailStatusType.FAILED;
+                    client.emailStatus.update({
+                        where: { id: entryId },
+                        data: { status: newStatus, error: error.message }
+                    }).then(() => {
+                        console.log("Email failed to send");
+                    });
+                });
+
                 return result;
             } catch (error) {
                 newStatus = EmailStatusType.FAILED;
             }
-
-            statusEntry.then(entry => {
-                client.emailStatus.update({
-                    where: { id: entry.id },
-                    data: { status: newStatus, msgId }
-                });
-            });
         }
     }
 }

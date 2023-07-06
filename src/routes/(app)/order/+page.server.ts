@@ -16,6 +16,7 @@ import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister'
 import { OrderStats } from '$lib/modules/stats/order';
 import { Clients } from '$lib/modules/client/client';
 import { deserialize } from '$app/forms';
+import { logger } from '$lib/logger';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
@@ -69,7 +70,9 @@ export const actions: Actions = {
 
 		locals.room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: url.pathname });
 		if (gmail.companyId && gmail.inboxMsgId)
-			sendOrder(data);
+			sendOrder(data).catch(err => {
+				logger.error(err);
+			});
 		form = await superValidate(schema); // empty form
 		return { form, error: null };
 	},
