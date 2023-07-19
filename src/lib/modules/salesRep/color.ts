@@ -10,27 +10,27 @@ import type { Prisma } from '@prisma/client';
 import type { IDbCRUD } from '../common/interfaces/db';
 import type { SalesRepColors } from './meta';
 
-export class SalesRepColor implements IDbCRUD {
-	public async read(args: Prisma.SalesRepColorsArgs | null = null) {
-		return await client.salesRepColors.findMany({ ...args });
+export class ColorSettings implements IDbCRUD {
+	public async read(args: Prisma.ColorSettingsArgs | null = null) {
+		return await client.colorSettings.findMany({ ...args });
 	}
 
 	public async create(args: SalesRepColors, username: string) {
-		SalesRepColor.validateColors(args);
+		ColorSettings.validateColors(args);
 		const data = { ...args, salesRepUsername: username };
 
-		return await client.salesRepColors.create({ data });
+		return await client.colorSettings.create({ data });
 	}
 
 	public async update(id: string, args: SalesRepColors) {
-		return await client.salesRepColors.update({
+		return await client.colorSettings.update({
 			where: { salesRepUsername: id },
 			data: args
 		});
 	}
 
 	public async delete(id: string) {
-		return await client.salesRepColors.delete({ where: { salesRepUsername: id } });
+		return await client.colorSettings.delete({ where: { salesRepUsername: id } });
 	}
 
 	public static validateColors(colors: SalesRepColors) {
@@ -46,7 +46,7 @@ export class SalesRepColor implements IDbCRUD {
 				throw new Error(`${color} does not have good contrast with theme colors`);
 
 		const { primaryColor } = colors;
-		SalesRepColor.validatePrimaryColor(hexToHSL(primaryColor));
+		ColorSettings.validatePrimaryColor(hexToHSL(primaryColor));
 	}
 
 	private static validatePrimaryColor(primaryColor: hslType) {

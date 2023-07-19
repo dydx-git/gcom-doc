@@ -7,7 +7,7 @@
 	export let highlight = '0';
 	export let clickHandler: clickHandlerFunction | null = null;
 
-	type type = 'success' | 'error' | 'warning' | 'info';
+	type type = 'success' | 'danger' | 'warning' | 'info';
 	export let type: type = 'success';
 </script>
 

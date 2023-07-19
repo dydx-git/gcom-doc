@@ -34,7 +34,7 @@
 	import dayjs from 'dayjs';
 	import { screenSizeStore } from '$lib/store';
 	import { OrderStatus, type OrderDataTable } from './meta';
-	import { orderColumns, orderDatatableColumnKeys } from '$lib/components/data/datatable/order';
+	import { orderColumns, orderDatatableColumnKeys } from '../../../routes/(app)/order/columns';
 
 	export let title = 'Orders';
 	export let description = "Showing orders from 01 Jan'";
@@ -46,11 +46,14 @@
 	const filterTable = (text: string) => {};
 
 	const render = (cell: DataTableCell) => {
+		if (!cell.value) return '';
+		console.log(cell);
+
 		switch (cell.key) {
 			case orderDatatableColumnKeys.price:
 				return `$${cell.value}`;
 			case orderDatatableColumnKeys.date:
-				return getRelativeTime(new Date(cell.value));
+				return '';
 			case orderDatatableColumnKeys.status:
 				return screenSize == 'sm' ? '' : cell.value;
 			default:

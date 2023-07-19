@@ -21,25 +21,19 @@
 		InlineLoading
 	} from 'carbon-components-svelte';
 	import { UserRoleLabels } from '$lib/modules/auth/meta';
-	import type { SalesRepColors } from '$lib/modules/sales-rep/meta';
 	import { superForm } from 'sveltekit-superforms/client';
 	import { schema } from './meta';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
+	import type { SalesRepColors } from '$lib/modules/salesRep/meta';
 
 	export let data: PageServerData;
-	let submissionError: Error | null = null;
 
-	const { form, errors, enhance, delayed } = superForm(data.form, {
+	const { form, errors, enhance, delayed, message } = superForm(data.form, {
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
-		validators: schema,
-		onResult: ({ result }) => {
-			if (result.type !== 'failure') return;
-
-			submissionError = result?.data?.error;
-		}
+		validators: schema
 	});
 
 	const randomColor = '#000000'.replace(/0/g, () => (~~(Math.random() * 16)).toString(16));
@@ -87,7 +81,7 @@
 
 <Grid>
 	<h1>Register</h1>
-	<FormSubmissionError error="{submissionError}" />
+	<FormSubmissionError error="{$message}" />
 	<Row class="default-gap">
 		<Column sm="{4}" md="{8}">
 			<form method="POST" class="default-gap" use:enhance>
@@ -102,8 +96,7 @@
 							placeholder="jdoe1"
 							helperText="Only letters and numbers allowed"
 							invalid="{($errors?.auth?.username?.length ?? 0) > 0}"
-							invalidText="{($errors?.auth?.username ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.auth?.username ?? [''])[0]}" />
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<PasswordInput
@@ -112,8 +105,7 @@
 							placeholder="p@ssw0Rd1"
 							invalid="{($errors?.auth?.password?.length ?? 0) > 0}"
 							invalidText="{($errors?.auth?.password ?? [''])[0]}"
-							bind:value="{$form.auth.password}"
-						/>
+							bind:value="{$form.auth.password}" />
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<PasswordInput
@@ -121,8 +113,7 @@
 							name="reTypePassword"
 							placeholder="p@ssw0Rd1"
 							invalid="{$form.auth.password !== reTypePassword}"
-							bind:value="{reTypePassword}"
-						/>
+							bind:value="{reTypePassword}" />
 					</Column>
 				</Row>
 				<Row class="default-gap">
@@ -133,8 +124,7 @@
 							bind:value="{$form.salesRep.name}"
 							placeholder="John Doe"
 							invalid="{($errors?.salesRep?.name?.length ?? 0) > 0}"
-							invalidText="{($errors?.salesRep?.name ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.salesRep?.name ?? [''])[0]}" />
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<TextInput
@@ -143,8 +133,7 @@
 							bind:value="{$form.salesRep.email}"
 							invalid="{($errors?.salesRep?.email?.length ?? 0) > 0}"
 							invalidText="{($errors?.salesRep?.email ?? [''])[0]}"
-							placeholder="user@example.com"
-						/>
+							placeholder="user@example.com" />
 					</Column>
 					<Column sm="{4}" md="{3}" lg="{5}">
 						<TextInput
@@ -153,8 +142,7 @@
 							bind:value="{$form.salesRep.phone}"
 							placeholder="(123) 456-7890"
 							invalid="{($errors?.salesRep?.phone?.length ?? 0) > 0}"
-							invalidText="{($errors?.salesRep?.phone ?? [''])[0]}"
-						/>
+							invalidText="{($errors?.salesRep?.phone ?? [''])[0]}" />
 					</Column>
 				</Row>
 				<Row class="default-gap">
@@ -163,8 +151,7 @@
 							labelText="Company*"
 							bind:selected="{$form.salesRep.companyId}"
 							invalid="{($errors?.salesRep?.companyId?.length ?? 0) > 0}"
-							invalidText="{($errors?.salesRep?.companyId ?? [''])[0]}"
-						>
+							invalidText="{($errors?.salesRep?.companyId ?? [''])[0]}">
 							<SelectItem value="0" text="Select company" />
 							{#each Object.entries(CompanyLabel) as [key, value]}
 								<SelectItem value="{key}" text="{value}" />
@@ -188,16 +175,14 @@
 							<ColorGrid
 								centerColor="{centerColor}"
 								selected="{selected}"
-								on:colorChange="{handleSwatchChange}"
-							/>
+								on:colorChange="{handleSwatchChange}" />
 						</Column>
 					</Row>
 					<Column sm="{4}" md="{3}" lg="{4}">
 						<FormLabel
 							textContent="Pick color"
 							style="{Object.keys($errors?.colors ?? {}) ? 'color: var(--cds-danger-02);' : ''}"
-							>Selected colors</FormLabel
-						>
+							>Selected colors</FormLabel>
 						<StructuredList selection bind:selected="{selectedColorType}" condensed>
 							<StructuredListHead>
 								<StructuredListRow head>
@@ -211,8 +196,7 @@
 										label
 										for="row-{key}"
 										class="{`row-${selectedColorType}` === `row-${key}` ? 'selected-row' : ''}"
-										on:click="{() => (selectedColorType = `row-${key}`)}"
-									>
+										on:click="{() => (selectedColorType = `row-${key}`)}">
 										<StructuredListCell>{key}</StructuredListCell>
 										<StructuredListCell>{color}</StructuredListCell>
 										<StructuredListCell>
@@ -220,8 +204,7 @@
 												class="color"
 												style:--color="{color}"
 												style:--width="14spx"
-												style:--height="14px"
-											>
+												style:--height="14px">
 												<input type="color" bind:value="{color}" disabled />
 												<ColorButton />
 											</div>
@@ -230,8 +213,7 @@
 											id="row-{key}"
 											value="{key}"
 											title="row-{key}-title"
-											name="row-{key}-name"
-										/>
+											name="row-{key}-name" />
 									</StructuredListRow>
 								{/each}
 							</StructuredListBody>

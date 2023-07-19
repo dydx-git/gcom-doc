@@ -1,3 +1,5 @@
+import type { StatusCode } from "./core";
+
 export type ValidatedInput = {
 	invalid: boolean;
 	invalidText: string;

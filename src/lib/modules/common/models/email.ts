@@ -1,20 +1,14 @@
-export class Email {
-	private readonly email: string;
-	private static readonly regex =
-		/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+import validator from "validator";
 
-	constructor(emailStr: string) {
-		this.email = emailStr;
-		if (!Email.validate(emailStr)) {
+export class Email {
+	public readonly address: string;
+	public name: string;
+
+	constructor(emailStr: string, name: string = "Unknown") {
+		this.address = emailStr;
+		this.name = name;
+		if (!validator.isEmail(this.address)) {
 			throw new Error('Invalid email address');
 		}
-	}
-
-	static validate(email: string): boolean {
-		return Email.regex.test(email);
-	}
-
-	public toString(): string {
-		return this.email;
 	}
 }

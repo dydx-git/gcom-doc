@@ -16,16 +16,20 @@
 .success {
     color: var(--cds-support-success-inverse);
 }
+
 .warning {
     color: var(--cds-support-warning-inverse);
 }
+
 .danger {
-    color: var(--cds-support-danger-inverse);
+    color: var(--cds-danger);
 }
+
 .selected-row {
     outline: 2px solid var(--cds-focus, #0f62fe);
     outline-offset: -2px;
 }
+
 .default-gap {
     padding-top: var(--cds-spacing-05);
 }

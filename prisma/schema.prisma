@@ -41,6 +41,7 @@ model Client {
   salesRep              SalesRep                @relation(fields: [salesRepUsername], references: [username], map: "client_sales_rep")
   company               Company                 @relation(fields: [companyId], references: [id], map: "client_company")
   clientAddress         ClientAddress?
+  ClientSetPrice        ClientSetPrice[]
 
   @@map("clients")
 }
@@ -61,6 +62,7 @@ model Vendor {
 model GmailMsg {
   threadId   String         @map("thread_id") @db.VarChar(16)
   inboxMsgId String         @map("inbox_msg_id") @db.VarChar(16)
+  rfcId      String         @map("rfc_id") @db.VarChar(32)
   jobId      String         @map("job_id") @db.VarChar(32)
   direction  EmailDirection
   job        Job            @relation(fields: [jobId], references: [id], onDelete: Cascade, map: "gmail_msgs_job_primary")
@@ -68,6 +70,18 @@ model GmailMsg {
   @@id([threadId, inboxMsgId, jobId])
   @@index([jobId], map: "gmail_msgs_job_primary")
   @@map("gmail_msgs")
+}
+
+model EmailStatus {
+  id      Int             @id @default(autoincrement())
+  msgId   String?         @map("msg_id") @db.VarChar(16)
+  to      String          @db.VarChar(100)
+  subject String          @db.VarChar(400)
+  date    DateTime        @db.DateTime(0)
+  status  EmailStatusType
+  error   String?
+
+  @@map("email_status")
 }
 
 model Job {
@@ -117,12 +131,12 @@ model SalesRep {
   user                  User                    @relation(fields: [username], references: [username], map: "sales_rep_user")
   clientSalesRepCompany ClientSalesRepCompany[]
   client                Client[]
-  SalesRepColors        SalesRepColors[]
+  ColorSettings         ColorSettings[]
 
   @@map("sales_reps")
 }
 
-model SalesRepColors {
+model ColorSettings {
   /// @zod.custom.use(z.string().min(2).max(2).refine((v) => validator.isAlphanumeric(v), { message: 'Username can only contain alphanumeric characters' }))
   salesRepUsername String   @map("sales_rep_username") @db.VarChar(100)
   /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
@@ -133,10 +147,20 @@ model SalesRepColors {
   secondaryColor   String   @db.VarChar(8)
   /// @zod.custom.use(z.string().min(4).max(8).refine((v) => validator.isHexColor(v), { message: 'Must be a valid hex color' }))
   auxiliaryColor   String   @db.VarChar(8)
+  /// z.string().optional()
+  theme            Theme    @default(white)
   salesRep         SalesRep @relation(fields: [salesRepUsername], references: [username], onDelete: Cascade, map: "sales_rep_colors_sales_rep")
 
   @@id([salesRepUsername])
-  @@map("sales_rep_colors")
+  @@map("color_settings")
+}
+
+model UserSettings {
+  username String @id
+  settings Json   @db.Json
+  User     User   @relation(fields: [username], references: [id])
+
+  @@map("user_settings")
 }
 
 model ClientSalesRepCompany {
@@ -154,6 +178,17 @@ model ClientSalesRepCompany {
   @@id([clientId, salesRepUsername])
   @@index([salesRepUsername, fromDate(sort: Desc), toDate(sort: Desc)], map: "client_sales_rep_sales_rep_index")
   @@map("client_sales_reps")
+}
+
+model ClientSetPrice {
+  clientId String    @map("client_id") @db.VarChar(32)
+  price    Decimal   @db.Decimal(10, 2)
+  type     PriceType
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "client_set_price_client")
+
+  @@id([clientId, type])
+  @@map("client_set_prices")
 }
 
 model ClientAddress {
@@ -223,12 +258,13 @@ model Company {
 }
 
 model User {
-  id       String    @id @unique
-  username String    @unique
-  role     UserRoles
-  session  Session[]
-  Key      Key[]
-  SalesRep SalesRep?
+  id           String         @id @unique
+  username     String         @unique
+  role         UserRoles
+  session      Session[]
+  Key          Key[]
+  SalesRep     SalesRep?
+  UserSettings UserSettings[]
 
   @@map("user")
 }
@@ -254,6 +290,12 @@ model Key {
 
   @@index([user_id])
   @@map("key")
+}
+
+enum PriceType {
+  LEFTCHEST
+  FULLBACK
+  VECTOR
 }
 
 enum JobType {
@@ -319,4 +361,18 @@ enum UserRoles {
   ADMIN
   USER
   MANAGER
+}
+
+enum Theme {
+  white
+  g10
+  g80
+  g90
+  g100
+}
+
+enum EmailStatusType {
+  PENDING
+  SENT
+  FAILED
 }

@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import dayjs from 'dayjs';
 import { Jobs } from '$lib/modules/order/order';
 
+// ! Deprecated
 export const GET: RequestHandler = async (req) => {
 	const { url } = req;
 	const showRecordsForLastDays = Number(url.searchParams.get('showRecordsForLastDays'));

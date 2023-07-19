@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { superValidate } from 'sveltekit-superforms/server';
+import { message, superValidate } from 'sveltekit-superforms/server';
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import client from '$lib/services/db/client';
 import { User } from '$lib/modules/auth/user';
@@ -15,16 +15,15 @@ export const actions = {
 	default: async (event) => {
 		const form = await superValidate(event, schema);
 
-		if (!form.valid) {
-			return fail(400, { form });
-		}
+		if (!form.valid)
+			return message(form, 'Form is invalid. Please check the fields and try again.');
 
 		const data = form.data;
 		const auth = data.auth;
 
 		try {
 			await new User().create(auth.username, auth.password, auth.role);
-			await client.salesRepColors.create({
+			await client.colorSettings.create({
 				data: {
 					...data.colors,
 					salesRep: {
@@ -36,7 +35,9 @@ export const actions = {
 			});
 		} catch (e) {
 			const err = e as Error;
-			return fail(400, { form, error: { name: err.name, message: err.message } });
+			let { message: msg } = err;
+
+			return message(form, msg);
 		}
 
 		throw redirect(302, '/login');

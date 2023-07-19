@@ -1,5 +1,6 @@
 import type { User } from '@prisma/client';
 import type { Server } from "@ghostebony/sse/server";
+import type { Settings } from '$lib/modules/userSettings/meta';
 
 declare global {
 	namespace App {

@@ -80,7 +80,7 @@
 		<HeaderGlobalAction aria-label="Settings" icon="{IbmCloud}" />
 		<HeaderAction icon="{UserAvatarFilledAlt}" closeIcon="{UserAvatar}">
 			<HeaderPanelLinks>
-				<HeaderPanelDivider>Signed in as {data.salesRep?.name}</HeaderPanelDivider>
+				<HeaderPanelDivider>Signed in as {data.user?.username}</HeaderPanelDivider>
 				<HeaderPanelLink>Table page size</HeaderPanelLink>
 				<HeaderPanelLink>Auto Approval</HeaderPanelLink>
 				<HeaderPanelDivider>Access Control</HeaderPanelDivider>

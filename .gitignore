@@ -10,3 +10,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /prisma/migrations
 /pnpm-lock.yaml
+includes/*
+*token.json
+src/lib/zod-prisma/*
+/.att
