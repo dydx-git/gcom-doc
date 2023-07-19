@@ -50,18 +50,17 @@ export type OrderEmailBody = {
 	attachments: Attachment[];
 }
 
-export const jobSchema = JobOptionalDefaultsSchema.omit({ id: true, price: true, createdAt: true, updatedAt: true }).extend({
+const jobSchema = JobOptionalDefaultsSchema.omit({ price: true, updatedAt: true }).extend({
 	price: z.number()
 });
-export type JobSchema = z.infer<typeof jobSchema>;
-const createJobSchema = jobSchema.omit({ purchaseOrderId: true });
+export const createJobSchema = jobSchema.omit({ createdAt: true, id: true });
 export type CreateJobSchema = z.infer<typeof createJobSchema>;
 const gmailSchema = GmailMsgSchema.omit({ jobId: true });
 export type GmailSchema = z.infer<typeof gmailSchema>;
 export type CreateOrderSchema = CreateJobSchema & { clientId: string } & GmailSchema;
 
-export const schema = z.object({
-	order: withDefaults(jobSchema, { status: JobStatus.PENDING, type: JobType.JOB }),
+export const createSchema = z.object({
+	order: withDefaults(createJobSchema, { status: JobStatus.PENDING, type: JobType.JOB }),
 	po: PurchaseOrderOptionalDefaultsSchema.pick({ clientId: true }),
 	gmail: withDefaults(gmailSchema.extend({
 		attachments: z.array(fileInfoSchema),
@@ -70,4 +69,6 @@ export const schema = z.object({
 		companyId: z.number()
 	}), { direction: EmailDirection.BACKWARD })
 });
-export type OrderSchema = z.infer<typeof schema>;
+export const editSchema = z.object({
+	order: jobSchema.extend({ createdAt }),
+	export type OrderSchema = z.infer<typeof createSchema>;

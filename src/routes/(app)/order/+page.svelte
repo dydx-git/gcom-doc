@@ -54,7 +54,7 @@
 	import { screenSizeStore } from '$lib/store';
 	import { orderColumns, orderDatatableColumnKeys } from './columns';
 	import { superForm } from 'sveltekit-superforms/client';
-	import { OrderStatus, schema, type OrderSchema } from '$lib/modules/order/meta';
+	import { OrderStatus, createSchema, type OrderSchema } from '$lib/modules/order/meta';
 	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
@@ -303,7 +303,7 @@
 		dataType: 'json',
 		autoFocusOnError: 'detect',
 		defaultValidator: 'clear',
-		validators: schema,
+		validators: createSchema,
 		taintedMessage: null,
 		onResult: ({ result }) => {
 			if (result.type !== 'failure') {
@@ -427,7 +427,7 @@
 	</Row>
 </Grid>
 
-<!-- #region Form -->
+<!-- #region Order Create Form -->
 <ComposedModal
 	bind:open="{isAddNewModalOpen}"
 	aria-label="Add new order"
@@ -588,4 +588,108 @@
 		</ModalFooter>
 	</form>
 </ComposedModal>
+<!-- #endregion -->
+
+<!-- #region Order Edit Form -->
+<ComposedModal
+	aria-label="Edit order"
+	aria-labelledby="edit-order-modal-title"
+	aria-describedby="edit-order-modal-description"
+	role="dialog">
+	<ModalHeader label="Edit order">
+		<Row>
+			<Column sm="{12}" md="{4}" lg="{8}">
+				<h3>Order</h3>
+			</Column>
+		</Row>
+	</ModalHeader>
+	<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
+		<FormSubmissionError bind:error="{submissionError}" />
+		<Row>
+			<Column sm="{4}" md="{4}" lg="{8}">
+				<TextInput
+					id="name"
+					name="name"
+					bind:ref="{orderNameInput}"
+					on:blur="{setJobType}"
+					labelText="Order Name*"
+					invalid="{($errors?.order?.name?.length ?? 0) > 0}"
+					invalidText="{($errors?.order?.name ?? [''])[0]}"
+					bind:value="{$form.order.name}"
+					minlength="{3}"
+					placeholder="ABC Logo"
+					tabindex="{1}" />
+			</Column>
+			<Column sm="{4}" md="{4}" lg="{7}">
+				<ComboBox
+					id="client"
+					titleText="Client*"
+					label="Client*"
+					placeholder="Select a client"
+					shouldFilterItem="{filterComboBoxItems}"
+					bind:selectedId="{$form.po.clientId}"
+					on:select="{() => setPrice($form.po.clientId)}"
+					items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
+			</Column>
+		</Row>
+		<Row class="default-gap">
+			<Column sm="{2}" md="{2}" lg="{4}">
+				<NumberInput
+					hideSteppers
+					id="price"
+					name="price"
+					label="Price*"
+					warn="{pricingMode == OrderPriceType.StitchCount}"
+					warnText="Using stitch count pricing mode"
+					invalid="{($errors?.order?.price?.length ?? 0) > 0}"
+					invalidText="{($errors?.order?.price ?? [''])[0]}"
+					bind:value="{$form.order.price}"
+					minlength="{3}"
+					placeholder="" />
+			</Column>
+			<Column sm="{3}" md="{4}" lg="{8}">
+				<ComboBox
+					id="vendor"
+					titleText="Vendor*"
+					label="Vendor*"
+					placeholder="Select a vendor"
+					shouldFilterItem="{filterComboBoxItems}"
+					items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
+					bind:selectedId="{$form.order.vendorId}"
+					let:item
+					let:index>
+					<div style="margin-top: -10px">
+						{item.text}
+						<Tag type="outline" icon="{InProgress}" class="cds--type-body-01">
+							{vendors ? vendors[index].orders.pending : 0}
+						</Tag>
+						<Tag type="red" icon="{InProgressWarning}" class="cds--type-body-01">
+							{vendors ? vendors[index].orders.overdue : 0}
+						</Tag>
+						<Tag type="purple" icon="{TrainSpeed}" class="cds--type-body-01">
+							{vendors ? vendors[index].orders.rush : 0}
+						</Tag>
+					</div>
+				</ComboBox>
+			</Column>
+			<Column sm="{1}" md="{2}" lg="{4}">
+				<FormLabel style="margin-top: 5px">Rush</FormLabel>
+				<Toggle id="rush" name="rush" labelText="Rush" on:click="{handleRushToggle}" hideLabel />
+			</Column>
+		</Row>
+		<Row class="default-gap">
+			<Column sm="{2}" md="{4}" lg="{9}">
+				<TextInput
+					labelText="Created At"
+					placeholder="Date & time created"
+					bind:value="{$form.order.createdAt}" />
+			</Column>
+		</Row>
+	</ModalBody>
+	<ModalFooter>
+		<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
+		<Button kind="primary" type="submit" icon="{formSubmitIcon}" accesskey="s">{formTitle}</Button>
+	</ModalFooter>
+</ComposedModal>
+
 <!-- #endregion -->

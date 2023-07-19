@@ -8,7 +8,7 @@ import { Jobs } from '$lib/modules/order/order';
 import dayjs from 'dayjs';
 import { error, fail, type Actions } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
-import { schema, type OrderSchema } from '$lib/modules/order/meta';
+import { createSchema, type OrderSchema } from '$lib/modules/order/meta';
 import { Vendors } from '$lib/modules/vendor/vendor';
 import { Companies } from '$lib/modules/company/company';
 import { OrderMailer } from '$lib/modules/order/orderMailer';
@@ -21,7 +21,7 @@ import { logger } from '$lib/logger';
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, locals: { validateUser } } = event;
 
-	const form = superValidate(event, schema);
+	const form = superValidate(event, createSchema);
 	const clients = new Clients().readClientsWithPrices();
 
 	const { user } = await validateUser();
@@ -44,7 +44,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	create: async ({ locals, request, url }) => {
-		let form = await superValidate(request, schema);
+		let form = await superValidate(request, createSchema);
 
 		if (!form.valid)
 			return message(form, "Form is invalid. Please check the fields and try again.");
@@ -73,7 +73,7 @@ export const actions: Actions = {
 			sendOrder(data).catch(err => {
 				logger.error(err);
 			});
-		form = await superValidate(schema); // empty form
+		form = await superValidate(createSchema); // empty form
 		return { form, error: null };
 	},
 	update: async ({ request, locals, url }) => {
