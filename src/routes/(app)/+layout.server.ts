@@ -4,7 +4,9 @@ import { fail } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
 
 export const load: LayoutServerLoad = async ({ locals, url: { pathname } }) => {
-	const { user } = await locals.validateUser();
+	const session = await locals.auth.validate();
+	const user = session?.user;
+
 	if (!user) return fail(401, { message: 'Unauthorized' });
 
 	try {

@@ -93,11 +93,10 @@ model Job {
   type            JobType
   status          JobStatus
   vendorId        Int            @map("vendor_id")
-  purchaseOrderId Int            @map("po_id")
+  purchaseOrderId Int            @unique @map("po_id")
   GmailMsgs       GmailMsg[]
-  purchaseOrder   PurchaseOrder  @relation(name: "PurchaseOrder", fields: [purchaseOrderId], references: [id], onDelete: Cascade, map: "job_purchase_order")
   vendor          Vendor         @relation(fields: [vendorId], references: [id])
-  PurchaseOrder   PurchaseOrder?
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
 
   @@index([purchaseOrderId], map: "job_purchase_order")
   @@map("jobs")
@@ -107,9 +106,8 @@ model PurchaseOrder {
   id           Int     @id @default(autoincrement())
   clientId     String  @map("client_id") @db.VarChar(32)
   primaryJobId String? @unique @map("primary_job_id") @db.VarChar(32)
-  jobs         Job[]   @relation(name: "PurchaseOrder")
   client       Client  @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "purchase_order_client")
-  primaryJob   Job?    @relation(fields: [primaryJobId], references: [id], map: "primary_job")
+  jobs         Job[]
 
   @@index([clientId], map: "purchase_order_client")
   @@map("purchase_orders")
@@ -258,7 +256,7 @@ model Company {
 }
 
 model User {
-  id           String         @id @unique
+  id           String         @id
   username     String         @unique
   role         UserRoles
   session      Session[]
@@ -270,7 +268,7 @@ model User {
 }
 
 model Session {
-  id             String @id @unique
+  id             String @id
   user_id        String
   active_expires BigInt
   idle_expires   BigInt
@@ -281,11 +279,9 @@ model Session {
 }
 
 model Key {
-  id              String  @id @unique
+  id              String  @id
   hashed_password String?
   user_id         String
-  primary         Boolean
-  expires         BigInt?
   user            User    @relation(references: [id], fields: [user_id], onDelete: Cascade)
 
   @@index([user_id])

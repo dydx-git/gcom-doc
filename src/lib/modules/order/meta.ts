@@ -69,6 +69,6 @@ export const createSchema = z.object({
 		companyId: z.number()
 	}), { direction: EmailDirection.BACKWARD })
 });
-export const editSchema = z.object({
-	order: jobSchema.extend({ createdAt }),
-	export type OrderSchema = z.infer<typeof createSchema>;
+// export const editSchema = z.object({
+// 	order: jobSchema.extend({ createdAt }),
+// 	export type OrderSchema = z.infer<typeof createSchema>;

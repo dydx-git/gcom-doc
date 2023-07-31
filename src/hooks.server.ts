@@ -7,14 +7,17 @@ import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 import { ServerManager } from '@ghostebony/sse/server';
 
 const handleAuth: Handle = async ({ event, resolve }) => {
+	const authRequest = auth.handleRequest(event);
+	event.locals.auth = authRequest;
+
 	const pathname = event.url.pathname;
 	let allowedPaths = ['/login', '/api/login'];
 	if (dev) allowedPaths = allowedPaths.concat(['/api/register', '/register']);
 
 	if (!allowedPaths.includes(pathname)) {
-		const { user } = await event.locals.validateUser();
+		const session = await event.locals.auth.validate();
 
-		if (!user) {
+		if (!session) {
 			throw redirect(307, '/login');
 		}
 	}
@@ -28,4 +31,4 @@ const addRoom: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 }
 
-export const handle: Handle = sequence(handleHooks(auth), handleAuth, addRoom);
+export const handle: Handle = sequence(handleAuth, addRoom);

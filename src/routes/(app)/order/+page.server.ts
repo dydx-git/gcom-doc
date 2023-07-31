@@ -19,12 +19,13 @@ import { deserialize } from '$app/forms';
 import { logger } from '$lib/logger';
 
 export const load: PageServerLoad = async (event) => {
-	const { depends, url, locals: { validateUser } } = event;
+	const { depends, url, locals: { auth: { validate } } } = event;
 
 	const form = superValidate(event, createSchema);
 	const clients = new Clients().readClientsWithPrices();
 
-	const { user } = await validateUser();
+	const session = await validate();
+	const user = session?.user;
 	if (!user) return fail(401, { message: 'Unauthorized' });
 
 

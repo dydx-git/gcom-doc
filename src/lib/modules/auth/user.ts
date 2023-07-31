@@ -7,10 +7,10 @@ export class User {
 		const attributes = {
 			role,
 			username
-		} as Lucia.UserAttributes;
+		} as Lucia.DatabaseUserAttributes;
 
 		const user = await auth.createUser({
-			primaryKey: {
+			key: {
 				providerId: 'username',
 				providerUserId: username,
 				password
@@ -24,7 +24,10 @@ export class User {
 	public async login(username: string, password: string) {
 		try {
 			const key = await auth.useKey('username', username, password);
-			const session = await auth.createSession(key.userId);
+			const session = await auth.createSession({
+				userId: key.userId,
+				attributes: {}
+			});
 			return session;
 		} catch {
 			return null;

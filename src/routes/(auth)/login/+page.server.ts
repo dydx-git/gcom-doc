@@ -4,7 +4,7 @@ import type { PageServerLoad } from './$types';
 import { logger } from '$lib/logger';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const session = await locals.validate();
+	const session = await locals.auth.validate();
 
 	if (session) throw redirect(302, '/');
 };
@@ -19,7 +19,7 @@ export const actions: Actions = {
 			const session = await new User().login(username, password);
 			if (!session) return fail(401);
 
-			locals.setSession(session);
+			locals.auth.setSession(session);
 		} catch (error) {
 			logger.error(error);
 			return fail(400);

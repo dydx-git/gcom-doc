@@ -10,9 +10,7 @@ declare global {
 			code?: number;
 		}
 		interface Locals {
-			validate: import('@lucia-auth/sveltekit').Validate;
-			validateUser: import('@lucia-auth/sveltekit').ValidateUser;
-			setSession: import('@lucia-auth/sveltekit').SetSession;
+			auth: import("lucia").AuthRequest;
 			room: Server;
 		}
 		// interface PageData {}
@@ -22,7 +20,8 @@ declare global {
 	/// <reference types="lucia-auth" />
 	declare namespace Lucia {
 		type Auth = import('$lib/modules/auth/auth').Auth;
-		type UserAttributes = User;
+		type DatabaseUserAttributes = User;
+		type DatabaseSessionAttributes = {};
 	}
 }
 

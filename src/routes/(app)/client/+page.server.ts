@@ -11,7 +11,8 @@ export const load: PageServerLoad = async ({ locals, depends, url, request }) =>
 	const form = superValidate(request, schema);
 	const salesRep = prisma.salesRep.findMany({ select: { username: true, name: true } });
 
-	const { user } = await locals.validateUser();
+	const session = await locals.auth.validate();
+	const user = session?.user;
 	if (!user) return fail(401, { message: 'You must be logged in to access this page' });
 
 	const client = await new Clients().read(user);
