@@ -1,4 +1,3 @@
-import { handleHooks } from '@lucia-auth/sveltekit';
 import { auth } from '$lib/modules/auth/auth';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';

@@ -53,9 +53,12 @@
 	import dayjs from 'dayjs';
 	import { screenSizeStore } from '$lib/store';
 	import { orderColumns, orderDatatableColumnKeys } from './columns';
-	import { superForm } from 'sveltekit-superforms/client';
-	import { OrderStatus, createSchema, type OrderSchema } from '$lib/modules/order/meta';
-	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
+	import { superForm, superValidateSync } from 'sveltekit-superforms/client';
+	import {
+		OrderStatus,
+		createOrderFormSchema,
+		type CreateOrderFormSchema
+	} from '$lib/modules/order/meta';
 	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
 	import { CompanyLabel } from '$lib/modules/company/meta';
@@ -68,7 +71,7 @@
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
-	import { Department, JobStatus, PriceType } from '@prisma/client';
+	import { PriceType, Department, JobStatus } from '@prisma/client';
 
 	export let data;
 	const { clients, vendors } = data;
@@ -195,10 +198,9 @@
 
 	let orderNameInput: HTMLInputElement;
 	let submissionError: string | null = null;
-	let initialFormData: OrderSchema | null = null;
+	let initialFormData: CreateOrderFormSchema | null = null;
 	let initialFormError: any | null = null;
-	let jobType: PriceType = PriceType.LEFTCHEST;
-
+	let jobType: PriceType | null = null;
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
 		submitType = FormSubmitType.AddNew;
@@ -299,19 +301,22 @@
 	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
-	const { form, errors, enhance, capture, restore, message } = superForm(data.form, {
-		dataType: 'json',
-		autoFocusOnError: 'detect',
-		defaultValidator: 'clear',
-		validators: createSchema,
-		taintedMessage: null,
-		onResult: ({ result }) => {
-			if (result.type !== 'failure') {
-				isAddNewModalOpen = false;
-				return;
+	const { form, errors, enhance, capture, restore, message } = superForm(
+		data.form || superValidateSync(createOrderFormSchema),
+		{
+			dataType: 'json',
+			autoFocusOnError: 'detect',
+			defaultValidator: 'clear',
+			validators: createOrderFormSchema,
+			taintedMessage: null,
+			onResult: ({ result }) => {
+				if (result.type !== 'failure') {
+					isAddNewModalOpen = false;
+					return;
+				}
 			}
 		}
-	});
+	);
 
 	$: if ($message) submissionError = $message;
 
@@ -388,7 +393,7 @@
 							</Tag>
 						</Truncate>
 					{:else if cell.key === orderDatatableColumnKeys.actions}
-						<OverflowMenu flipped width="1px">
+						<OverflowMenu flipped>
 							<OverflowMenuItem text="Restart" />
 							<OverflowMenuItem
 								href="https://cloud.ibm.com/docs/loadbalancer-service"
@@ -413,16 +418,13 @@
 						<ToolbarSearch
 							bind:value="{searchQuery}"
 							shouldFilterRows="{filterTable}"
-							bind:filteredRowIds="{filteredRowIds}" />
+							bind:filteredRowIds />
 						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
 						<Button icon="{Add}" accesskey="n" on:click="{openNewOrderModal}">Create New</Button>
 					</ToolbarContent>
 				</Toolbar>
 			</DataTable>
-			<Pagination
-				bind:pageSize="{pageSize}"
-				bind:page="{pageNum}"
-				totalItems="{filteredRowIds.length}" />
+			<Pagination bind:pageSize bind:page="{pageNum}" totalItems="{filteredRowIds.length}" />
 		</Column>
 	</Row>
 </Grid>
@@ -452,7 +454,6 @@
 					<ComboBox
 						id="company"
 						titleText="Company"
-						label="Company"
 						placeholder="Select a company"
 						shouldFilterItem="{filterComboBoxItems}"
 						on:select="{onRfcIdChange}"
@@ -494,7 +495,6 @@
 					<ComboBox
 						id="client"
 						titleText="Client*"
-						label="Client*"
 						placeholder="Select a client"
 						shouldFilterItem="{filterComboBoxItems}"
 						bind:selectedId="{$form.po.clientId}"
@@ -521,7 +521,6 @@
 					<ComboBox
 						id="vendor"
 						titleText="Vendor*"
-						label="Vendor*"
 						placeholder="Select a vendor"
 						shouldFilterItem="{filterComboBoxItems}"
 						items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
@@ -624,7 +623,6 @@
 				<ComboBox
 					id="client"
 					titleText="Client*"
-					label="Client*"
 					placeholder="Select a client"
 					shouldFilterItem="{filterComboBoxItems}"
 					bind:selectedId="{$form.po.clientId}"
@@ -651,7 +649,6 @@
 				<ComboBox
 					id="vendor"
 					titleText="Vendor*"
-					label="Vendor*"
 					placeholder="Select a vendor"
 					shouldFilterItem="{filterComboBoxItems}"
 					items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"

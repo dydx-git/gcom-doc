@@ -1,4 +1,4 @@
-import type { ClientEmailOptionalDefaults, ClientPhoneOptionalDefaults } from '$lib/zod-prisma';
+import type { ClientEmailOptionalDefaults, ClientPhoneOptionalDefaults } from '$lib/prisma/zod';
 import type { DataTableHeader } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 
 export const clientDatatableColumnKeys = {

@@ -1,27 +1,24 @@
-// import { fail, type Actions } from '@sveltejs/kit';
 import { message, superValidate } from 'sveltekit-superforms/server';
 import type { PageServerLoad } from './$types';
-import prisma from '$db/client';
 import { JobStatus, Prisma } from '@prisma/client';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 import { Jobs } from '$lib/modules/order/order';
 import dayjs from 'dayjs';
 import { error, fail, type Actions } from '@sveltejs/kit';
 import { UserSettings } from '$lib/modules/userSettings/userSettings';
-import { createSchema, type OrderSchema } from '$lib/modules/order/meta';
+import { createOrderFormSchema, type CreateOrderFormSchema } from '$lib/modules/order/meta';
 import { Vendors } from '$lib/modules/vendor/vendor';
 import { Companies } from '$lib/modules/company/company';
 import { OrderMailer } from '$lib/modules/order/orderMailer';
 import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister';
 import { OrderStats } from '$lib/modules/stats/order';
 import { Clients } from '$lib/modules/client/client';
-import { deserialize } from '$app/forms';
 import { logger } from '$lib/logger';
 
 export const load: PageServerLoad = async (event) => {
-	const { depends, url, locals: { auth: { validate } } } = event;
+	const { depends, url, request, locals: { auth: { validate } } } = event;
 
-	const form = superValidate(event, createSchema);
+	const form = superValidate(request, createOrderFormSchema);
 	const clients = new Clients().readClientsWithPrices();
 
 	const session = await validate();
@@ -45,7 +42,7 @@ export const load: PageServerLoad = async (event) => {
 
 export const actions: Actions = {
 	create: async ({ locals, request, url }) => {
-		let form = await superValidate(request, createSchema);
+		let form = await superValidate(request, createOrderFormSchema);
 
 		if (!form.valid)
 			return message(form, "Form is invalid. Please check the fields and try again.");
@@ -74,7 +71,7 @@ export const actions: Actions = {
 			sendOrder(data).catch(err => {
 				logger.error(err);
 			});
-		form = await superValidate(createSchema); // empty form
+		form = await superValidate(createOrderFormSchema); // empty form
 		return { form, error: null };
 	},
 	update: async ({ request, locals, url }) => {
@@ -89,7 +86,7 @@ export const actions: Actions = {
 	}
 };
 
-async function sendOrder(data: Omit<OrderSchema, "gmail"> & { gmail: Omit<OrderSchema["gmail"], "attachments"> }) {
+async function sendOrder(data: Omit<CreateOrderFormSchema, "gmail"> & { gmail: Omit<CreateOrderFormSchema["gmail"], "attachments"> }) {
 	const { order, po, gmail } = data;
 	const company = await new Companies().readById(gmail.companyId);
 	if (!company)

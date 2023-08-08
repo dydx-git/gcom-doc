@@ -1,4 +1,4 @@
-import { ClientAddressOptionalDefaultsSchema, ClientEmailOptionalDefaultsSchema, ClientOptionalDefaultsSchema, ClientPhoneOptionalDefaultsSchema, ClientSetPriceSchema } from "$lib/zod-prisma";
+import { ClientAddressOptionalDefaultsSchema, ClientEmailOptionalDefaultsSchema, ClientOptionalDefaultsSchema, ClientPhoneOptionalDefaultsSchema, ClientSetPriceSchema } from "$lib/prisma/zod";
 import { ClientStatus, EmailType, PhoneType, PriceType } from "@prisma/client";
 import { z } from "zod";
 import { withDefaults } from "../common/functions/core";

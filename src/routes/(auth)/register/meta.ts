@@ -1,4 +1,4 @@
-import { ColorSettingsSchema, SalesRepOptionalDefaultsSchema, UserRolesSchema } from "$lib/zod-prisma";
+import { ColorSettingsSchema, SalesRepOptionalDefaultsSchema, UserRolesSchema } from "$lib/prisma/zod";
 import { z } from "zod";
 
 export const schema = z.object({

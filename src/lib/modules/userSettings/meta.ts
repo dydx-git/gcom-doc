@@ -1,4 +1,4 @@
-import { UserSettingsSchema } from "$lib/zod-prisma";
+import { UserSettingsSchema } from "$lib/prisma/zod";
 import { z } from "zod";
 import { withDefaults } from "../common/functions/core";
 

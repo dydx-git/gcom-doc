@@ -7,7 +7,7 @@ generator zod {
   writeNullishInModelTypes         = true
   createOptionalDefaultValuesTypes = true
   createRelationValuesTypes        = true
-  output                           = "../src/lib/zod-prisma"
+  output                           = "../src/lib/prisma/zod"
 }
 
 datasource db {
