@@ -12,5 +12,5 @@ vite.config.ts.timestamp-*
 /pnpm-lock.yaml
 includes/*
 *token.json
-src/lib/zod-prisma/*
+src/lib/prisma/*
 /.att
