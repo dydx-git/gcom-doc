@@ -22,6 +22,7 @@ export type OrderDataTable = {
 	vendorId: number;
 	date: string;
 	status: OrderStatus;
+	type: JobType;
 };
 
 export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus];
@@ -70,6 +71,9 @@ export const createOrderFormSchema = z.object({
 	}), { direction: EmailDirection.BACKWARD })
 });
 export type CreateOrderFormSchema = z.infer<typeof createOrderFormSchema>;
-// export const editSchema = z.object({
-// 	order: jobSchema.extend({ createdAt }),
-// 	export type OrderSchema = z.infer<typeof createSchema>;
+
+export const editOrderFormSchema = z.object({
+	order: jobSchema.omit({ purchaseOrderId: true }).extend({ createdAt: z.string().datetime() }),
+	po: PurchaseOrderOptionalDefaultsSchema.pick({ clientId: true }),
+});
+export type EditOrderFormSchema = z.infer<typeof editOrderFormSchema>;

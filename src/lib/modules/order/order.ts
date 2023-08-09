@@ -81,6 +81,7 @@ export class Jobs implements IHashId {
 					vendor: job.vendor.name,
 					vendorId: job.vendorId,
 					date: job.createdAt.toString(),
+					type: job.type,
 					status: job.createdAt > aDayAgo && job.status == JobStatus.PENDING
 						? OrderStatus.OVERDUE
 						: job.status

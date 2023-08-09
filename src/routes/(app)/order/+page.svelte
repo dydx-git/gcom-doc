@@ -57,7 +57,10 @@
 	import {
 		OrderStatus,
 		createOrderFormSchema,
-		type CreateOrderFormSchema
+		editOrderFormSchema,
+		type CreateOrderFormSchema,
+		type EditOrderFormSchema,
+		type OrderDataTable
 	} from '$lib/modules/order/meta';
 	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
@@ -72,6 +75,7 @@
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
 	import { PriceType, Department, JobStatus } from '@prisma/client';
+	import { JobStatusSchema, JobTypeSchema } from '$lib/prisma/zod';
 
 	export let data;
 	const { clients, vendors } = data;
@@ -194,19 +198,20 @@
 		);
 	else dtColumns = orderColumns;
 
-	//#region Form
+	//#region Create Form
 
 	let orderNameInput: HTMLInputElement;
 	let submissionError: string | null = null;
 	let initialFormData: CreateOrderFormSchema | null = null;
 	let initialFormError: any | null = null;
 	let jobType: PriceType | null = null;
+
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
 		submitType = FormSubmitType.AddNew;
 	};
 
-	const onClear = (e: Event) => {
+	const onAddNewFormClear = (e: Event) => {
 		if (initialFormData != null) $form = clone(initialFormData);
 		if (initialFormError != null) $errors = clone(initialFormError);
 	};
@@ -262,8 +267,14 @@
 
 	const handleRushToggle = (event: MouseEvent) => {
 		const { value } = event.target as HTMLInputElement;
-		if (value) $form.order.status = OrderStatus.RUSH;
-		else $form.order.status = OrderStatus.PENDING;
+		const targetedForm = getCurrentForm();
+		if (value) targetedForm.order.status = OrderStatus.RUSH;
+		else targetedForm.order.status = OrderStatus.PENDING;
+	};
+
+	const getCurrentForm = () => {
+		if (submitType === FormSubmitType.AddNew) return $form;
+		return $editForm;
 	};
 
 	//#region Rfc
@@ -318,6 +329,25 @@
 		}
 	);
 
+	const {
+		form: editForm,
+		errors: editErrors,
+		enhance: editEnhance,
+		message: editMessage
+	} = superForm(superValidateSync(editOrderFormSchema), {
+		dataType: 'json',
+		autoFocusOnError: 'detect',
+		defaultValidator: 'clear',
+		validators: editOrderFormSchema,
+		taintedMessage: null,
+		onResult: ({ result }) => {
+			if (result.type !== 'failure') {
+				isAddNewModalOpen = false;
+				return;
+			}
+		}
+	});
+
 	$: if ($message) submissionError = $message;
 
 	const setFormData = (email: RfcEmailResponse) => {
@@ -339,6 +369,35 @@
 		$form?.order?.price > stitchCountPricingModeCutoff
 			? OrderPriceType.StitchCount
 			: OrderPriceType.FlatRate;
+	//#endregion
+
+	//#region Edit Form
+	let isEditModalOpen = false;
+
+	const getEditFormData = (row: OrderDataTable): EditOrderFormSchema => {
+		const { id, name, price, status, date, vendorId, type } = row;
+		return {
+			order: {
+				id,
+				name,
+				price: Number(price),
+				status: JobStatusSchema.parse(status),
+				createdAt: dayjs(date).format('ddd, MMM D h:mm A'),
+				vendorId,
+				type
+			},
+			po: {
+				clientId: row.clientId
+			}
+		};
+	};
+
+	const openEditModal = (row: OrderDataTable) => {
+		isEditModalOpen = true;
+		submitType = FormSubmitType.Edit;
+		$editForm = getEditFormData(row);
+	};
+
 	//#endregion
 </script>
 
@@ -581,7 +640,7 @@
 			</Row>
 		</ModalBody>
 		<ModalFooter>
-			<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
+			<Button kind="secondary" on:click="{onAddNewFormClear}" icon="{Close}">Clear</Button>
 			<Button kind="primary" type="submit" icon="{formSubmitIcon}" accesskey="s"
 				>{formTitle}</Button>
 		</ModalFooter>
@@ -591,9 +650,13 @@
 
 <!-- #region Order Edit Form -->
 <ComposedModal
+	bind:open="{isEditModalOpen}"
 	aria-label="Edit order"
 	aria-labelledby="edit-order-modal-title"
 	aria-describedby="edit-order-modal-description"
+	on:close="{() => {
+		isEditModalOpen = false;
+	}}"
 	role="dialog">
 	<ModalHeader label="Edit order">
 		<Row>
@@ -612,9 +675,9 @@
 					bind:ref="{orderNameInput}"
 					on:blur="{setJobType}"
 					labelText="Order Name*"
-					invalid="{($errors?.order?.name?.length ?? 0) > 0}"
-					invalidText="{($errors?.order?.name ?? [''])[0]}"
-					bind:value="{$form.order.name}"
+					invalid="{($editErrors?.order?.name?.length ?? 0) > 0}"
+					invalidText="{($editErrors?.order?.name ?? [''])[0]}"
+					bind:value="{$editForm.order.name}"
 					minlength="{3}"
 					placeholder="ABC Logo"
 					tabindex="{1}" />
@@ -625,8 +688,8 @@
 					titleText="Client*"
 					placeholder="Select a client"
 					shouldFilterItem="{filterComboBoxItems}"
-					bind:selectedId="{$form.po.clientId}"
-					on:select="{() => setPrice($form.po.clientId)}"
+					bind:selectedId="{$editForm.po.clientId}"
+					on:select="{() => setPrice($editForm.po.clientId)}"
 					items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
 			</Column>
 		</Row>
@@ -639,9 +702,9 @@
 					label="Price*"
 					warn="{pricingMode == OrderPriceType.StitchCount}"
 					warnText="Using stitch count pricing mode"
-					invalid="{($errors?.order?.price?.length ?? 0) > 0}"
-					invalidText="{($errors?.order?.price ?? [''])[0]}"
-					bind:value="{$form.order.price}"
+					invalid="{($editErrors?.order?.price?.length ?? 0) > 0}"
+					invalidText="{($editErrors?.order?.price ?? [''])[0]}"
+					bind:value="{$editForm.order.price}"
 					minlength="{3}"
 					placeholder="" />
 			</Column>
@@ -652,7 +715,7 @@
 					placeholder="Select a vendor"
 					shouldFilterItem="{filterComboBoxItems}"
 					items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
-					bind:selectedId="{$form.order.vendorId}"
+					bind:selectedId="{$editForm.order.vendorId}"
 					let:item
 					let:index>
 					<div style="margin-top: -10px">
@@ -679,12 +742,12 @@
 				<TextInput
 					labelText="Created At"
 					placeholder="Date & time created"
-					bind:value="{$form.order.createdAt}" />
+					bind:value="{$editForm.order.createdAt}" />
 			</Column>
 		</Row>
 	</ModalBody>
 	<ModalFooter>
-		<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
+		<Button kind="secondary" on:click="{onAddNewFormClear}" icon="{Close}">Clear</Button>
 		<Button kind="primary" type="submit" icon="{formSubmitIcon}" accesskey="s">{formTitle}</Button>
 	</ModalFooter>
 </ComposedModal>
