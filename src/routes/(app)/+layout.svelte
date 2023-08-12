@@ -41,7 +41,7 @@
 
 	let eventSource: Client;
 
-	onMount(async () => {
+	onMount(() => {
 		eventSource = new Client({
 			source: {
 				url: `/api/sse`
@@ -63,7 +63,7 @@
 	});
 </script>
 
-<Theme bind:theme="{theme}" persist persistKey="__carbon-theme" />
+<Theme bind:theme persist persistKey="__carbon-theme" />
 
 <Breakpoint bind:size="{screenSize}" on:change="{(e) => screenSizeStore.set(screenSize)}" />
 
@@ -105,7 +105,7 @@
 	:global(.bx--form) {
 		height: 100%;
 	}
-	:global(.bx--modal-content--with-form) {
+	:global(.full-screen-form) {
 		margin-bottom: 0px;
 		height: 64vh;
 	}

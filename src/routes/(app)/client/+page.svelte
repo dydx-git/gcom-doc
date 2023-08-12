@@ -4,7 +4,7 @@
 	import { FormSubmitType } from '../meta';
 	import { debounce } from 'debounce';
 	import { Currency, EmailType, PayMethod, PhoneType } from '@prisma/client';
-	import { superForm } from 'sveltekit-superforms/client';
+	import { superForm, superValidateSync } from 'sveltekit-superforms/client';
 	import { screenSizeStore, userPreferencesStore } from '$lib/store';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import { CompanyLabel } from '$lib/modules/company/meta';
@@ -79,19 +79,22 @@
 
 	let selectedFormInfoTypeIndex = 0;
 
-	const { form, errors, enhance, capture, restore, message } = superForm(data.form, {
-		dataType: 'json',
-		autoFocusOnError: 'detect',
-		defaultValidator: 'clear',
-		validators: schema,
-		taintedMessage: null,
-		onResult: ({ result }) => {
-			if (result.type !== 'failure') {
-				isAddNewModalOpen = false;
-				return;
+	const { form, errors, enhance, capture, restore, message } = superForm(
+		data.form ?? superValidateSync(schema),
+		{
+			dataType: 'json',
+			autoFocusOnError: 'detect',
+			defaultValidator: 'clear',
+			validators: schema,
+			taintedMessage: null,
+			onResult: ({ result }) => {
+				if (result.type !== 'failure') {
+					isAddNewModalOpen = false;
+					return;
+				}
 			}
 		}
-	});
+	);
 
 	$: if ($form && !initialFormData) {
 		initialFormData = clone($form);
@@ -188,7 +191,7 @@
 				</span>
 				<svelte:fragment slot="cell" let:row let:cell>
 					{#if cell.key == clientDatatableColumnKeys.actions}
-						<OverflowMenu flipped width="1px">
+						<OverflowMenu flipped>
 							<OverflowMenuItem text="Restart" />
 							<OverflowMenuItem
 								href="https://cloud.ibm.com/docs/loadbalancer-service"
@@ -235,8 +238,8 @@
 				{/each}
 			</ContentSwitcher>
 		</ModalHeader>
-		{#if selectedFormInfoTypeIndex === formInfoType.Basic}
-			<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
+		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''} full-screen-form">
+			{#if selectedFormInfoTypeIndex === formInfoType.Basic}
 				<FormSubmissionError bind:error="{$message}" />
 				<Row>
 					<Column sm="{4}" md="{4}" lg="{8}">
@@ -268,7 +271,6 @@
 					<Column sm="{2}" md="{4}" lg="{8}">
 						<ComboBox
 							titleText="Company*"
-							label="Company*"
 							placeholder="Select a company"
 							items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}"
 							invalid="{($errors?.client?.companyId?.length ?? 0) > 0}"
@@ -281,7 +283,6 @@
 						<ComboBox
 							placeholder="Select a sales rep"
 							titleText="Sales Rep*"
-							label="Sales Rep*"
 							items="{salesReps?.map((rep) => ({ id: rep.username, text: rep.name }))}"
 							itemToString="{(item) => item?.text ?? ''}"
 							bind:selectedId="{$form.client.salesRepUsername}"
@@ -414,7 +415,6 @@
 						<ComboBox
 							placeholder="Select a payment method"
 							titleText="Payment Method*"
-							label="Payment Method*"
 							items="{Object.entries(PayMethod).map((key) => ({ id: key[0], text: key[1] }))}"
 							itemToString="{(item) => item?.text ?? ''}"
 							bind:selectedId="{$form.client.payMethod}"
@@ -468,7 +468,7 @@
 								invalid="{($errors?.address?.state?.length ?? 0) > 0}"
 								invalidText="{($errors?.address?.state ?? [''])[0]}" />
 						</Column>
-						<Column sm="{2}" md="{2}" lg="{2}">
+						<Column sm="{2}" md="{3}" lg="{3}">
 							<TextInput
 								labelText="Zip*"
 								name="zip"
@@ -477,7 +477,7 @@
 								invalid="{($errors?.address?.zip?.length ?? 0) > 0}"
 								invalidText="{($errors?.address?.zip ?? [''])[0]}" />
 						</Column>
-						<Column sm="{2}" md="{3}" lg="{3}">
+						<Column sm="{2}" md="{2}" lg="{2}">
 							<TextInput
 								labelText="Country Code"
 								name="country"
@@ -526,9 +526,7 @@
 						{/if}
 					</Row>
 				</FormGroup>
-			</ModalBody>
-		{:else if selectedFormInfoTypeIndex === formInfoType.Advanced}
-			<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
+			{:else if selectedFormInfoTypeIndex === formInfoType.Advanced}
 				<FormSubmissionError bind:error="{$message}" />
 				<Row class="default-gap">
 					{#if $form.prices}
@@ -552,8 +550,8 @@
 							type="multi" />
 					</Column>
 				</Row>
-			</ModalBody>
-		{/if}
+			{/if}
+		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click="{onClear}" icon="{Close}">Clear</Button>
 			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>

@@ -36,7 +36,7 @@
 		DataTableRow
 	} from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 	import type { TagProps } from 'carbon-components-svelte/types/Tag/Tag.svelte';
-	import { page } from '$app/stores';
+	import SuperDebug from 'sveltekit-superforms/client/SuperDebug.svelte';
 	import {
 		Add,
 		type CarbonIcon,
@@ -74,7 +74,7 @@
 	import type { IAttachment } from 'gmail-api-parse-message-ts';
 	import clone from 'just-clone';
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
-	import { PriceType, Department, JobStatus } from '@prisma/client';
+	import { PriceType, Department, JobStatus, JobType } from '@prisma/client';
 	import { JobStatusSchema, JobTypeSchema } from '$lib/prisma/zod';
 
 	export let data;
@@ -95,7 +95,14 @@
 	let dtColumns = orderColumns;
 	const stitchCountPricingModeCutoff = 1000;
 
-	const getRowId = (row: DataTableRow) => row.id;
+	const deleteOrder = async (orderId: number) => {
+		const response = await fetch(`/api/order/${orderId}`, {
+			method: 'DELETE'
+		});
+		if (response.ok) {
+			const data: StatusCode = await response.json();
+		}
+	};
 
 	const filterTable = (row: DataTableRow, query: string | number): boolean => {
 		const searchable = `${row.name} ${row.price} ${row.status} ${row.client} ${
@@ -312,7 +319,7 @@
 	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
-	const { form, errors, enhance, capture, restore, message } = superForm(
+	const { form, errors, enhance, capture, restore, message, constraints } = superForm(
 		data.form || superValidateSync(createOrderFormSchema),
 		{
 			dataType: 'json',
@@ -375,7 +382,9 @@
 	let isEditModalOpen = false;
 
 	const getEditFormData = (row: OrderDataTable): EditOrderFormSchema => {
-		const { id, name, price, status, date, vendorId, type } = row;
+		const { id, name, price, date, vendorId, type } = row;
+		const status = row.status == OrderStatus.OVERDUE ? OrderStatus.PENDING : row.status;
+
 		return {
 			order: {
 				id,
@@ -392,10 +401,10 @@
 		};
 	};
 
-	const openEditModal = (row: OrderDataTable) => {
+	const openEditModal = (row: DataTableRow) => {
 		isEditModalOpen = true;
 		submitType = FormSubmitType.Edit;
-		$editForm = getEditFormData(row);
+		$editForm = getEditFormData(row as OrderDataTable);
 	};
 
 	//#endregion
@@ -453,11 +462,8 @@
 						</Truncate>
 					{:else if cell.key === orderDatatableColumnKeys.actions}
 						<OverflowMenu flipped>
-							<OverflowMenuItem text="Restart" />
-							<OverflowMenuItem
-								href="https://cloud.ibm.com/docs/loadbalancer-service"
-								text="API documentation" />
-							<OverflowMenuItem danger text="Stop" />
+							<OverflowMenuItem text="Edit" on:click="{(e) => openEditModal(row)}" />
+							<OverflowMenuItem danger text="Delete" on:click="{(e) => deleteOrder(row.id)}" />
 						</OverflowMenu>
 					{:else if cell.key == orderDatatableColumnKeys.date}
 						<TooltipDefinition tooltipText="{dayjs(cell.value).format('ddd, MMM D h:mm A')}">
@@ -506,10 +512,11 @@
 				</Column>
 			</Row>
 		</ModalHeader>
-		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
+		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''} full-screen-form">
 			<FormSubmissionError bind:error="{submissionError}" />
+			<!-- <SuperDebug data="{$form}" /> -->
 			<Row>
-				<Column sm="{2}" md="{2}" lg="{5}">
+				<Column sm="{2}" md="{3}" lg="{5}">
 					<ComboBox
 						id="company"
 						titleText="Company"
@@ -519,7 +526,7 @@
 						bind:selectedId="{selectedCompanyId}"
 						items="{Object.entries(CompanyLabel).map((key) => ({ id: key[0], text: key[1] }))}" />
 				</Column>
-				<Column sm="{8}" md="{8}" lg="{10}">
+				<Column sm="{8}" md="{5}" lg="{10}">
 					<TextInput
 						id="rfc"
 						labelText="RFC Id"
@@ -558,7 +565,10 @@
 						shouldFilterItem="{filterComboBoxItems}"
 						bind:selectedId="{$form.po.clientId}"
 						on:select="{() => setPrice($form.po.clientId)}"
-						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
+						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
+						invalid="{($errors?.po?.clientId?.length ?? 0) > 0}"
+						invalidText="{($errors?.po?.clientId ?? [''])[0]}"
+						itemToString="{(item) => item?.text ?? ''}" />
 				</Column>
 			</Row>
 			<Row class="default-gap">
@@ -583,6 +593,9 @@
 						placeholder="Select a vendor"
 						shouldFilterItem="{filterComboBoxItems}"
 						items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
+						invalid="{($errors?.order?.vendorId?.length ?? 0) > 0}"
+						invalidText="{($errors?.order?.vendorId ?? [''])[0]}"
+						itemToString="{(item) => item?.text ?? ''}"
 						bind:selectedId="{$form.order.vendorId}"
 						let:item
 						let:index>
@@ -668,7 +681,7 @@
 	<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 		<FormSubmissionError bind:error="{submissionError}" />
 		<Row>
-			<Column sm="{4}" md="{4}" lg="{8}">
+			<Column sm="{4}" md="{4}" lg="{10}">
 				<TextInput
 					id="name"
 					name="name"
@@ -678,23 +691,10 @@
 					invalid="{($editErrors?.order?.name?.length ?? 0) > 0}"
 					invalidText="{($editErrors?.order?.name ?? [''])[0]}"
 					bind:value="{$editForm.order.name}"
-					minlength="{3}"
 					placeholder="ABC Logo"
 					tabindex="{1}" />
 			</Column>
-			<Column sm="{4}" md="{4}" lg="{7}">
-				<ComboBox
-					id="client"
-					titleText="Client*"
-					placeholder="Select a client"
-					shouldFilterItem="{filterComboBoxItems}"
-					bind:selectedId="{$editForm.po.clientId}"
-					on:select="{() => setPrice($editForm.po.clientId)}"
-					items="{clients?.map((client) => ({ id: client.id, text: client.name }))}" />
-			</Column>
-		</Row>
-		<Row class="default-gap">
-			<Column sm="{2}" md="{2}" lg="{4}">
+			<Column sm="{4}" md="{2}" lg="{5}">
 				<NumberInput
 					hideSteppers
 					id="price"
@@ -704,9 +704,22 @@
 					warnText="Using stitch count pricing mode"
 					invalid="{($editErrors?.order?.price?.length ?? 0) > 0}"
 					invalidText="{($editErrors?.order?.price ?? [''])[0]}"
-					bind:value="{$editForm.order.price}"
-					minlength="{3}"
-					placeholder="" />
+					bind:value="{$editForm.order.price}" />
+			</Column>
+		</Row>
+		<Row class="default-gap">
+			<Column sm="{3}" md="{4}" lg="{7}">
+				<ComboBox
+					id="client"
+					titleText="Client*"
+					placeholder="Select a client"
+					shouldFilterItem="{filterComboBoxItems}"
+					bind:selectedId="{$editForm.po.clientId}"
+					on:select="{() => setPrice($editForm.po.clientId)}"
+					items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
+					invalid="{($editErrors?.po?.clientId?.length ?? 0) > 0}"
+					invalidText="{($editErrors?.po?.clientId ?? [''])[0]}"
+					itemToString="{(item) => item?.text ?? ''}" />
 			</Column>
 			<Column sm="{3}" md="{4}" lg="{8}">
 				<ComboBox
@@ -715,6 +728,9 @@
 					placeholder="Select a vendor"
 					shouldFilterItem="{filterComboBoxItems}"
 					items="{vendors?.map((vendor) => ({ id: vendor.id, text: vendor.name }))}"
+					invalid="{($editErrors?.order?.vendorId?.length ?? 0) > 0}"
+					invalidText="{($editErrors?.order?.vendorId ?? [''])[0]}"
+					itemToString="{(item) => item?.text ?? ''}"
 					bind:selectedId="{$editForm.order.vendorId}"
 					let:item
 					let:index>
@@ -732,13 +748,31 @@
 					</div>
 				</ComboBox>
 			</Column>
-			<Column sm="{1}" md="{2}" lg="{4}">
-				<FormLabel style="margin-top: 5px">Rush</FormLabel>
-				<Toggle id="rush" name="rush" labelText="Rush" on:click="{handleRushToggle}" hideLabel />
-			</Column>
 		</Row>
 		<Row class="default-gap">
-			<Column sm="{2}" md="{4}" lg="{9}">
+			<Column sm="{4}" md="{4}" lg="{5}">
+				<ComboBox
+					id="status"
+					titleText="Status"
+					direction="top"
+					items="{Object.values(JobStatus).map((status) => ({ id: status, text: status }))}"
+					itemToString="{(item) => item?.text ?? ''}"
+					invalid="{($editErrors?.order?.status?.length ?? 0) > 0}"
+					invalidText="{($editErrors?.order?.status ?? [''])[0]}"
+					bind:selectedId="{$editForm.order.status}" />
+			</Column>
+			<Column sm="{4}" md="{4}" lg="{5}">
+				<ComboBox
+					id="type"
+					titleText="Type"
+					direction="top"
+					items="{Object.values(JobType).map((type) => ({ id: type, text: type }))}"
+					itemToString="{(item) => item?.text ?? ''}"
+					invalid="{($editErrors?.order?.type?.length ?? 0) > 0}"
+					invalidText="{($editErrors?.order?.type ?? [''])[0]}"
+					bind:selectedId="{$editForm.order.type}" />
+			</Column>
+			<Column sm="{2}" md="{2}" lg="{5}">
 				<TextInput
 					labelText="Created At"
 					placeholder="Date & time created"
