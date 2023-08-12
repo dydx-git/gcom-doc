@@ -1,12 +1,12 @@
 import prisma from '$db/client';
 import hash from 'object-hash';
 import { Department, JobType, PriceType, Prisma, UserRoles } from '@prisma/client';
-import type { User } from 'lucia-auth';
 import type { addressSchema, ClientSchema, ClientSchemaWithoutId, emailSchema, phoneSchema, priceSchema } from './meta';
 import type { Email } from '$lib/modules/common/models/email';
 import type { IHashId, IReadById, PromiseArrayElement } from '$lib/modules/common/interfaces/core';
 import { Decimal } from '@prisma/client/runtime/library';
 import { logger } from '$lib/logger';
+import type { User } from 'lucia';
 
 export class Clients implements IHashId, IReadById {
 	public include: Prisma.ClientInclude;
@@ -154,6 +154,11 @@ export class Clients implements IHashId, IReadById {
 		const pricesGroupByClientId: Record<string, Record<Department, Decimal[]>> = {};
 		// find mode of price for each price type and clientId
 		clientPrices.forEach((clientPrice) => {
+			if (!clientPrice.purchaseOrder?.clientId) {
+				logger.warn(`Client ${clientPrice.purchaseOrder?.clientId} not found in clientPrices`);
+				return;
+			}
+
 			const { purchaseOrder: { clientId }, price, vendor: { department } } = clientPrice;
 			const clientPriceGroup = pricesGroupByClientId[clientId];
 			if (!clientPriceGroup) {
@@ -274,6 +279,7 @@ export class Clients implements IHashId, IReadById {
 				}
 			}
 		});
+		logger.info(`Client ${addedClient.name} created`);
 
 		await prisma.clientSalesRepCompany.updateMany({
 			data: {
@@ -284,6 +290,7 @@ export class Clients implements IHashId, IReadById {
 				client: addedClient
 			}
 		});
+		logger.info(`Client ${addedClient.name} sales rep updated`);
 
 		prisma.clientSalesRepCompany.create({
 			data: {
@@ -295,7 +302,7 @@ export class Clients implements IHashId, IReadById {
 			logger.error(err);
 		});
 
-		if (prices)
+		if (prices) {
 			prisma.clientSetPrice.createMany({
 				data: prices.filter(price => price.price > 0).map(price => ({
 					...price,
@@ -304,6 +311,8 @@ export class Clients implements IHashId, IReadById {
 			}).catch((err) => {
 				logger.error(err);
 			});
+			logger.info(`Client ${addedClient.name} default prices set.`);
+		}
 
 		return addedClient;
 	}
