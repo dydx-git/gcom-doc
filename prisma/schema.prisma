@@ -86,17 +86,23 @@ model EmailStatus {
 
 model Job {
   id              String         @id @db.VarChar(32)
+  /// @zod.string.min(2).max(100)
   name            String         @db.VarChar(100)
+  /// @zod.custom.use(z.string().refine((v) => validator.isCurrency(v), { message: 'Invalid price' }))
   price           Decimal        @db.Decimal(10, 2)
+  /// z.date().optional()
   createdAt       DateTime       @default(now()) @db.DateTime(0)
   updatedAt       DateTime       @updatedAt @db.DateTime(0)
+  /// @zod.enum
   type            JobType
+  /// @zod.enum
   status          JobStatus
+  /// @zod.number
   vendorId        Int            @map("vendor_id")
   purchaseOrderId Int            @unique @map("po_id")
   GmailMsgs       GmailMsg[]
   vendor          Vendor         @relation(fields: [vendorId], references: [id])
-  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
 
   @@index([purchaseOrderId], map: "job_purchase_order")
   @@map("jobs")
@@ -104,6 +110,7 @@ model Job {
 
 model PurchaseOrder {
   id           Int     @id @default(autoincrement())
+  /// @zod.string.min(32).max(32)
   clientId     String  @map("client_id") @db.VarChar(32)
   primaryJobId String? @unique @map("primary_job_id") @db.VarChar(32)
   client       Client  @relation(fields: [clientId], references: [id], onDelete: Cascade, map: "purchase_order_client")
@@ -224,7 +231,7 @@ model ClientEmail {
 }
 
 model ClientPhone {
-  /// @zod.custom.use(z.string().min(6).max(18).refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }))
+  /// @zod.custom.use(z.string().refine((v) => validator.isMobilePhone(v), { message: 'Must be a valid phone number' }))
   phone       String    @db.VarChar(100)
   clientId    String    @map("client_id") @db.VarChar(32)
   description String?   @db.VarChar(100)
@@ -292,6 +299,7 @@ enum PriceType {
   LEFTCHEST
   FULLBACK
   VECTOR
+  UNKNOWN
 }
 
 enum JobType {
