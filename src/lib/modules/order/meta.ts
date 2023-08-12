@@ -61,8 +61,8 @@ export type GmailSchema = z.infer<typeof gmailSchema>;
 export type CreateOrderSchema = CreateJobSchema & { clientId: string } & GmailSchema;
 
 export const createOrderFormSchema = z.object({
-	order: withDefaults(createJobSchema, { status: JobStatus.PENDING, type: JobType.JOB }),
-	po: PurchaseOrderOptionalDefaultsSchema.pick({ clientId: true }),
+	order: withDefaults(createJobSchema, { status: JobStatus.PENDING, type: JobType.JOB, vendorId: undefined }),
+	po: withDefaults(PurchaseOrderOptionalDefaultsSchema.pick({ clientId: true }), { clientId: undefined }),
 	gmail: withDefaults(gmailSchema.extend({
 		attachments: z.array(fileInfoSchema),
 		subjectAddendum: z.string().optional(),
