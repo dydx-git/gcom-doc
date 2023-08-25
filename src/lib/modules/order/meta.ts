@@ -51,6 +51,11 @@ export type OrderEmailBody = {
 	attachments: Attachment[];
 }
 
+export enum OrderPriceType {
+	StitchCount,
+	FlatRate
+}
+
 const jobSchema = JobOptionalDefaultsSchema.omit({ price: true, updatedAt: true }).extend({
 	price: z.number()
 });
