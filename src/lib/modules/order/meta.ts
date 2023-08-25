@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { withDefaults } from "../common/functions/core";
 import { fileInfoSchema } from '../common/interfaces/file';
 import type { Attachment } from '../gmail/meta';
-import { Company } from '../company/meta';
+import { dateSchema } from '../common/interfaces/core';
 
 export const OrderStatus = {
 	...JobStatus,
@@ -73,7 +73,7 @@ export const createOrderFormSchema = z.object({
 export type CreateOrderFormSchema = z.infer<typeof createOrderFormSchema>;
 
 export const editOrderFormSchema = z.object({
-	order: jobSchema.omit({ purchaseOrderId: true }).extend({ createdAt: z.string().datetime() }),
+	order: jobSchema.omit({ purchaseOrderId: true }).extend({ createdAt: dateSchema }),
 	po: PurchaseOrderOptionalDefaultsSchema.pick({ clientId: true }),
 });
 export type EditOrderFormSchema = z.infer<typeof editOrderFormSchema>;

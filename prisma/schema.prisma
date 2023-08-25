@@ -90,7 +90,7 @@ model Job {
   name            String         @db.VarChar(100)
   /// @zod.custom.use(z.string().refine((v) => validator.isCurrency(v), { message: 'Invalid price' }))
   price           Decimal        @db.Decimal(10, 2)
-  /// z.date().optional()
+  /// @zod.custom.use(z.coerce.date().optional())
   createdAt       DateTime       @default(now()) @db.DateTime(0)
   updatedAt       DateTime       @updatedAt @db.DateTime(0)
   /// @zod.enum

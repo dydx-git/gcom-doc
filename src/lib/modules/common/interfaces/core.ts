@@ -1,5 +1,5 @@
 import type { Email } from '$lib/modules/common/models/email';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 export interface INamed {
 	name: string;
@@ -46,3 +46,7 @@ export type PromiseArrayElement<ArrayType extends Promise<unknown[]>> =
 	ArrayType extends Promise<(infer ElementType)[]> ? ElementType : never;
 
 export type StatusCode = 200 | 201 | 204 | 400 | 401 | 403 | 404 | 500;
+
+export const dateSchema = z.preprocess((arg) => {
+	if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
+}, z.date());

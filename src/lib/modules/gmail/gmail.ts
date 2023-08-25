@@ -16,7 +16,6 @@ export class Gmailer {
 
     public static async getInstance(company: Company) {
         const id = company.id;
-        console.log(Gmailer._instances);
 
         if (!Gmailer._instances[id]) {
             console.warn("Gmailer instance not found, creating new instance");

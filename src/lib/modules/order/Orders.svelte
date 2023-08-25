@@ -47,7 +47,6 @@
 
 	const render = (cell: DataTableCell) => {
 		if (!cell.value) return '';
-		console.log(cell);
 
 		switch (cell.key) {
 			case orderDatatableColumnKeys.price:
