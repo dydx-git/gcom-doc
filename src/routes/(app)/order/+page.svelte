@@ -773,6 +773,7 @@
 						bind:selectedId="{$editForm.order.type}" />
 				</Column>
 				<Column sm="{2}" md="{4}" lg="{6}">
+					<!-- TODO: Fix type error at 'value' -->
 					<TextInput
 						labelText="Created At"
 						placeholder="Date & time created"

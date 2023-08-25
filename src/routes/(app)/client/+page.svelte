@@ -440,7 +440,7 @@
 				</Row>
 				<FormGroup class="default-gap">
 					<Row>
-						<Column sm="{2}" md="{5}" lg="{5}">
+						<Column sm="{4}" md="{6}" lg="{8}">
 							<TextInput
 								labelText="Address*"
 								name="address"
@@ -450,7 +450,7 @@
 								invalidText="{($errors?.address?.address ?? [''])[0]}"
 								on:keyup="{debounce(parseAddress, userPreferences.inputToProcessDelay)}" />
 						</Column>
-						<Column sm="{1}" md="{2}" lg="{4}">
+						<Column sm="{4}" md="{5}" lg="{5}">
 							<TextInput
 								labelText="City*"
 								name="city"
@@ -459,16 +459,16 @@
 								invalid="{($errors?.address?.city?.length ?? 0) > 0}"
 								invalidText="{($errors?.address?.city ?? [''])[0]}" />
 						</Column>
-						<Column sm="{1}" md="{2}" lg="{2}">
+						<Column sm="{2}" md="{3}" lg="{3}">
 							<TextInput
 								labelText="State*"
 								name="state"
-								placeholder="Code: CA, NY etc"
+								placeholder="CA, NY etc"
 								bind:value="{$form.address.state}"
 								invalid="{($errors?.address?.state?.length ?? 0) > 0}"
 								invalidText="{($errors?.address?.state ?? [''])[0]}" />
 						</Column>
-						<Column sm="{2}" md="{3}" lg="{3}">
+						<Column sm="{2}" md="{3}" lg="{4}">
 							<TextInput
 								labelText="Zip*"
 								name="zip"
@@ -477,7 +477,7 @@
 								invalid="{($errors?.address?.zip?.length ?? 0) > 0}"
 								invalidText="{($errors?.address?.zip ?? [''])[0]}" />
 						</Column>
-						<Column sm="{2}" md="{2}" lg="{2}">
+						<Column sm="{2}" md="{3}" lg="{4}">
 							<TextInput
 								labelText="Country Code"
 								name="country"
@@ -531,7 +531,7 @@
 				<Row class="default-gap">
 					{#if $form.prices}
 						{#each $form.prices as price, i}
-							<Column sm="{4}" md="{2}" lg="{4}">
+							<Column sm="{4}" md="{2}" lg="{5}">
 								<NumberInput
 									label="{`Default ${price.type} Price`}"
 									bind:value="{$form.prices[i].price}"
