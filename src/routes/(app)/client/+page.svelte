@@ -40,6 +40,7 @@
 	import type { Snapshot } from './$types';
 	import { ContentSwitcher, Switch } from 'carbon-components-svelte';
 	import type { Address } from '$lib/address/meta';
+	import { onDestroy, onMount } from 'svelte';
 
 	export let data;
 
@@ -67,6 +68,12 @@
 	$: if (searchText.length > 1) {
 		filterTable(searchText);
 	}
+
+	//#region page lifecycle
+	onMount(() => {
+		data.isPageLoaded = true;
+	});
+	//#endregion
 
 	//#region Form
 

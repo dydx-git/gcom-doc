@@ -1,5 +1,4 @@
 import { message, superValidate } from 'sveltekit-superforms/server';
-import type { PageServerLoad } from './$types';
 import { JobStatus, Prisma } from '@prisma/client';
 import { PUBLIC_SSE_CHANNEL } from '$env/static/public';
 import { Jobs } from '$lib/modules/order/order';
@@ -14,6 +13,7 @@ import { AttachmentPersister } from '$lib/modules/persister/attachmentPersister'
 import { OrderStats } from '$lib/modules/stats/order';
 import { Clients } from '$lib/modules/client/client';
 import { logger } from '$lib/logger';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
 	const { depends, url, request, locals: { auth: { validate } } } = event;
@@ -24,7 +24,6 @@ export const load: PageServerLoad = async (event) => {
 	const session = await validate();
 	const user = session?.user;
 	if (!user) return fail(401, { message: 'Unauthorized' });
-
 
 	const userSettings = await new UserSettings().read({ username: user.username });
 	const dateUntil = dayjs().subtract(userSettings.datatable.order.showRecordsForLastDays, 'day').toDate();

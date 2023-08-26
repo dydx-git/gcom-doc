@@ -1,13 +1,12 @@
 import client from "$db/client";
 import { PUBLIC_SSE_CHANNEL } from "$env/static/public";
+import type { RequestHandler } from './$types';
 
-export async function DELETE({ params, locals }) {
+export const DELETE: RequestHandler = async ({ params, locals }) => {
     const { id } = params;
 
-    Promise.all([
-        client.job.delete({ where: { id } }),
-        client.purchaseOrder.delete({ where: { primaryJobId: id } })
-    ]);
+    await client.job.delete({ where: { id } });
+    await client.purchaseOrder.delete({ where: { primaryJobId: id } });
 
     const { room } = locals;
     room.sendEveryone(PUBLIC_SSE_CHANNEL, { path: '/order' });

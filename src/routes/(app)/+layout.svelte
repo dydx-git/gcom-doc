@@ -15,7 +15,9 @@
 		Breakpoint,
 		HeaderPanelLink,
 		HeaderPanelDivider,
-		HeaderGlobalAction
+		HeaderGlobalAction,
+		InlineNotification,
+		ToastNotification
 	} from 'carbon-components-svelte';
 	import type { BreakpointSize } from 'carbon-components-svelte/types/Breakpoint/breakpoints';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
@@ -30,6 +32,10 @@
 	import { IbmCloud, UserAvatar } from 'carbon-icons-svelte';
 	import PageTransition from '$lib/components/PageTransition.svelte';
 	import { invalidate } from '$app/navigation';
+	import { notificationStore } from './meta';
+	import { fade, fly, slide } from 'svelte/transition';
+	import { navigating, page } from '$app/stores';
+	import { quintOut, expoOut } from 'svelte/easing';
 
 	export let data: LayoutData;
 
@@ -56,11 +62,29 @@
 				}
 			]
 		});
+		$notificationStore = {
+			type: 'success',
+			title: 'Layout loaded successfully'
+		};
 
 		return () => {
 			eventSource.close();
 		};
 	});
+
+	$: if ($page.data.isPageLoaded) {
+		$notificationStore = {
+			type: 'success',
+			title: 'Data loaded successfully'
+		};
+	}
+
+	$: if ($navigating) {
+		$notificationStore = {
+			type: 'info',
+			title: 'Loading data'
+		};
+	}
 </script>
 
 <Theme bind:theme persist persistKey="__carbon-theme" />
@@ -90,6 +114,25 @@
 	</HeaderUtilities>
 </Header>
 
+{#if $notificationStore}
+	<div
+		transition:fly="{{
+			delay: 100,
+			duration: 200,
+			x: 400,
+			opacity: 1
+		}}">
+		<ToastNotification
+			lowContrast
+			hideCloseButton
+			style="position: absolute; right: 0; z-index: 1000; margin-top: 50px"
+			kind="{$notificationStore.type}"
+			title="{$notificationStore.title}"
+			timeout="{3000}"
+			on:close="{() => ($notificationStore = null)}"
+			subtitle="{$notificationStore?.message ?? ''}" />
+	</div>
+{/if}
 <Content id="main-content">
 	<Grid>
 		<PageTransition pathname="{data.pathname}">

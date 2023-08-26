@@ -11,7 +11,7 @@ export const auth = lucia({
 	middleware: sveltekit(),
 	getUserAttributes: (user) => {
 		return {
-			userId: user.id,
+			id: user.id,
 			username: user.username,
 			role: user.role
 		};

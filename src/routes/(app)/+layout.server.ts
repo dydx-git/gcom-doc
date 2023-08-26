@@ -25,12 +25,15 @@ export const load: LayoutServerLoad = async ({ locals, url: { pathname } }) => {
 
 
 		return {
+			pathname,
+			isPageLoaded: false,
 			user: {
 				username: data.username,
+				id: user.userId,
 				role: data.role,
-				name: data.SalesRep?.name ?? "Not Set",
+				name: data.SalesRep?.name ?? "Unknown",
 				settings: new UserSettings().read({ username: data.username })
-			}, pathname
+			}
 		};
 	} catch (error) {
 		const err = error as Error;

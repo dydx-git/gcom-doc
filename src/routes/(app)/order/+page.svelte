@@ -28,7 +28,9 @@
 		FileUploaderButton,
 		FileUploaderItem,
 		ModalFooter,
-		Pagination
+		Pagination,
+		ContentSwitcher,
+		Switch
 	} from 'carbon-components-svelte';
 	import FormSubmissionError from '$lib/components/FormSubmissionError.svelte';
 	import type {
@@ -48,7 +50,8 @@
 		IncompleteCancel,
 		TrainSpeed,
 		Edit,
-		Close
+		Close,
+		Pen
 	} from 'carbon-icons-svelte';
 	import dayjs from 'dayjs';
 	import { screenSizeStore } from '$lib/store';
@@ -60,13 +63,12 @@
 		editOrderFormSchema,
 		type CreateOrderFormSchema,
 		type EditOrderFormSchema,
-		type OrderDataTable
+		type OrderDataTable,
+		OrderPriceType
 	} from '$lib/modules/order/meta';
-	import { FormSubmitType } from '../meta.js';
 	import type { Snapshot } from '@sveltejs/kit';
 	import { CompanyLabel } from '$lib/modules/company/meta';
 	import type { RfcEmailResponse } from '$lib/modules/gmail/dataTransformer';
-	import { OrderPriceType } from './meta';
 	import { fuzzy } from 'fast-fuzzy';
 	import hash from '@sindresorhus/string-hash';
 	import type { ComboBoxItem } from 'carbon-components-svelte/types/ComboBox/ComboBox.svelte';
@@ -76,11 +78,15 @@
 	import type { PendingOrderDetails } from '$lib/modules/stats/order';
 	import { PriceType, Department, JobStatus, JobType } from '@prisma/client';
 	import { JobStatusSchema, JobTypeSchema } from '$lib/prisma/zod';
+	import { FormSubmitType, notificationStore } from '../meta';
+	import { page } from '$app/stores';
+	import { onDestroy, onMount } from 'svelte';
+	import type { PageData } from './$types';
 
-	export let data;
+	export let data: PageData;
 	const { clients, vendors } = data;
-	export let title = 'Orders';
-	export let description = "Showing orders from 01 Jan'";
+	let title = 'Orders';
+	let description = "Showing orders from 01 Jan'";
 
 	$: tableData = data.orders;
 	let filteredRowIds: number[] = [];
@@ -90,7 +96,9 @@
 
 	$: pendingOrderDetails = data.pendingOrderDetails as PendingOrderDetails[];
 
-	let isAddNewModalOpen = false;
+	let isAddNewModalOpen = false,
+		isRevisionModalOpen = false;
+	let revisionOrderId: string | null;
 	let submitType: FormSubmitType = FormSubmitType.AddNew;
 	let dtColumns = orderColumns;
 	const stitchCountPricingModeCutoff = 1000;
@@ -204,50 +212,54 @@
 		);
 	else dtColumns = orderColumns;
 
+	//#region page lifecycle
+	onMount(() => {
+		data.isPageLoaded = true;
+	});
+	//#endregion
+
 	//#region Create Form
 
 	let orderNameInput: HTMLInputElement;
 	let submissionError: string | null = null;
-	let initialFormData: CreateOrderFormSchema | null = null;
-	let initialFormError: any | null = null;
-	let jobType: PriceType | null = null;
+	const createFormEmptySchema = superValidateSync(createOrderFormSchema);
+	let initialFormData: CreateOrderFormSchema = createFormEmptySchema.data;
+	let initialFormError = createFormEmptySchema.errors;
+	let pricing: PriceType | null = null;
 
 	const openNewOrderModal = () => {
 		isAddNewModalOpen = true;
 		submitType = FormSubmitType.AddNew;
 	};
 
-	const onAddNewFormClear = (e: Event) => {
-		if (initialFormData != null) $form = clone(initialFormData);
-		if (initialFormError != null) $errors = clone(initialFormError);
+	const openRevisionModal = () => {
+		isRevisionModalOpen = true;
+		openEditModal();
 	};
 
-	$: if ($form && !initialFormData) {
-		initialFormData = clone($form);
-	}
-
-	$: if ($errors && !initialFormError) {
-		initialFormError = clone($errors);
-	}
+	const onAddNewFormClear = (e: Event) => {
+		$form = clone(initialFormData);
+		$errors = clone(initialFormError);
+	};
 
 	const filterComboBoxItems = (item: ComboBoxItem, value: string) =>
 		fuzzy(value.toString(), item.text) > 0.7;
 
-	const setJobType = () => {
+	const setPriceType = () => {
 		const { value } = orderNameInput;
 		if (!value) return;
 
 		//TODO: set job type
-		jobType = PriceType.LEFTCHEST;
+		pricing = PriceType.LEFTCHEST;
 	};
 
 	const setPrice = (clientId: string) => {
 		if (!isNaN($form.order.price)) return;
 
 		const client = clients?.find((client) => client.id == clientId);
-		if (!client || !jobType || pricingMode == OrderPriceType.StitchCount) return;
+		if (!client || !pricing || pricingMode == OrderPriceType.StitchCount) return;
 
-		$form.order.price = +client.prices[jobType];
+		$form.order.price = +client.prices[pricing];
 	};
 
 	//#region file upload
@@ -318,17 +330,33 @@
 	$: formSubmitIcon = submitType === FormSubmitType.AddNew ? Add : Edit;
 	$: formActionUrl = submitType === FormSubmitType.AddNew ? '?/create' : '?/update';
 
-	const { form, errors, enhance, capture, restore, message, constraints } = superForm(
-		data.form || superValidateSync(createOrderFormSchema),
+	const { form, errors, enhance, capture, restore, message } = superForm(
+		data.form || createFormEmptySchema,
 		{
 			dataType: 'json',
 			autoFocusOnError: 'detect',
 			defaultValidator: 'clear',
 			validators: createOrderFormSchema,
 			taintedMessage: null,
+			onSubmit: () => {
+				$notificationStore = {
+					type: 'info',
+					title: 'Creating new order'
+				};
+			},
+			onError: ({ result }) => {
+				$notificationStore = {
+					type: 'error',
+					title: result.error.message
+				};
+			},
 			onResult: ({ result }) => {
 				if (result.type !== 'failure') {
 					isAddNewModalOpen = false;
+					$notificationStore = {
+						type: 'success',
+						title: 'Order created successfully'
+					};
 					return;
 				}
 			}
@@ -401,12 +429,12 @@
 		};
 	};
 
-	const openEditModal = (row: DataTableRow) => {
+	const openEditModal = (row: DataTableRow | null = null) => {
 		isEditModalOpen = true;
 		submitType = FormSubmitType.Edit;
+		if (!row) return;
 		$editForm = getEditFormData(row as OrderDataTable);
 	};
-
 	//#endregion
 </script>
 
@@ -484,7 +512,12 @@
 							bind:value="{searchQuery}"
 							shouldFilterRows="{filterTable}"
 							bind:filteredRowIds />
-						<Button icon="{Renew}" kind="secondary" iconDescription="Refresh" />
+						<Button
+							icon="{Pen}"
+							accesskey="r"
+							on:click="{openRevisionModal}"
+							kind="secondary"
+							iconDescription="Add revision" />
 						<Button icon="{Add}" accesskey="n" on:click="{openNewOrderModal}">Create New</Button>
 					</ToolbarContent>
 				</Toolbar>
@@ -547,7 +580,7 @@
 						id="name"
 						name="name"
 						bind:ref="{orderNameInput}"
-						on:blur="{setJobType}"
+						on:blur="{setPriceType}"
 						labelText="Order Name*"
 						invalid="{($errors?.order?.name?.length ?? 0) > 0}"
 						invalidText="{($errors?.order?.name ?? [''])[0]}"
@@ -653,8 +686,7 @@
 		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click="{onAddNewFormClear}" icon="{Close}">Clear</Button>
-			<Button kind="primary" type="submit" icon="{formSubmitIcon}" accesskey="s"
-				>{formTitle}</Button>
+			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>
 		</ModalFooter>
 	</form>
 </ComposedModal>
@@ -681,12 +713,42 @@
 		<ModalBody hasForm class="{$screenSizeStore == 'sm' ? 'mobile-form' : ''}">
 			<FormSubmissionError bind:error="{submissionError}" />
 			<Row>
+				<Column sm="{4}" md="{10}" lg="{16}">
+					{#if isRevisionModalOpen}
+						<ComboBox
+							id="orders"
+							titleText="Order"
+							placeholder="Select an order"
+							shouldFilterItem="{filterComboBoxItems}"
+							bind:selectedId="{revisionOrderId}"
+							on:select="{() => {
+								if (!tableData) return;
+
+								const row = tableData.find((order) => order.id == revisionOrderId);
+								if (!row) return;
+								const revisionData = clone(row);
+								revisionData.type = JobType.REVISION;
+								revisionData.name = `${row.name} (Rev.)`;
+								revisionData.price = '0';
+								revisionData.date = new Date().toISOString();
+								revisionData.status = JobStatus.PENDING;
+								$editForm = getEditFormData(revisionData);
+								$editErrors = clone(superValidateSync(editOrderFormSchema).errors);
+							}}"
+							items="{tableData?.map((row) => ({
+								id: row.id,
+								text: `${row.name} - ${row.client}`
+							}))}"
+							itemToString="{(item) => item?.text ?? ''}" />
+						<Row class="default-gap" />
+					{/if}
+				</Column>
 				<Column sm="{4}" md="{4}" lg="{10}">
 					<TextInput
 						id="name"
 						name="name"
 						bind:ref="{orderNameInput}"
-						on:blur="{setJobType}"
+						on:blur="{setPriceType}"
 						labelText="Order Name*"
 						invalid="{($editErrors?.order?.name?.length ?? 0) > 0}"
 						invalidText="{($editErrors?.order?.name ?? [''])[0]}"
@@ -715,6 +777,7 @@
 						placeholder="Select a client"
 						shouldFilterItem="{filterComboBoxItems}"
 						bind:selectedId="{$editForm.po.clientId}"
+						disabled="{isRevisionModalOpen}"
 						on:select="{() => setPrice($editForm.po.clientId)}"
 						items="{clients?.map((client) => ({ id: client.id, text: client.name }))}"
 						invalid="{($editErrors?.po?.clientId?.length ?? 0) > 0}"
@@ -766,6 +829,7 @@
 						id="type"
 						titleText="Type"
 						direction="top"
+						disabled="{isRevisionModalOpen}"
 						items="{Object.values(JobType).map((type) => ({ id: type, text: type }))}"
 						itemToString="{(item) => item?.text ?? ''}"
 						invalid="{($editErrors?.order?.type?.length ?? 0) > 0}"
@@ -785,8 +849,7 @@
 		</ModalBody>
 		<ModalFooter>
 			<Button kind="secondary" on:click="{onAddNewFormClear}" icon="{Close}">Clear</Button>
-			<Button kind="primary" type="submit" icon="{formSubmitIcon}" accesskey="s"
-				>{formTitle}</Button>
+			<Button kind="primary" type="submit" icon="{formSubmitIcon}">{formTitle}</Button>
 		</ModalFooter>
 	</form>
 </ComposedModal>

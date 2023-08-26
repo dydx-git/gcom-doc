@@ -23,6 +23,8 @@ export const settingsSchema = z.object({
 			showRecordsForLastDays: z.number(),
 		}),
 	}),
+	theme: z.enum(['light', 'dark']),
+	inputToProcessDelay: z.number()
 });
 
 export type Settings = z.infer<typeof settingsSchema>;
@@ -34,6 +36,8 @@ const settings = withDefaults(settingsSchema, {
 			showRecordsForLastDays: 40,
 		},
 	},
+	theme: 'light',
+	inputToProcessDelay: 500
 });
 
 export const defaultSettings: Settings = settings.parse({});

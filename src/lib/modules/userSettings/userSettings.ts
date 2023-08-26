@@ -14,7 +14,7 @@ export class UserSettings {
 			return defaultSettings;
 		const settings = data?.settings as Prisma.JsonObject;
 
-		UserSettings.settings = settingsSchema.parse(settings) ?? null;
+		UserSettings.settings = settingsSchema.parse(settings) ?? defaultSettings;
 
 		return UserSettings.settings;
 	}
